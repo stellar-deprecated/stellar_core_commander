@@ -6,11 +6,24 @@ module StellarCoreCommander
     attr_reader :working_dir
     attr_reader :base_port
     attr_reader :identity
+    attr_reader :pid
+    attr_reader :wait
 
     def initialize(working_dir, base_port, identity)
       @working_dir = working_dir
       @base_port   = base_port
       @identity    = identity
+
+      @server = Faraday.new(url: "http://127.0.0.1:#{http_port}") do |conn|
+        conn.request :url_encoded
+        conn.adapter Faraday.default_adapter
+      end
+    end
+
+    Contract None => Any
+    def forcescp
+      run_cmd "./stellar-core", ["--forcescp"]
+      raise "Could not set --forcescp" unless $?.success?
     end
 
     Contract None => Any
@@ -57,28 +70,43 @@ module StellarCoreCommander
 
     Contract None => Num
     def run
-      # launch process, return pid
+      raise "already running!" if running?
+
+      forcescp
+      launch_stellar_core
     end
 
     Contract None => Bool
     def running?
-      # signal the pid we have, see if it's running
+      return false unless @pid
+      ::Process.kill 0, @pid
+      true
+    rescue Errno::ESRCH
+      false
     end
 
     Contract Bool => Bool
     def shutdown(graceful=true)
-      # if graceful, send term
-      # else, send KILL
+      return true if !running?
+
+      if graceful
+        ::Process.kill "INT", @pid
+      else
+        ::Process.kill "KILL", @pid
+      end
+
+      @wait.value.success?
     end
 
     Contract None => Bool
     def close_ledger
-      # send manual close
+      @server.get("manualclose")
     end
 
-    Contract String => Bool
+    Contract String => Any
     def submit_transaction(envelope_hex)
-      
+      response = @server.get("tx", blob: envelope_hex)
+      # TODO
     end
 
     Contract None => Any
@@ -117,6 +145,18 @@ module StellarCoreCommander
     def run_cmd(cmd, args)
       Dir.chdir @working_dir do
         system(cmd, *args)
+      end
+    end
+
+    def launch_stellar_core
+      Dir.chdir @working_dir do
+        sin, sout, wait = Open3.popen2("./stellar-core", {
+          # out: "/dev/null" 
+          # err: "/dev/null"
+        })
+
+        @wait = wait
+        @pid = wait.pid
       end
     end
 

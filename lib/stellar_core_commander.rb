@@ -2,6 +2,10 @@ require "stellar_core_commander/version"
 require "active_support/all"
 require "stellar-base"
 require "contracts"
+require "faraday"
+require "faraday_middleware"
+require "fileutils"
+require "open3"
 
 module StellarCoreCommander
   extend ActiveSupport::Autoload
