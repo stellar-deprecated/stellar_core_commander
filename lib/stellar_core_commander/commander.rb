@@ -38,29 +38,5 @@ module StellarCoreCommander
       end
     end
 
-    private
-    Contract Num, Stellar::KeyPair, String => String
-    def config_file(base_port, identity, dsn)
-      <<-EOS.strip_heredoc
-        MANUAL_CLOSE=true
-        PEER_PORT=#{base_port + 1}
-        RUN_STANDALONE=false
-        HTTP_PORT=#{base_port}
-        PUBLIC_HTTP_PORT=false
-        PEER_SEED="#{identity.seed}"
-        VALIDATION_SEED="#{identity.seed}"
-        QUORUM_THRESHOLD=1
-        QUORUM_SET=["#{identity.address}"]
-        DATABASE="#{dsn}"
-
-        COMMANDS=["ll?level=trace"]
-
-        [HISTORY.main]
-        get="cp history/main/{0} {1}"
-        put="cp {0} history/main/{1}"
-        mkdir="mkdir -p history/main/{0}"
-      EOS
-    end
-
   end
 end
