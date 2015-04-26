@@ -118,9 +118,27 @@ module StellarCoreCommander
 
     Contract None => Bool
     def close_ledger
-      # TODO: check latest ledger
+      prev_ledger = latest_ledger
+      next_ledger = prev_ledger + 1
+
       @server.get("manualclose")
-      # TODO: ensure ledger incremented
+
+      Timeout.timeout(5.0) do 
+        loop do
+          current_ledger = latest_ledger
+
+          case
+          when current_ledger == next_ledger
+            break
+          when current_ledger > next_ledger
+            raise "whoa! we jumped two ledgers, from #{prev_ledger} to #{current_ledger}"
+          else
+            $stderr.puts "waiting for ledger #{next_ledger}"
+            sleep 0.5
+          end
+        end
+      end
+      
       true
     end
 
@@ -135,6 +153,12 @@ module StellarCoreCommander
     def sequence_for(account)
       row = database[:accounts].where(:accountid => account.address).first
       row[:seqnum]
+    end
+
+
+    Contract None => Num
+    def latest_ledger
+      database[:ledgerheaders].max(:ledgerseq)
     end
 
     Contract None => Any
