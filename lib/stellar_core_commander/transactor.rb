@@ -55,12 +55,41 @@ module StellarCoreCommander
       from = get_account from
       to   = get_account to
 
+      if amount.first != :native
+        amount    = [:iso4217] + amount
+        amount[2] = get_account(amount[2])
+        amount[1] = amount[1].ljust(4, "\x00")
+      end
+
       envelope = Stellar::Transaction.payment({
         account:     from,
         destination: to,
         sequence:    next_sequence(from),
         amount:      amount,
       }).to_envelope(from)
+
+      submit_transaction envelope
+    end
+
+    Contract Symbol, Symbol, String => Any
+    def trust(account, issuer, code)
+      change_trust account, issuer, code, (2**63)-1
+    end    
+
+    Contract Symbol, Symbol, String, Num => Any
+    def change_trust(account, issuer, code, limit)
+      account = get_account account
+      issuer  = get_account issuer
+      code    = code.ljust(4, "\x00")
+
+      tx = Stellar::Transaction.change_trust({
+        account:  account,
+        sequence: next_sequence(account),
+        line:     [:iso4217, code, issuer],
+        limit:    limit
+      })
+
+      envelope = tx.to_envelope(account)
 
       submit_transaction envelope
     end
