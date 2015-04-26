@@ -20,6 +20,7 @@ def run
   process.run
   process.wait_for_ready
   transactor.run_recipe recipe
+  transactor.close_ledger
 
   output_results(process)
 end

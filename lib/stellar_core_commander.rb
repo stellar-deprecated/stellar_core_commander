@@ -15,4 +15,6 @@ module StellarCoreCommander
   autoload :Commander
   autoload :Process
   autoload :Transactor
+
+  autoload :Convert
 end

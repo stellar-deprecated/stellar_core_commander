@@ -13,8 +13,9 @@ module StellarCoreCommander
 
     Contract Process => Any
     def initialize(process)
-      @process = process
-      @named = {}
+      @process    = process
+      @named      = {}.with_indifferent_access
+      @unverified = []
       account :master, Stellar::KeyPair.from_raw_seed("allmylifemyhearthasbeensearching")
     end
 
@@ -51,7 +52,29 @@ module StellarCoreCommander
 
     Contract Symbol, Symbol, Amount => Any
     def payment(from, to, amount)
-      $stderr.puts "making payment from #{from} to #{to} for #{amount.inspect}"
+
+      from, to = @named.values_at(from, to)
+
+      unless from.is_a?(Stellar::KeyPair)
+        raise ArgumentError, "#{from.inspect} is not account"
+      end
+
+      unless to.is_a?(Stellar::KeyPair)
+        raise ArgumentError, "#{to.inspect} is not account"
+      end
+
+      base_sequence  = @process.sequence_for(from)
+      inflight_count = @unverified.select{|e| e.tx.source_account == from.public_key}.length
+      sequence       = base_sequence + inflight_count + 1
+
+      envelope = Stellar::Transaction.payment({
+        account:     from,
+        destination: to,
+        sequence:    sequence,
+        amount:      amount,
+      }).to_envelope(from)
+
+      submit_transaction envelope
     end
 
     Contract None => Any
@@ -67,12 +90,21 @@ module StellarCoreCommander
     private
     Contract Symbol, Any => Any
     def add_named(name, object)
-      name = name.to_s
       if @named.has_key?(name)
         raise ArgumentError, "#{name} is already registered"
       end
 
       @named[name] = object
     end
+
+    Contract Stellar::TransactionEnvelope => Any
+    def submit_transaction(envelope)
+      hex    = envelope.to_xdr(:hex)
+      @process.submit_transaction hex
+
+      # submit to process
+      @unverified << envelope
+    end
+
   end
 end
