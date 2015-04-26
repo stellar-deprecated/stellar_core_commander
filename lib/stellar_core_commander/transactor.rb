@@ -52,25 +52,13 @@ module StellarCoreCommander
 
     Contract Symbol, Symbol, Amount => Any
     def payment(from, to, amount)
-
-      from, to = @named.values_at(from, to)
-
-      unless from.is_a?(Stellar::KeyPair)
-        raise ArgumentError, "#{from.inspect} is not account"
-      end
-
-      unless to.is_a?(Stellar::KeyPair)
-        raise ArgumentError, "#{to.inspect} is not account"
-      end
-
-      base_sequence  = @process.sequence_for(from)
-      inflight_count = @unverified.select{|e| e.tx.source_account == from.public_key}.length
-      sequence       = base_sequence + inflight_count + 1
+      from = get_account from
+      to   = get_account to
 
       envelope = Stellar::Transaction.payment({
         account:     from,
         destination: to,
-        sequence:    sequence,
+        sequence:    next_sequence(from),
         amount:      amount,
       }).to_envelope(from)
 
@@ -85,6 +73,7 @@ module StellarCoreCommander
     def close_ledger
       @process.close_ledger
       # TODO: validate in-flight transactions
+      @unverified.clear
     end
 
     private
@@ -104,6 +93,23 @@ module StellarCoreCommander
 
       # submit to process
       @unverified << envelope
+    end
+
+    Contract Symbol => Stellar::KeyPair
+    def get_account(name)
+      @named[name].tap do |found|
+        unless found.is_a?(Stellar::KeyPair)
+          raise ArgumentError, "#{name.inspect} is not account"
+        end
+      end
+    end
+
+    Contract Stellar::KeyPair => Num
+    def next_sequence(account)
+      base_sequence  = @process.sequence_for(account)
+      inflight_count = @unverified.select{|e| e.tx.source_account == account.public_key}.length
+      
+      base_sequence + inflight_count + 1
     end
 
   end
