@@ -1,0 +1,69 @@
+#!/usr/bin/env ruby
+
+require 'stellar_core_commander'
+require 'slop'
+
+def run
+  $opts = Slop.parse do
+    banner 'Usage: scc -r RECIPE'
+    
+    on 'stellar-core-bin', 'a path to a stellar-core executable (default to `which stellar-core`)', argument: true
+    on 'r', 'recipe', 'a recipe file', argument: true #, required: true
+  end
+
+  recipe    = load_recipe
+  commander = make_commander
+  process   = commander.make_process
+
+  #run recipe
+  transactor = StellarCoreCommander::Transactor.new(process)
+  process.run
+  process.wait_for_ready
+  transactor.run_recipe recipe
+
+  output_results(process)
+end
+
+
+def make_commander
+  stellar_core_bin = $opts[:"stellar-core-bin"]
+
+  if stellar_core_bin.blank?
+    search = `which stellar-core`.strip
+
+    if $?.success?
+      stellar_core_bin = search
+    else
+      $stderr.puts "Could not find a `stellar-core` binary, please use --stellar-core-bin to specify"
+      exit 1
+    end
+  end
+
+  StellarCoreCommander::Commander.new(stellar_core_bin).tap do |c|
+    c.cleanup_at_exit!
+  end
+end
+
+def load_recipe
+  recipe = $opts[:recipe]
+
+  if recipe.blank?
+    $stderr.puts $opts
+    exit 1
+  end
+
+  unless File.exist?(recipe)
+    $stderr.puts "not found: #{recipe}"
+    exit 1
+  end
+
+  recipe
+end
+
+def output_results(process)
+  $stdout.puts process.dump_database
+end
+
+run
+
+ 

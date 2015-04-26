@@ -76,6 +76,24 @@ module StellarCoreCommander
       launch_stellar_core
     end
 
+
+    Contract None => Any
+    def wait_for_ready
+      loop do
+
+        response = @server.get("/info") rescue false
+
+        if response
+          body = ActiveSupport::JSON.decode(response.body)
+
+          break if body["info"]["state"] == "Synced!"
+        end
+
+        $stderr.puts "waiting until stellar-core is synced"
+        sleep 1
+      end
+    end
+
     Contract None => Bool
     def running?
       return false unless @pid
@@ -100,7 +118,10 @@ module StellarCoreCommander
 
     Contract None => Bool
     def close_ledger
+      # TODO: check latest ledger
       @server.get("manualclose")
+      # TODO: ensure ledger incremented
+      true
     end
 
     Contract String => Any
@@ -111,8 +132,16 @@ module StellarCoreCommander
 
     Contract None => Any
     def cleanup
+      shutdown
       drop_database
       rm_working_dir
+    end
+
+    Contract None => Any
+    def dump_database
+      Dir.chdir(@working_dir) do
+        `pg_dump #{database_name} --clean --no-owner`
+      end
     end
 
     Contract None => String
@@ -143,6 +172,11 @@ module StellarCoreCommander
 
     Contract String, ArrayOf[String] => Maybe[Bool]
     def run_cmd(cmd, args)
+      args += [{
+          out: "stellar-core.log", 
+          err: "stellar-core.log",
+        }]
+
       Dir.chdir @working_dir do
         system(cmd, *args)
       end
@@ -150,10 +184,11 @@ module StellarCoreCommander
 
     def launch_stellar_core
       Dir.chdir @working_dir do
-        sin, sout, wait = Open3.popen2("./stellar-core", {
-          # out: "/dev/null" 
-          # err: "/dev/null"
-        })
+        sin, sout, serr, wait = Open3.popen3("./stellar-core")
+
+        # throwaway stdout, stderr (the logs will record any output)
+        Thread.new{ until (line = sout.gets).nil? ; end }
+        Thread.new{ until (line = serr.gets).nil? ; end }
 
         @wait = wait
         @pid = wait.pid

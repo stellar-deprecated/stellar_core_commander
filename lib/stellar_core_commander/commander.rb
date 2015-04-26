@@ -33,7 +33,7 @@ module StellarCoreCommander
 
     def cleanup_at_exit!
       at_exit do
-        puts "cleaning up #{@processes.length} processes"
+        $stderr.puts "cleaning up #{@processes.length} processes"
         cleanup
       end
     end

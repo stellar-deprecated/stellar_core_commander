@@ -12,5 +12,5 @@ module StellarCoreCommander
 
   autoload :Commander
   autoload :Process
-  autoload :WorkingDir
+  autoload :Transactor
 end
