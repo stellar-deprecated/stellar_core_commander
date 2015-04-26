@@ -7,7 +7,5 @@ cmd = StellarCoreCommander::Commander.new(bin)
 cmd.cleanup_at_exit!
 p1 = cmd.make_process
 
-puts p1.working_dir
-p1.run
 
 binding.pry

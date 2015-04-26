@@ -130,8 +130,16 @@ module StellarCoreCommander
       # TODO
     end
 
+
+    Contract Stellar::KeyPair => Num
+    def sequence_for(account)
+      row = database[:accounts].where(:accountid => account.address).first
+      row[:seqnum]
+    end
+
     Contract None => Any
     def cleanup
+      database.disconnect
       shutdown
       drop_database
       rm_working_dir
@@ -142,6 +150,12 @@ module StellarCoreCommander
       Dir.chdir(@working_dir) do
         `pg_dump #{database_name} --clean --no-owner`
       end
+    end
+
+
+    Contract None => Sequel::Database
+    def database
+      @database ||= Sequel.postgres(database_name)
     end
 
     Contract None => String
