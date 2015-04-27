@@ -16,9 +16,10 @@ module StellarCoreCommander
 
     Contract None => Process
     def make_process
-      tmpdir        = Dir.mktmpdir
+      tmpdir = Dir.mktmpdir("scc")
+
       identity      = Stellar::KeyPair.random
-      base_port     = 39132
+      base_port     = 39132 + (@processes.length * 2)
 
       FileUtils.cp(@stellar_core_bin, "#{tmpdir}/stellar-core")
       Process.new(tmpdir, base_port, identity).tap do |p|
