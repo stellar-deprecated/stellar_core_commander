@@ -22,6 +22,18 @@ Or install it yourself as:
 
     $ gem install stellar_core_commander
 
+## Assumptions about environment
+
+At present `scc` makes a few assumptions about the environment it runs in that you should be aware.  In the event that your own environment differs from the below assumptions, `scc` will definitely break.
+
+1.  Postgresql is installed locally and `pg_dump`, `createdb` and `dropdb` are available on your PATH
+2.  The `which` command is available on your system.
+3.  Postgresql is running and the current user has passwordless access to it.  Running `psql postgres -c "\l"` should confirm you're setup correctly.
+4.  Your current user has access to create and drop postgres databases.  Test using: `createdb foobar && dropdb foobar`
+5.  A working `stellar-core` binary is available on your path (or specified using the `--stellar-core-bin` flag)
+6.  Your system has libsodium installed
+
+
 ## Usage As Command Line Tool
 
 Installing `stellar_core_commander` installs the command line tool `scc`. `scc`
