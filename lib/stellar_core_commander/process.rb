@@ -169,6 +169,12 @@ module StellarCoreCommander
       database[:ledgerheaders].max(:ledgerseq)
     end
 
+    Contract String => String
+    def transaction_result(hex_hash)
+      row = database[:txhistory].where(txid:hex_hash).first
+      row[:txresult]
+    end
+
     Contract None => Any
     def cleanup
       database.disconnect
