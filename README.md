@@ -3,7 +3,7 @@
 A helper gem for scripting a [stellar-core](https://github.com/stellar/stellar-core).  This gem provides a system of creating isolated test networks into which you can play
 transactions and record results.
 
-The motivation for this project comes from the testing needs of [horizon](https://github.com/stellar/horizon).  Horizon uses this `scc` to record the various testing scenarios its suite uses.
+The motivation for this project comes from the testing needs of [horizon](https://github.com/stellar/horizon).  Horizon uses `scc` to record the various testing scenarios that its suite uses.
 
 
 ## Installation
@@ -25,7 +25,7 @@ Or install it yourself as:
 ## Usage As Command Line Tool
 
 Installing `stellar_core_commander` installs the command line tool `scc`. `scc`
-takes a recipe file, spins up a test network, plays the defined transactions against, then dumps the ledger database to stdout.  `scc`'s usage is like so:
+takes a recipe file, spins up a test network, plays the defined transactions against it, then dumps the ledger database to stdout.  `scc`'s usage is like so:
 
 ```bash
 $ scc -r my_recipe.rb > out.sql
