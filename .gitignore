@@ -13,3 +13,4 @@
 *.a
 mkmf.log
 out.sql
+.DS_Store

@@ -14,6 +14,11 @@ module StellarCoreCommander
     Currency = [String, Symbol]
     Amount = Any #TODO
 
+    OfferCurrencies = Or[
+      {sell:Currency, for: Currency},
+      {buy:Currency, with: Currency},
+    ]
+
     Contract Process => Any
     def initialize(process)
       @process    = process
@@ -104,11 +109,19 @@ module StellarCoreCommander
       submit_transaction envelope
     end
 
-    Contract Symbol, Symbol, Currency, Currency, Num, Num => Any
-    def offer(name, account, taker_gets, taker_pays, amount, price)
+
+
+    Contract Symbol, Symbol, OfferCurrencies, Num, Num => Any
+    def offer(name, account, currencies, amount, price)
       account    = get_account account
-      taker_gets = make_currency taker_gets
-      taker_pays = make_currency taker_pays
+
+      if currencies.has_key?(:sell)
+        taker_pays = make_currency currencies[:for]
+        taker_gets = make_currency currencies[:sell]
+      else
+        taker_pays = make_currency currencies[:buy]
+        taker_gets = make_currency currencies[:with]
+      end
 
       tx = Stellar::Transaction.create_offer({
         account:  account,
@@ -118,7 +131,7 @@ module StellarCoreCommander
         amount: amount,
         price: price,
       })
-
+      
       envelope = tx.to_envelope(account)
 
       submit_transaction envelope do |result|
@@ -147,8 +160,8 @@ module StellarCoreCommander
           result = validate_transaction envelope
           after_confirmation.call(result) if after_confirmation
         rescue FailedTransaction
-          require 'pry'; binding.pry
           $stderr.puts "Failed to validate tx: #{Convert.to_hex envelope.tx.hash}"
+          $stderr.puts "failed result: #{result.to_xdr(:hex)}"
           exit 1
         end
       end

@@ -27,8 +27,8 @@ payment :eur_gateway, :bartek, ["EUR", :eur_gateway, 1000_000000]
 
 close_ledger
 
-offer :offer_1, :andrew, ["EUR", :eur_gateway], ["USD", :usd_gateway], 200_000000, 1.0
+offer :offer_1, :andrew, {buy:["USD", :usd_gateway], with:["EUR", :eur_gateway]}, 200_000000, 1.0
 
 close_ledger
 
-payment :scott, :bartek, ["EUR", :eur_gateway, 10], path: [["USD", :usd_gateway], ["EUR", :eur_gateway]]
+payment :scott, :bartek, ["EUR", :eur_gateway, 10], path: [["USD", :usd_gateway]]
