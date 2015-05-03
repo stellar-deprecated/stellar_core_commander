@@ -105,6 +105,13 @@ module StellarCoreCommander
       envelope = @operation_builder.set_flags(*args)
       submit_transaction envelope
     end
+    
+    # 
+    # @see StellarCoreCommander::OperationBuilder#allow_trust
+    def allow_trust(*args)
+      envelope = @operation_builder.allow_trust(*args)
+      submit_transaction envelope
+    end 
 
     Contract None => Any
     # 

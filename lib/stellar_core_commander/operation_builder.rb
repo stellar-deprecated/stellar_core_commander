@@ -60,14 +60,17 @@ module StellarCoreCommander
 
     Contract Symbol, Symbol, String, Num => Any
     def allow_trust(account, trustor, code)
+      currency = make_currency([code, account])
       account = get_account account
       trustor = get_account trustor
+      
 
       Stellar::Transaction.allow_trust({
         account:  account,
         sequence: next_sequence(account),
-        currency: make_currency([code, account]),
-        trustor:  trustor
+        currency: currency,
+        trustor:  trustor,
+        authorize: true,
       }).to_envelope(account)
     end
 
