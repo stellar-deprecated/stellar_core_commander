@@ -92,6 +92,20 @@ module StellarCoreCommander
       end
     end
 
+    # 
+    # @see StellarCoreCommander::OperationBuilder#require_trust_auth
+    def require_trust_auth(*args)
+      envelope = @operation_builder.require_trust_auth(*args)
+      submit_transaction envelope
+    end 
+
+    # 
+    # @see StellarCoreCommander::OperationBuilder#set_flags
+    def set_flags(*args)
+      envelope = @operation_builder.set_flags(*args)
+      submit_transaction envelope
+    end
+
     Contract None => Any
     # 
     # Triggers a ledger close.  Any unvalidated transaction will

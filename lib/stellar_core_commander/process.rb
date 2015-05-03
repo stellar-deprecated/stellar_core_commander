@@ -148,7 +148,7 @@ module StellarCoreCommander
       body = ActiveSupport::JSON.decode(response.body)
 
       unless body["wasReceived"] == true
-        raise "transaction failed: #{body["result"]}"
+        raise "transaction failed: #{body.inspect}"
       end
 
       hex_tr = body["result"]

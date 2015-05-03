@@ -94,6 +94,24 @@ module StellarCoreCommander
     end
 
 
+    Contract Symbol => Any
+    def require_trust_auth(account)
+      set_flags account, [:auth_required_flag]
+    end 
+
+    Contract Symbol, ArrayOf[Symbol] => Any
+    def set_flags(account, flags)
+      account = get_account account
+
+      tx = Stellar::Transaction.set_options({
+        account:  account,
+        sequence: next_sequence(account),
+        set:      make_account_flags(flags),
+      })
+
+      tx.to_envelope(account)
+    end  
+
     private
 
     delegate :get_account, to: :@transactor
@@ -110,8 +128,7 @@ module StellarCoreCommander
 
     def make_account_flags(flags=nil)
       flags ||= []
-      flags = flags.map{|f| Stellar::AccountFlags.send(f)}
-      Stellar::AccountFlags.make_mask flags
+      flags.map{|f| Stellar::AccountFlags.send(f)}
     end
 
   end
