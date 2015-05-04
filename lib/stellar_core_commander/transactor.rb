@@ -78,18 +78,9 @@ module StellarCoreCommander
 
     # 
     # @see StellarCoreCommander::OperationBuilder#offer
-    def offer(name, *args)
+    def offer(*args)
       envelope = @operation_builder.offer(*args)
-
-      submit_transaction envelope do |result|
-        offer = begin
-          co_result = result.result.results!.first.tr!.create_offer_result!
-          co_result.success!.offer.offer!
-        rescue
-          raise FailedTransaction, "Could not extract offer from result:#{result.to_xdr(:base64)}"
-        end
-        add_named name, offer
-      end
+      submit_transaction envelope
     end
 
     # 
@@ -180,12 +171,19 @@ module StellarCoreCommander
 
       base64_result = @process.transaction_result(hex_hash)
       
-      raise "couldn't fine result for #{hex_hash}" if base64_result.blank?
+      raise "couldn't find result for #{hex_hash}" if base64_result.blank?
       
       raw_result = Convert.from_base64(base64_result)
 
       pair = Stellar::TransactionResultPair.from_xdr(raw_result)
-      pair.result
+      result = pair.result
+
+      # ensure success for every operation
+      expected = Stellar::TransactionResultCode.tx_success
+      actual = result.result.code
+      raise "transaction failed" unless expected == actual
+
+      result
     end
 
   end
