@@ -181,7 +181,7 @@ module StellarCoreCommander
       # ensure success for every operation
       expected = Stellar::TransactionResultCode.tx_success
       actual = result.result.code
-      raise "transaction failed" unless expected == actual
+      raise "transaction failed: #{base64_result}" unless expected == actual
 
       result
     end
