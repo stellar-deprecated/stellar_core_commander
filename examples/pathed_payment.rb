@@ -1,3 +1,5 @@
+# DOES NOT YET WORK WITH LATEST TRANSACTION TYPES
+
 account :usd_gateway
 account :eur_gateway
 account :scott

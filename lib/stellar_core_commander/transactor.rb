@@ -63,6 +63,13 @@ module StellarCoreCommander
     end
 
     # 
+    # @see StellarCoreCommander::OperationBuilder#create_account
+    def create_account(*args)
+      envelope = @operation_builder.create_account(*args)
+      submit_transaction envelope
+    end 
+
+    # 
     # @see StellarCoreCommander::OperationBuilder#trust
     def trust(*args)
       envelope = @operation_builder.trust(*args)
@@ -141,7 +148,7 @@ module StellarCoreCommander
     def next_sequence(account)
       base_sequence  = @process.sequence_for(account)
       inflight_count = @unverified.select{|e| e.first.tx.source_account == account.public_key}.length
-      
+
       base_sequence + inflight_count + 1
     end
 

@@ -34,12 +34,26 @@ module StellarCoreCommander
         amount:      amount,
       }
 
-      if options[:path]
-        attrs[:path] = options[:path].map{|p| make_currency p}
-      end
+      # TODO: Fix pathed payments
+      # if options[:path]
+      #   attrs[:path] = options[:path].map{|p| make_currency p}
+      # end
 
       Stellar::Transaction.payment(attrs).to_envelope(from)
     end
+
+    Contract Symbol, Symbol, Num => Any
+    def create_account(account, funder=:master, starting_balance=1000_0000000)
+      account = get_account account
+      funder  = get_account funder
+
+      Stellar::Transaction.create_account({
+        account:          funder,
+        destination:      account,
+        sequence:         next_sequence(funder),
+        starting_balance: starting_balance,
+      }).to_envelope(funder)
+    end 
 
     Contract Symbol, Symbol, String => Any
     def trust(account, issuer, code)
