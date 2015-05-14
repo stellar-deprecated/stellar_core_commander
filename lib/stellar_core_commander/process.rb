@@ -142,18 +142,15 @@ module StellarCoreCommander
       true
     end
 
-    Contract String => Stellar::TransactionResult
+    Contract String => Any
     def submit_transaction(envelope_hex)
       response = @server.get("tx", blob: envelope_hex)
       body = ActiveSupport::JSON.decode(response.body)
 
-      unless body["wasReceived"] == true
+      if body["status"] == "ERROR"
         raise "transaction failed: #{body.inspect}"
       end
 
-      hex_tr = body["result"]
-      raw_tr = Convert.from_hex(hex_tr)
-      Stellar::TransactionResult.from_xdr(raw_tr)
     end
 
 
