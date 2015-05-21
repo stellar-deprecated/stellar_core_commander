@@ -3,7 +3,10 @@ module StellarCoreCommander
   class OperationBuilder
     include Contracts
 
-    Currency = [String, Symbol]
+    Currency = Or[
+      [String, Symbol],
+      :native
+    ]
     Amount = Any #TODO
 
     OfferCurrencies = Or[
@@ -136,8 +139,12 @@ module StellarCoreCommander
     delegate :get_account, to: :@transactor
     delegate :next_sequence, to: :@transactor
 
-    Contract Currency => [Symbol, String, Stellar::KeyPair]
+    Contract Currency => Or[[Symbol, String, Stellar::KeyPair], [:native]]
     def make_currency(input)
+      if input == :native
+        return [:native]
+      end
+
       code, issuer = *input
       code = code.ljust(4, "\x00")
       issuer = get_account issuer

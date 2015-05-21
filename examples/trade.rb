@@ -3,11 +3,10 @@ account :eur_gateway
 account :scott
 account :bartek
 
-payment :master, :usd_gateway, [:native, 1000_000000]
-payment :master, :eur_gateway, [:native, 1000_000000]
-
-payment :master, :scott, [:native, 1000_000000]
-payment :master, :bartek, [:native, 1000_000000]
+create_account :usd_gateway, :master, 1000_000000
+create_account :eur_gateway, :master, 1000_000000
+create_account :scott,       :master, 1000_000000
+create_account :bartek,      :master, 1000_000000
 
 close_ledger
 
@@ -29,3 +28,4 @@ close_ledger
 
 offer :scott, {sell:["USD", :usd_gateway], for:["EUR", :eur_gateway]}, 500_000000, 1.0
 
+offer :scott, {sell:["USD", :usd_gateway], for: :native}, 500_000000, 1.0
