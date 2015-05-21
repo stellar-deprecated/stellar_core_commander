@@ -56,12 +56,12 @@ module StellarCoreCommander
         sequence:         next_sequence(funder),
         starting_balance: starting_balance,
       }).to_envelope(funder)
-    end 
+    end
 
     Contract Symbol, Symbol, String => Any
     def trust(account, issuer, code)
       change_trust account, issuer, code, (2**63)-1
-    end    
+    end
 
     Contract Symbol, Symbol, String, Num => Any
     def change_trust(account, issuer, code, limit)
@@ -73,14 +73,14 @@ module StellarCoreCommander
         line:     make_currency([code, issuer]),
         limit:    limit
       }).to_envelope(account)
-    end  
+    end
 
     Contract Symbol, Symbol, String, Num => Any
     def allow_trust(account, trustor, code)
       currency = make_currency([code, account])
       account = get_account account
       trustor = get_account trustor
-      
+
 
       Stellar::Transaction.allow_trust({
         account:  account,
@@ -112,14 +112,14 @@ module StellarCoreCommander
         taker_pays: taker_pays,
         amount: amount,
         price: price,
-      }).to_envelope(account)      
+      }).to_envelope(account)
     end
 
 
     Contract Symbol => Any
     def require_trust_auth(account)
       set_flags account, [:auth_required_flag]
-    end 
+    end
 
     Contract Symbol, ArrayOf[Symbol] => Any
     def set_flags(account, flags)
@@ -132,7 +132,7 @@ module StellarCoreCommander
       })
 
       tx.to_envelope(account)
-    end  
+    end
 
     private
 
