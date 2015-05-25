@@ -11,7 +11,7 @@ module StellarCoreCommander
 
     class FailedTransaction < StandardError ; end
 
-    Contract Process => Any
+    Contract Or[Process, DockerProcess] => Any
     def initialize(process)
       @process    = process
       @named      = {}.with_indifferent_access

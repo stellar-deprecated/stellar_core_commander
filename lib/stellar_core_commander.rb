@@ -14,6 +14,7 @@ module StellarCoreCommander
 
   autoload :Commander
   autoload :Process
+  autoload :DockerProcess
   autoload :Transactor
   autoload :OperationBuilder
 
