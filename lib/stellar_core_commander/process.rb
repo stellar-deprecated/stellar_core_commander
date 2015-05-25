@@ -124,9 +124,9 @@ module StellarCoreCommander
     Contract String, ArrayOf[String] => Maybe[Bool]
     def run_cmd(cmd, args)
       args += [{
-                   out: "stellar-core.log",
-                   err: "stellar-core.log",
-               }]
+          out: "stellar-core.log",
+          err: "stellar-core.log",
+        }]
 
       Dir.chdir working_dir do
         system(cmd, *args)
