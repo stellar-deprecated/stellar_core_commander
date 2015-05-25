@@ -14,7 +14,7 @@ module StellarCoreCommander
       @processes = []
     end
 
-    Contract String => Or[Process, DockerProcess]
+    Contract String => Process
     def make_process(type)
       tmpdir = Dir.mktmpdir("scc")
 
@@ -23,7 +23,7 @@ module StellarCoreCommander
 
       if type == 'local'
         FileUtils.cp(@stellar_core_bin, "#{tmpdir}/stellar-core")
-        process = Process.new(tmpdir, base_port, identity)
+        process = LocalProcess.new(tmpdir, base_port, identity)
       elsif type == 'docker'
         process = DockerProcess.new(tmpdir, base_port, identity)
       else

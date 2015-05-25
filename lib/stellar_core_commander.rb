@@ -13,8 +13,11 @@ module StellarCoreCommander
   extend ActiveSupport::Autoload
 
   autoload :Commander
+
   autoload :Process
+  autoload :LocalProcess
   autoload :DockerProcess
+
   autoload :Transactor
   autoload :OperationBuilder
 

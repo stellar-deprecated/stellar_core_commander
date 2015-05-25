@@ -1,60 +1,78 @@
-require 'uri'
-require 'securerandom'
-
 module StellarCoreCommander
 
-  class DockerProcess < Process
+  class LocalProcess < Process
     include Contracts
 
     attr_reader :working_dir
     attr_reader :base_port
     attr_reader :identity
-    attr_reader :server
+    attr_reader :pid
+    attr_reader :wait
 
     def initialize(working_dir, base_port, identity)
       @working_dir = working_dir
       @base_port   = base_port
       @identity    = identity
 
-      @server = Faraday.new(url: "http://#{docker_host}:#{http_port}") do |conn|
+      @server = Faraday.new(url: "http://127.0.0.1:#{http_port}") do |conn|
         conn.request :url_encoded
         conn.adapter Faraday.default_adapter
       end
     end
 
     Contract None => Any
-    def launch_state_container
-      run_cmd "docker", %W(run --name #{state_container_name} -p #{postgres_port}:5432 --env-file stellar-core.env -d stellar/stellar-core-state)
-      raise "Could not create state container" unless $?.success?
+    def forcescp
+      run_cmd "./stellar-core", ["--forcescp"]
+      raise "Could not set --forcescp" unless $?.success?
     end
 
     Contract None => Any
-    def shutdown_state_container
-      run_cmd "docker", %W(rm -f -v #{state_container_name})
+    def initialize_history
+      run_cmd "./stellar-core", ["--newhist", "main"]
+      raise "Could not initialize history" unless $?.success?
+    end
+
+    Contract None => Any
+    def initialize_database
+      run_cmd "./stellar-core", ["--newdb"]
+      raise "Could not initialize db" unless $?.success?
+    end
+
+    Contract None => Any
+    def create_database
+      run_cmd "createdb", [database_name]
+      raise "Could not create db: #{database_name}" unless $?.success?
+    end
+
+    Contract None => Any
+    def drop_database
+      run_cmd "dropdb", [database_name]
       raise "Could not drop db: #{database_name}" unless $?.success?
     end
 
     Contract None => Any
     def write_config
-      IO.write("#{working_dir}/.pgpass", "#{docker_host}:#{postgres_port}:*:#{database_user}:#{database_password}")
-      FileUtils.chmod(0600, "#{working_dir}/.pgpass")
-      IO.write("#{working_dir}/stellar-core.env", config)
+      IO.write("#{@working_dir}/stellar-core.cfg", config)
     end
 
     Contract None => Any
     def rm_working_dir
-      FileUtils.rm_rf working_dir
+      FileUtils.rm_rf @working_dir
     end
 
     Contract None => Any
     def setup
       write_config
-      launch_state_container
+      create_database
+      initialize_history
+      initialize_database
     end
 
-    Contract None => nil
+    Contract None => Num
     def run
       raise "already running!" if running?
+
+      forcescp
       launch_stellar_core
     end
 
@@ -63,7 +81,7 @@ module StellarCoreCommander
     def wait_for_ready
       loop do
 
-        response = server.get("/info") rescue false
+        response = @server.get("/info") rescue false
 
         if response
           body = ActiveSupport::JSON.decode(response.body)
@@ -78,15 +96,24 @@ module StellarCoreCommander
 
     Contract None => Bool
     def running?
-      run_cmd "docker", %W(inspect #{container_name})
-      $?.success?
+      return false unless @pid
+      ::Process.kill 0, @pid
+      true
+    rescue Errno::ESRCH
+      false
     end
 
-    Contract None => Any
-    def shutdown
-      return true unless running?
+    Contract Bool => Bool
+    def shutdown(graceful=true)
+      return true if !running?
 
-      run_cmd "docker", %W(rm -f #{container_name})
+      if graceful
+        ::Process.kill "INT", @pid
+      else
+        ::Process.kill "KILL", @pid
+      end
+
+      @wait.value.success?
     end
 
     Contract None => Bool
@@ -94,9 +121,9 @@ module StellarCoreCommander
       prev_ledger = latest_ledger
       next_ledger = prev_ledger + 1
 
-      server.get("manualclose")
+      @server.get("manualclose")
 
-      Timeout.timeout(10.0) do
+      Timeout.timeout(5.0) do 
         loop do
           current_ledger = latest_ledger
 
@@ -117,7 +144,7 @@ module StellarCoreCommander
 
     Contract String => Any
     def submit_transaction(envelope_hex)
-      response = server.get("tx", blob: envelope_hex)
+      response = @server.get("tx", blob: envelope_hex)
       body = ActiveSupport::JSON.decode(response.body)
 
       if body["status"] == "ERROR"
@@ -126,11 +153,13 @@ module StellarCoreCommander
 
     end
 
+
     Contract Stellar::KeyPair => Num
     def sequence_for(account)
       row = database[:accounts].where(:accountid => account.address).first
       row[:seqnum]
     end
+
 
     Contract None => Num
     def latest_ledger
@@ -147,71 +176,47 @@ module StellarCoreCommander
     def cleanup
       database.disconnect
       shutdown
-      shutdown_state_container
+      drop_database
       rm_working_dir
     end
 
     Contract None => Any
     def dump_database
-      Dir.chdir(working_dir) do
-        `PGPASSFILE=./.pgpass pg_dump -U #{database_user} -h #{docker_host} -p #{postgres_port} --clean --no-owner #{database_name}`
+      Dir.chdir(@working_dir) do
+        `pg_dump #{database_name} --clean --no-owner`
       end
     end
 
+
     Contract None => Sequel::Database
     def database
-      @database ||= Sequel.postgres(database_name, host: docker_host, port: postgres_port, user: database_user, password: database_password)
+      @database ||= Sequel.postgres(database_name)
     end
 
     Contract None => String
     def database_name
-      "stellar"
+      "stellar_core_tmp_#{basename}"
     end
 
     Contract None => String
-    def database_user
-      "postgres"
-    end
-
-    Contract None => String
-    def database_password
-      @database_password ||= SecureRandom.hex
+    def dsn
+      "postgresql://dbname=#{database_name}"
     end
 
     Contract None => Num
     def http_port
-      base_port
+      @base_port
     end
 
     Contract None => Num
     def peer_port
-      base_port + 1
-    end
-
-    Contract None => Num
-    def postgres_port
-      base_port + 2
-    end
-
-    Contract None => String
-    def container_name
-      "c#{base_port}"
-    end
-
-    Contract None => String
-    def state_container_name
-      "db#{container_name}"
-    end
-
-    Contract None => String
-    def docker_host
-      URI.parse(ENV['DOCKER_HOST']).host
+      @base_port + 1
     end
 
     private
     Contract None => String
     def basename
-      File.basename(working_dir)
+      File.basename(@working_dir)
     end
 
     Contract String, ArrayOf[String] => Maybe[Bool]
@@ -221,47 +226,44 @@ module StellarCoreCommander
           err: "stellar-core.log",
         }]
 
-      Dir.chdir working_dir do
+      Dir.chdir @working_dir do
         system(cmd, *args)
       end
     end
 
     def launch_stellar_core
-      run_cmd "docker", %W(run
-                           --name #{container_name}
-                           --net host
-                           --volumes-from #{state_container_name}
-                           --env-file stellar-core.env
-                           -d stellar/stellar-core
-                           /run main fresh forcescp
-                        )
-      raise "Could not create stellar-core container" unless $?.success?
+      Dir.chdir @working_dir do
+        sin, sout, serr, wait = Open3.popen3("./stellar-core")
+
+        # throwaway stdout, stderr (the logs will record any output)
+        Thread.new{ until (line = sout.gets).nil? ; end }
+        Thread.new{ until (line = serr.gets).nil? ; end }
+
+        @wait = wait
+        @pid = wait.pid
+      end
     end
 
     Contract None => String
     def config
       <<-EOS.strip_heredoc
-        POSTGRES_PASSWORD=#{database_password}
-
-        main_POSTGRES_PORT=#{postgres_port}
-        main_PEER_PORT=#{peer_port}
-        main_HTTP_PORT=#{http_port}
-        main_PEER_SEED=#{identity.seed}
-        main_VALIDATION_SEED=#{identity.seed}
-
         MANUAL_CLOSE=true
-
+        PEER_PORT=#{peer_port}
+        RUN_STANDALONE=false
+        HTTP_PORT=#{http_port}
+        PUBLIC_HTTP_PORT=false
+        PEER_SEED="#{@identity.seed}"
+        VALIDATION_SEED="#{@identity.seed}"
         QUORUM_THRESHOLD=1
+        QUORUM_SET=["#{@identity.address}"]
+        DATABASE="#{dsn}"
 
-        PREFERRED_PEERS=["127.0.0.1:#{peer_port}"]
-        QUORUM_SET=["#{identity.address}"]
-
-        HISTORY_PEERS=["main"]
-
-        HISTORY_GET=cp history/%s/{0} {1}
-        HISTORY_PUT=cp {0} history/%s/{1}
-        HISTORY_MKDIR=mkdir -p history/%s/{0}
+        [HISTORY.main]
+        get="cp history/main/{0} {1}"
+        put="cp {0} history/main/{1}"
+        mkdir="mkdir -p history/main/{0}"
       EOS
     end
+
   end
 end
