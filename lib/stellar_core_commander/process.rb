@@ -53,13 +53,13 @@ module StellarCoreCommander
           current_ledger = latest_ledger
 
           case
-            when current_ledger == next_ledger
-              break
-            when current_ledger > next_ledger
-              raise "whoa! we jumped two ledgers, from #{prev_ledger} to #{current_ledger}"
-            else
-              $stderr.puts "waiting for ledger #{next_ledger}"
-              sleep 0.5
+          when current_ledger == next_ledger
+            break
+          when current_ledger > next_ledger
+            raise "whoa! we jumped two ledgers, from #{prev_ledger} to #{current_ledger}"
+          else
+            $stderr.puts "waiting for ledger #{next_ledger}"
+            sleep 0.5
           end
         end
       end
@@ -76,8 +76,6 @@ module StellarCoreCommander
     def peer_port
       base_port + 1
     end
-
-
 
     Contract String => Any
     def submit_transaction(envelope_hex)
@@ -136,5 +134,4 @@ module StellarCoreCommander
     end
 
   end
-
 end
