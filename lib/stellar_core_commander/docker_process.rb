@@ -6,6 +6,11 @@ module StellarCoreCommander
   class DockerProcess < Process
     include Contracts
 
+    Contract None => Num
+    def required_ports
+      3
+    end
+
     Contract None => Any
     def launch_state_container
       run_cmd "docker", %W(run --name #{state_container_name} -p #{postgres_port}:5432 --env-file stellar-core.env -d stellar/stellar-core-state)

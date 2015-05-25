@@ -7,30 +7,27 @@ module StellarCoreCommander
     # Creates a new core commander
     # 
     Contract String => Any
-    def initialize(stellar_core_bin)
-      @stellar_core_bin = stellar_core_bin
-      raise "no file at #{stellar_core_bin}" unless File.exist?(stellar_core_bin)
-
+    def initialize()
       @processes = []
     end
 
-    Contract String => Process
-    def make_process(type)
+    Contract String, Hash => Process
+    def make_process(type, opts = {})
       tmpdir = Dir.mktmpdir("scc")
 
       identity      = Stellar::KeyPair.random
-      base_port     = 39132 + (@processes.length * 3)
+      base_port     = 39132 + @processes.map(&:required_ports).sum
 
-      if type == 'local'
-        FileUtils.cp(@stellar_core_bin, "#{tmpdir}/stellar-core")
-        process = LocalProcess.new(tmpdir, base_port, identity)
-      elsif type == 'docker'
-        process = DockerProcess.new(tmpdir, base_port, identity)
-      else
-        raise "Unknown process type: #{type}"
-      end
+      process_class = case type
+                        when 'local'
+                          LocalProcess
+                        when 'docker'
+                          DockerProcess
+                        else
+                          raise "Unknown process type: #{type}"
+                      end
 
-      process.tap do |p|
+      process_class.new(tmpdir, base_port, identity, opts).tap do |p|
         p.setup
         @processes << p
       end
