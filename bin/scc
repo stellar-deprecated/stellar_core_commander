@@ -9,11 +9,12 @@ def run
     
     on 'stellar-core-bin', 'a path to a stellar-core executable (default to `which stellar-core`)', argument: true
     on 'r', 'recipe', 'a recipe file', argument: true #, required: true
+    on 'p', 'process', 'method for running stellar-core', argument: true, default: 'local'
   end
 
   recipe    = load_recipe
   commander = make_commander
-  process   = commander.make_process
+  process   = commander.make_process($opts[:process])
 
   #run recipe
   transactor = StellarCoreCommander::Transactor.new(process)
