@@ -8,7 +8,7 @@ module StellarCoreCommander
     attr_reader :identity
     attr_reader :server
 
-    def initialize(working_dir, base_port, identity)
+    def initialize(working_dir, base_port, identity, opts)
       @working_dir = working_dir
       @base_port   = base_port
       @identity    = identity
@@ -17,6 +17,11 @@ module StellarCoreCommander
         conn.request :url_encoded
         conn.adapter Faraday.default_adapter
       end
+    end
+
+    Contract None => Num
+    def required_ports
+      2
     end
 
     Contract None => Any

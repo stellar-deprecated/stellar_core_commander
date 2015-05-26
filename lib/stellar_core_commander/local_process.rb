@@ -6,6 +6,23 @@ module StellarCoreCommander
     attr_reader :pid
     attr_reader :wait
 
+    def initialize(working_dir, base_port, identity, opts)
+      stellar_core_bin = opts[:stellar_core_bin]
+      if stellar_core_bin.blank?
+        search = `which stellar-core`.strip
+
+        if $?.success?
+          stellar_core_bin = search
+        else
+          $stderr.puts "Could not find a `stellar-core` binary, please use --stellar-core-bin to specify"
+          exit 1
+        end
+      end
+
+      FileUtils.cp(stellar_core_bin, "#{working_dir}/stellar-core")
+      super
+    end
+
     Contract None => Any
     def forcescp
       run_cmd "./stellar-core", ["--forcescp"]
