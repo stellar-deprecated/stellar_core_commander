@@ -106,7 +106,12 @@ module StellarCoreCommander
 
     Contract None => String
     def docker_host
-      URI.parse(ENV['DOCKER_HOST']).host
+      docker_uri = URI.parse(ENV['DOCKER_HOST'])
+      if docker_uri.scheme == "tcp"
+        docker_uri.host
+      else
+        "127.0.0.1"
+      end
     end
 
     Contract None => String
