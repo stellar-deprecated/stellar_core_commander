@@ -65,7 +65,7 @@ module StellarCoreCommander
     Contract None => Any
     def dump_database
       Dir.chdir(working_dir) do
-        `PGPASSFILE=./.pgpass pg_dump -U #{database_user} -h #{docker_host} -p #{postgres_port} --clean --no-owner #{database_name}`
+        `docker exec #{state_container_name} pg_dump -U #{database_user} --clean --no-owner #{database_name}`
       end
     end
 
