@@ -6,10 +6,8 @@ require 'slop'
 def run
   $opts = Slop.parse do
     banner 'Usage: scc -r RECIPE'
-    
-    on 'stellar-core-bin', 'a path to a stellar-core executable (defaults to `which stellar-core`)', argument: true
 
-    on 'docker-mode', 'mode to run the docker containers in', argument: true, default: 'standalone'
+    on 'stellar-core-bin', 'a path to a stellar-core executable (defaults to `which stellar-core`)', argument: true
 
     on 'r', 'recipe', 'a recipe file', argument: true #, required: true
     on 'p', 'process', 'method for running stellar-core', argument: true, default: 'local'
@@ -18,25 +16,23 @@ def run
   recipe    = load_recipe
   commander = make_commander
 
-  opts = {
-      stellar_core_bin: $opts[:"stellar-core-bin"],
-      docker_mode: $opts[:"docker-mode"]
-  }
-  process   = commander.make_process($opts[:process], opts)
-
   #run recipe
-  transactor = StellarCoreCommander::Transactor.new(process)
-  process.run
-  process.wait_for_ready
+  transactor = StellarCoreCommander::Transactor.new(commander)
+
+
   transactor.run_recipe recipe
   transactor.close_ledger
 
-  output_results(process)
+  output_results(transactor.get_process(:process))
 end
 
 
 def make_commander
-  StellarCoreCommander::Commander.new.tap do |c|
+  opts = {
+    stellar_core_bin: $opts[:"stellar-core-bin"],
+  }
+
+  StellarCoreCommander::Commander.new($opts[:"process"], opts).tap do |c|
     c.cleanup_at_exit!
   end
 end
@@ -62,5 +58,3 @@ def output_results(process)
 end
 
 run
-
- 

@@ -1,33 +1,43 @@
 require 'fileutils'
 module StellarCoreCommander
+
+  #
+  # Commander is the object that manages running stellar-core processes.  It is
+  # responsible for creating and cleaning Process objects
+  #
   class Commander
     include Contracts
 
-    # 
+    #
     # Creates a new core commander
-    # 
-    Contract String => Any
-    def initialize()
+    #
+    Contract Or["local", "docker"], Hash => Any
+    def initialize(process_type, process_options={})
+      @process_type = process_type
+      @process_options = process_options
       @processes = []
     end
 
-    Contract String, Hash => Process
-    def make_process(type, opts = {})
+    Contract None => Process
+    #
+    # make_process returns a new, unlaunched Process object, bound to a new
+    # tmpdir and 
+    def make_process
       tmpdir = Dir.mktmpdir("scc")
 
       identity      = Stellar::KeyPair.random
       base_port     = 39132 + @processes.map(&:required_ports).sum
 
-      process_class = case type
+      process_class = case @process_type
                         when 'local'
                           LocalProcess
                         when 'docker'
                           DockerProcess
                         else
-                          raise "Unknown process type: #{type}"
+                          raise "Unknown process type: #{@process_type}"
                       end
 
-      process_class.new(tmpdir, base_port, identity, opts).tap do |p|
+      process_class.new(tmpdir, base_port, identity, @process_options).tap do |p|
         p.setup
         @processes << p
       end
