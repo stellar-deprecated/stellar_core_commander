@@ -11,12 +11,13 @@ module StellarCoreCommander
 
     class FailedTransaction < StandardError ; end
 
-    Contract Process => Any
-    def initialize(process)
-      @process    = process
-      @named      = {}.with_indifferent_access
-      @unverified = []
+    Contract Commander => Any
+    def initialize(commander)
+      @commander         = commander
+      @named             = {}.with_indifferent_access
+      @unverified        = []
       @operation_builder = OperationBuilder.new(self)
+
       account :master, Stellar::KeyPair.from_raw_seed("allmylifemyhearthasbeensearching")
     end
 
@@ -27,7 +28,11 @@ module StellarCoreCommander
     # @param recipe_path [String] path to the recipe file
     #
     def run_recipe(recipe_path)
-      raise "stellar-core not running" unless @process.running?
+      @process = @commander.make_process
+      @process.run
+      @process.wait_for_ready
+
+      add_named :process, @process
 
       recipe_content = IO.read(recipe_path)
       instance_eval recipe_content
@@ -139,6 +144,15 @@ module StellarCoreCommander
       @named[name].tap do |found|
         unless found.is_a?(Stellar::KeyPair)
           raise ArgumentError, "#{name.inspect} is not account"
+        end
+      end
+    end
+    
+    Contract Symbol => Process
+    def get_process(name)
+      @named[name].tap do |found|
+        unless found.is_a?(Process)
+          raise ArgumentError, "#{name.inspect} is not process"
         end
       end
     end
