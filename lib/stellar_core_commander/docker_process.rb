@@ -25,8 +25,6 @@ module StellarCoreCommander
 
     Contract None => Any
     def write_config
-      IO.write("#{working_dir}/.pgpass", "#{docker_host}:#{postgres_port}:*:#{database_user}:#{database_password}")
-      FileUtils.chmod(0600, "#{working_dir}/.pgpass")
       IO.write("#{working_dir}/stellar-core.env", config)
     end
 
