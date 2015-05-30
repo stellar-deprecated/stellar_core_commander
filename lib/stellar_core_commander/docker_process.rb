@@ -13,6 +13,7 @@ module StellarCoreCommander
 
     Contract None => Any
     def launch_state_container
+      $stderr.puts "launching state container #{state_container_name}"
       run_cmd "docker", %W(run --name #{state_container_name} -p #{postgres_port}:5432 --env-file stellar-core.env -d stellar/stellar-core-state)
       raise "Could not create state container" unless $?.success?
     end
@@ -94,12 +95,12 @@ module StellarCoreCommander
 
     Contract None => String
     def container_name
-      "c#{base_port}"
+      "scc-#{idname}"
     end
 
     Contract None => String
     def state_container_name
-      "db#{container_name}"
+      "scc-state-#{idname}"
     end
 
     Contract None => String
@@ -119,6 +120,7 @@ module StellarCoreCommander
 
     private
     def launch_stellar_core
+      $stderr.puts "launching stellar-core container #{container_name}"
       run_cmd "docker", %W(run
                            --name #{container_name}
                            --net host

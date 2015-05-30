@@ -27,7 +27,7 @@ module StellarCoreCommander
     # @param recipe_path [String] path to the recipe file
     #
     def run_recipe(recipe_path)
-      @process = @commander.make_process
+      @process = @commander.make_process :node0
       @process.run
       @process.wait_for_ready
 

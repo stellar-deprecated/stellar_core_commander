@@ -10,8 +10,9 @@ module StellarCoreCommander
     attr_reader :unverified
     attr_writer :unverified
 
-    def initialize(working_dir, base_port, identity, opts)
+    def initialize(working_dir, name, base_port, identity, opts)
       @working_dir = working_dir
+      @name        = name
       @base_port   = base_port
       @identity    = identity
       @unverified  = []
@@ -32,6 +33,11 @@ module StellarCoreCommander
       FileUtils.rm_rf working_dir
     end
 
+    Contract None => String
+    def idname
+      "#{@name}-#{@base_port}-#{@identity.address[0..5]}"
+    end
+
     Contract None => Any
     def wait_for_ready
       loop do
@@ -41,10 +47,12 @@ module StellarCoreCommander
         if response
           body = ActiveSupport::JSON.decode(response.body)
 
-          break if body["info"]["state"] == "Synced!"
+          state = body["info"]["state"]
+          $stderr.puts "state: #{state}"
+          break if state == "Synced!"
         end
 
-        $stderr.puts "waiting until stellar-core is synced"
+        $stderr.puts "waiting until stellar-core #{idname} is synced"
         sleep 1
       end
     end
@@ -64,9 +72,9 @@ module StellarCoreCommander
           when current_ledger == next_ledger
             break
           when current_ledger > next_ledger
-            raise "whoa! we jumped two ledgers, from #{prev_ledger} to #{current_ledger}"
+            raise "#{idname} jumped two ledgers, from #{prev_ledger} to #{current_ledger}"
           else
-            $stderr.puts "waiting for ledger #{next_ledger}"
+            $stderr.puts "#{idname} waiting for ledger #{next_ledger}"
             sleep 0.5
           end
         end
@@ -91,7 +99,7 @@ module StellarCoreCommander
       body = ActiveSupport::JSON.decode(response.body)
 
       if body["status"] == "ERROR"
-        raise "transaction failed: #{body.inspect}"
+        raise "transaction on #{idname} failed: #{body.inspect}"
       end
 
     end
@@ -121,12 +129,6 @@ module StellarCoreCommander
     Contract None => Num
     def close_timeout
       5.0
-    end
-
-    private
-    Contract None => String
-    def basename
-      File.basename(working_dir)
     end
 
     Contract String, ArrayOf[String] => Maybe[Bool]

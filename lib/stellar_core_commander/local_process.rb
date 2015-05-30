@@ -120,7 +120,7 @@ module StellarCoreCommander
 
     Contract None => String
     def database_name
-      "stellar_core_tmp_#{basename}"
+      "stellar_core_tmp_#{idname}"
     end
 
     Contract None => String
