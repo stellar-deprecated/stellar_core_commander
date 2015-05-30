@@ -94,13 +94,29 @@ module StellarCoreCommander
           when current_ledger > next_ledger
             raise "#{idname} jumped two ledgers, from #{prev_ledger} to #{current_ledger}"
           else
-            $stderr.puts "#{idname} waiting for ledger #{next_ledger}"
+            $stderr.puts "#{idname} waiting for ledger #{next_ledger} (ballots prepared: #{scp_ballots_prepared})"
             sleep 0.5
           end
         end
       end
 
       true
+    end
+
+    Contract None => Hash
+    def metrics
+        response = server.get("/metrics") rescue false
+        if response
+          body = ActiveSupport::JSON.decode(response.body)
+          body["metrics"]
+        else
+          {}
+        end
+    end
+
+    Contract None => Num
+    def scp_ballots_prepared
+      metrics["scp.ballot.prepare"]["count"]
     end
 
     Contract None => Num
