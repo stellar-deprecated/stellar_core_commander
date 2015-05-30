@@ -3,23 +3,43 @@ module StellarCoreCommander
   class Process
     include Contracts
 
+    attr_reader :transactor
     attr_reader :working_dir
     attr_reader :base_port
     attr_reader :identity
     attr_reader :server
     attr_reader :unverified
     attr_writer :unverified
+    attr_reader :threshold
 
-    def initialize(working_dir, name, base_port, identity, opts)
+    def initialize(transactor, working_dir, name, base_port,
+                   identity, quorum, thresh, opts)
+      @transactor  = transactor
       @working_dir = working_dir
       @name        = name
       @base_port   = base_port
       @identity    = identity
+      @quorum      = quorum
+      @threshold   = thresh
       @unverified  = []
 
       @server = Faraday.new(url: "http://#{http_host}:#{http_port}") do |conn|
         conn.request :url_encoded
         conn.adapter Faraday.default_adapter
+      end
+    end
+
+    Contract None => ArrayOf[String]
+    def quorum
+      @quorum.map do |q|
+        @transactor.get_process(q).identity.address
+      end
+    end
+
+    Contract None => ArrayOf[String]
+    def peers
+      @quorum.map do |q|
+        "127.0.0.1:#{@transactor.get_process(q).peer_port}"
       end
     end
 

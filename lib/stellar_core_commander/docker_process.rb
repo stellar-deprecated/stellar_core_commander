@@ -20,6 +20,7 @@ module StellarCoreCommander
 
     Contract None => Any
     def shutdown_state_container
+      return true unless state_container_running?
       run_cmd "docker", %W(rm -f -v #{state_container_name})
       raise "Could not drop db: #{database_name}" unless $?.success?
     end
@@ -32,18 +33,25 @@ module StellarCoreCommander
     Contract None => Any
     def setup
       write_config
-      launch_state_container
     end
 
     Contract None => nil
     def run
       raise "already running!" if running?
+      setup
+      launch_state_container
       launch_stellar_core
     end
 
     Contract None => Bool
     def running?
       run_cmd "docker", %W(inspect #{container_name})
+      $?.success?
+    end
+
+    Contract None => Bool
+    def state_container_running?
+      run_cmd "docker", %W(inspect #{state_container_name})
       $?.success?
     end
 
@@ -145,10 +153,10 @@ module StellarCoreCommander
 
         MANUAL_CLOSE=true
 
-        QUORUM_THRESHOLD=1
+        QUORUM_THRESHOLD=#{threshold}
 
-        PREFERRED_PEERS=["127.0.0.1:#{peer_port}"]
-        QUORUM_SET=["#{identity.address}"]
+        PREFERRED_PEERS=#{peers}
+        QUORUM_SET=#{quorum}
 
         HISTORY_PEERS=["main"]
 

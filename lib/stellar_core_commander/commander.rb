@@ -18,11 +18,11 @@ module StellarCoreCommander
       @processes = []
     end
 
-    Contract Symbol => Process
+    Contract Transactor, Symbol, ArrayOf[Symbol], Num => Process
     #
     # make_process returns a new, unlaunched Process object, bound to a new
     # tmpdir
-    def make_process(name)
+    def make_process(transactor, name, quorum, thresh)
       tmpdir = Dir.mktmpdir("scc")
 
       identity      = Stellar::KeyPair.random
@@ -37,9 +37,19 @@ module StellarCoreCommander
                           raise "Unknown process type: #{@process_type}"
                       end
 
-      process_class.new(tmpdir, name, base_port, identity, @process_options).tap do |p|
-        p.setup
+      process_class.new(transactor, tmpdir, name, base_port,
+                        identity, quorum, thresh, @process_options).tap do |p|
         @processes << p
+      end
+    end
+
+    def start_all_processes
+      @processes.each do |p|
+        if not p.running?
+          $stderr.puts "running #{p.idname}"
+          p.run
+          p.wait_for_ready
+        end
       end
     end
 
