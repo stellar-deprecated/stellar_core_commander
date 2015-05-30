@@ -156,6 +156,32 @@ module StellarCoreCommander
       end
     end
 
+    Contract Symbol => Process
+    def process(name)
+      $stderr.puts "creating process #{name}"
+      p = @commander.make_process name
+      $stderr.puts "process #{name} is #{p.idname}"
+      add_named name, p
+    end
+
+    Contract Symbol, Proc => Any
+    def on(process_name)
+      p = get_process process_name
+      $stderr.puts "executing steps on #{p.idname}"
+      tmp = @process
+      begin
+        @process = p
+        if not @process.running?
+          $stderr.puts "running #{p.idname}"
+          @process.run
+          @process.wait_for_ready
+        end
+        yield
+      ensure
+        @process = tmp
+      end
+    end
+
     Contract Stellar::KeyPair => Num
     def next_sequence(account)
       base_sequence  = @process.sequence_for(account)
