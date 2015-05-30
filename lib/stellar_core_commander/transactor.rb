@@ -32,7 +32,7 @@ module StellarCoreCommander
       @process.run
       @process.wait_for_ready
 
-      add_named :process, @process
+      add_named :node0, @process
 
       recipe_content = IO.read(recipe_path)
       instance_eval recipe_content
