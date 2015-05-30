@@ -27,11 +27,11 @@ module StellarCoreCommander
     # @param recipe_path [String] path to the recipe file
     #
     def run_recipe(recipe_path)
-      @process = @commander.make_process :node0
+      @process = @commander.make_process self, :node0, [:node0], 1
+      add_named :node0, @process
+
       @process.run
       @process.wait_for_ready
-
-      add_named :node0, @process
 
       recipe_content = IO.read(recipe_path)
       instance_eval recipe_content
