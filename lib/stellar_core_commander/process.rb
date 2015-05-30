@@ -7,11 +7,14 @@ module StellarCoreCommander
     attr_reader :base_port
     attr_reader :identity
     attr_reader :server
+    attr_reader :unverified
+    attr_writer :unverified
 
     def initialize(working_dir, base_port, identity, opts)
       @working_dir = working_dir
       @base_port   = base_port
       @identity    = identity
+      @unverified  = []
 
       @server = Faraday.new(url: "http://#{http_host}:#{http_port}") do |conn|
         conn.request :url_encoded

@@ -15,7 +15,6 @@ module StellarCoreCommander
     def initialize(commander)
       @commander         = commander
       @named             = {}.with_indifferent_access
-      @unverified        = []
       @operation_builder = OperationBuilder.new(self)
 
       account :master, Stellar::KeyPair.from_raw_seed("allmylifemyhearthasbeensearching")
@@ -124,7 +123,7 @@ module StellarCoreCommander
     def close_ledger
       @process.close_ledger
 
-      @unverified.each do |eb|
+      @process.unverified.each do |eb|
         begin
           envelope, after_confirmation = *eb
           result = validate_transaction envelope
@@ -136,7 +135,7 @@ module StellarCoreCommander
         end
       end
 
-      @unverified.clear
+      @process.unverified.clear
     end
 
     Contract Symbol => Stellar::KeyPair
@@ -160,7 +159,7 @@ module StellarCoreCommander
     Contract Stellar::KeyPair => Num
     def next_sequence(account)
       base_sequence  = @process.sequence_for(account)
-      inflight_count = @unverified.select{|e| e.first.tx.source_account == account.public_key}.length
+      inflight_count = @process.unverified.select{|e| e.first.tx.source_account == account.public_key}.length
 
       base_sequence + inflight_count + 1
     end
@@ -181,7 +180,7 @@ module StellarCoreCommander
       @process.submit_transaction hex
 
       # submit to process
-      @unverified << [envelope, after_confirmation]
+      @process.unverified << [envelope, after_confirmation]
     end
 
     Contract Stellar::TransactionEnvelope => Stellar::TransactionResult
