@@ -24,6 +24,10 @@ module StellarCoreCommander
       @threshold   = thresh
       @unverified  = []
 
+      if not @quorum.include? @name
+        @quorum << @name
+      end
+
       @server = Faraday.new(url: "http://#{http_host}:#{http_port}") do |conn|
         conn.request :url_encoded
         conn.adapter Faraday.default_adapter

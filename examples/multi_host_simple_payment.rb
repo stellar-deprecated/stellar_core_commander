@@ -1,6 +1,6 @@
-process :node1, [:node2, :node3]
-process :node2, [:node1, :node3]
-process :node3, [:node1, :node2]
+process :node1, [:node1, :node2, :node3], 2
+process :node2, [:node1, :node2, :node3], 2
+process :node3, [:node1, :node2, :node3], 2
 
 account :alice
 account :bob
