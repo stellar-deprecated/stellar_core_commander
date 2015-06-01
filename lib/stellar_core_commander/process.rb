@@ -87,8 +87,6 @@ module StellarCoreCommander
       prev_ledger = latest_ledger
       next_ledger = prev_ledger + 1
 
-      server.get("manualclose")
-
       Timeout.timeout(close_timeout) do
         loop do
           current_ledger = latest_ledger
@@ -99,11 +97,12 @@ module StellarCoreCommander
           when current_ledger > next_ledger
             raise "#{idname} jumped two ledgers, from #{prev_ledger} to #{current_ledger}"
           else
-            $stderr.puts "#{idname} waiting for ledger #{next_ledger} (ballots prepared: #{scp_ballots_prepared})"
+            $stderr.puts "#{idname} waiting for ledger #{next_ledger} (current: #{current_ledger}, ballots prepared: #{scp_ballots_prepared})"
             sleep 0.5
           end
         end
       end
+      $stderr.puts "#{idname} closed #{latest_ledger}"
 
       true
     end
@@ -169,7 +168,7 @@ module StellarCoreCommander
 
     Contract None => Num
     def close_timeout
-      5.0
+      15.0
     end
 
     Contract String, ArrayOf[String] => Maybe[Bool]

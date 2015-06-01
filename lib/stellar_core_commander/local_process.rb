@@ -145,7 +145,6 @@ module StellarCoreCommander
     Contract None => String
     def config
       <<-EOS.strip_heredoc
-        MANUAL_CLOSE=true
         PEER_PORT=#{peer_port}
         RUN_STANDALONE=false
         HTTP_PORT=#{http_port}
