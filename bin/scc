@@ -23,7 +23,7 @@ def run
   transactor.run_recipe recipe
   transactor.close_ledger
 
-  output_results(transactor.get_process(:node0))
+  output_results(commander.get_root_process transactor)
 end
 
 

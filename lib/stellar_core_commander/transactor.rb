@@ -20,6 +20,16 @@ module StellarCoreCommander
       account :master, Stellar::KeyPair.from_raw_seed("allmylifemyhearthasbeensearching")
     end
 
+    def require_process_running
+      if @process == nil
+        @process = @commander.get_root_process self
+        if not @named.has_key? @process.name
+          add_named @process.name, @process
+        end
+      end
+      @commander.start_all_processes
+    end
+
     Contract String => Any
     #
     # Runs the provided recipe against the process identified by @process
@@ -27,12 +37,6 @@ module StellarCoreCommander
     # @param recipe_path [String] path to the recipe file
     #
     def run_recipe(recipe_path)
-      @process = @commander.make_process self, :node0, [:node0], 1
-      add_named :node0, @process
-
-      @process.run
-      @process.wait_for_ready
-
       recipe_content = IO.read(recipe_path)
       instance_eval recipe_content
     end
@@ -58,8 +62,8 @@ module StellarCoreCommander
     #
     # @see StellarCoreCommander::OperationBuilder#payment
     def payment(*args)
+      require_process_running
       envelope = @operation_builder.payment(*args)
-
       submit_transaction envelope do |result|
         payment_result = result.result.results!.first.tr!.value
         raise FailedTransaction unless payment_result.code.value >= 0
@@ -69,6 +73,7 @@ module StellarCoreCommander
     #
     # @see StellarCoreCommander::OperationBuilder#create_account
     def create_account(*args)
+      require_process_running
       envelope = @operation_builder.create_account(*args)
       submit_transaction envelope
     end
@@ -76,6 +81,7 @@ module StellarCoreCommander
     #
     # @see StellarCoreCommander::OperationBuilder#trust
     def trust(*args)
+      require_process_running
       envelope = @operation_builder.trust(*args)
       submit_transaction envelope
     end
@@ -83,6 +89,7 @@ module StellarCoreCommander
     #
     # @see StellarCoreCommander::OperationBuilder#change_trust
     def change_trust(*args)
+      require_process_running
       envelope = @operation_builder.change_trust(*args)
       submit_transaction envelope
     end
@@ -90,6 +97,7 @@ module StellarCoreCommander
     #
     # @see StellarCoreCommander::OperationBuilder#offer
     def offer(*args)
+      require_process_running
       envelope = @operation_builder.offer(*args)
       submit_transaction envelope
     end
@@ -97,6 +105,7 @@ module StellarCoreCommander
     #
     # @see StellarCoreCommander::OperationBuilder#require_trust_auth
     def require_trust_auth(*args)
+      require_process_running
       envelope = @operation_builder.require_trust_auth(*args)
       submit_transaction envelope
     end
@@ -104,6 +113,7 @@ module StellarCoreCommander
     #
     # @see StellarCoreCommander::OperationBuilder#set_flags
     def set_flags(*args)
+      require_process_running
       envelope = @operation_builder.set_flags(*args)
       submit_transaction envelope
     end
@@ -111,6 +121,7 @@ module StellarCoreCommander
     #
     # @see StellarCoreCommander::OperationBuilder#allow_trust
     def allow_trust(*args)
+      require_process_running
       envelope = @operation_builder.allow_trust(*args)
       submit_transaction envelope
     end
@@ -121,6 +132,7 @@ module StellarCoreCommander
     # be validated, which will trigger an error if any fail to be validated
     #
     def close_ledger
+      require_process_running
       @process.close_ledger
 
       @process.unverified.each do |eb|
@@ -140,6 +152,7 @@ module StellarCoreCommander
 
     Contract Symbol => Stellar::KeyPair
     def get_account(name)
+      require_process_running
       @named[name].tap do |found|
         unless found.is_a?(Stellar::KeyPair)
           raise ArgumentError, "#{name.inspect} is not account"
@@ -166,7 +179,7 @@ module StellarCoreCommander
 
     Contract Symbol, Proc => Any
     def on(process_name)
-      @commander.start_all_processes
+      require_process_running
       p = get_process process_name
       $stderr.puts "executing steps on #{p.idname}"
       tmp = @process
@@ -180,6 +193,7 @@ module StellarCoreCommander
 
     Contract Stellar::KeyPair => Num
     def next_sequence(account)
+      require_process_running
       base_sequence  = @process.sequence_for(account)
       inflight_count = @process.unverified.select{|e| e.first.tx.source_account == account.public_key}.length
 
@@ -198,6 +212,7 @@ module StellarCoreCommander
 
     Contract Stellar::TransactionEnvelope, Or[nil, Proc] => Any
     def submit_transaction(envelope, &after_confirmation)
+      require_process_running
       hex    = envelope.to_xdr(:hex)
       @process.submit_transaction hex
 

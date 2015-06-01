@@ -43,6 +43,16 @@ module StellarCoreCommander
       end
     end
 
+    Contract Transactor => Process
+    def get_root_process(transactor)
+      if @processes.size == 0
+        p = make_process transactor, :node0, [:node0], 1
+        @processes << p
+      end
+      @processes[0]
+    end
+
+    Contract None => ArrayOf[Process]
     def start_all_processes
       @processes.each do |p|
         if not p.running?

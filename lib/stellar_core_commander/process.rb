@@ -5,6 +5,7 @@ module StellarCoreCommander
 
     attr_reader :transactor
     attr_reader :working_dir
+    attr_reader :name
     attr_reader :base_port
     attr_reader :identity
     attr_reader :server
