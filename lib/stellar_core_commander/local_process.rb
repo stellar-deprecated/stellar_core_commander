@@ -152,9 +152,12 @@ module StellarCoreCommander
         PUBLIC_HTTP_PORT=false
         PEER_SEED="#{@identity.seed}"
         VALIDATION_SEED="#{@identity.seed}"
-        QUORUM_THRESHOLD=1
-        QUORUM_SET=["#{@identity.address}"]
+
         DATABASE="#{dsn}"
+
+        [QUORUM_SET]
+        THRESHOLD=1
+        VALIDATORS=["#{@identity.address}"]
 
         [HISTORY.main]
         get="cp history/main/{0} {1}"
