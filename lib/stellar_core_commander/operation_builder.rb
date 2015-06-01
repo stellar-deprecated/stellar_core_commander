@@ -5,9 +5,12 @@ module StellarCoreCommander
 
     Currency = Or[
       [String, Symbol],
-      :native
+      :native,
     ]
-    Amount = Any #TODO
+    Amount = Or[
+      [String, Symbol, Num],
+      [:native, Num],
+    ]
 
     OfferCurrencies = Or[
       {sell:Currency, for: Currency},
@@ -19,30 +22,27 @@ module StellarCoreCommander
       @transactor = transactor
     end
 
-    Contract Symbol, Symbol, Amount, Or[{}, {path: Any}] => Any
+    Contract Symbol, Symbol, Amount, Or[{}, {path: ArrayOf[Currency], with:Amount}] => Any
     def payment(from, to, amount, options={})
       from = get_account from
       to   = get_account to
-
-      if amount.first != :native
-        amount    = [:iso4217] + amount
-        amount[2] = get_account(amount[2])
-        amount[1] = amount[1].ljust(4, "\x00")
-      end
 
       attrs = {
         account:     from,
         destination: to,
         sequence:    next_sequence(from),
-        amount:      amount,
+        amount:      normalize_amount(amount),
       }
 
-      # TODO: Fix pathed payments
-      # if options[:path]
-      #   attrs[:path] = options[:path].map{|p| make_currency p}
-      # end
+      tx =  if options[:with]
+              attrs[:with] = normalize_amount(options[:with])
+              attrs[:path] = options[:path].map{|p| make_currency p}
+              Stellar::Transaction.path_payment(attrs)
+            else
+              Stellar::Transaction.payment(attrs)
+            end
 
-      Stellar::Transaction.payment(attrs).to_envelope(from)
+      tx.to_envelope(from)
     end
 
     Contract Symbol, Symbol, Num => Any
@@ -146,15 +146,24 @@ module StellarCoreCommander
       end
 
       code, issuer = *input
-      code = code.ljust(4, "\x00")
       issuer = get_account issuer
 
-      [:iso4217, code, issuer]
+      [:alphanum, code, issuer]
     end
 
     def make_account_flags(flags=nil)
       flags ||= []
       flags.map{|f| Stellar::AccountFlags.send(f)}
+    end
+
+    Contract Amount => Any
+    def normalize_amount(amount)
+      return amount if amount.first == :native
+
+      amount = [:alphanum] + amount
+      amount[2] = get_account(amount[2]) # translate issuer to account
+
+      amount
     end
 
   end

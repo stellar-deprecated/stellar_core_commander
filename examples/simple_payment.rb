@@ -2,6 +2,6 @@ account :scott
 
 create_account :scott, :master
 
-close_ledger 
+close_ledger
 
-payment :master, :scott, [:native, 1000_000000]
+payment :master, :scott, [:native, 1000 * Stellar::ONE]

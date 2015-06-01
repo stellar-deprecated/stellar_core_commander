@@ -62,7 +62,7 @@ module StellarCoreCommander
       envelope = @operation_builder.payment(*args)
 
       submit_transaction envelope do |result|
-        payment_result = result.result.results!.first.tr!.payment_result!
+        payment_result = result.result.results!.first.tr!.value
         raise FailedTransaction unless payment_result.code.value >= 0
       end
     end
@@ -147,7 +147,7 @@ module StellarCoreCommander
         end
       end
     end
-    
+
     Contract Symbol => Process
     def get_process(name)
       @named[name].tap do |found|
