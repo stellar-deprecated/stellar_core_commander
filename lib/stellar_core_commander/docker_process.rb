@@ -13,38 +13,45 @@ module StellarCoreCommander
 
     Contract None => Any
     def launch_state_container
+      $stderr.puts "launching state container #{state_container_name}"
       run_cmd "docker", %W(run --name #{state_container_name} -p #{postgres_port}:5432 --env-file stellar-core.env -d stellar/stellar-core-state)
       raise "Could not create state container" unless $?.success?
     end
 
     Contract None => Any
     def shutdown_state_container
+      return true unless state_container_running?
       run_cmd "docker", %W(rm -f -v #{state_container_name})
       raise "Could not drop db: #{database_name}" unless $?.success?
     end
 
     Contract None => Any
     def write_config
-      IO.write("#{working_dir}/.pgpass", "#{docker_host}:#{postgres_port}:*:#{database_user}:#{database_password}")
-      FileUtils.chmod(0600, "#{working_dir}/.pgpass")
       IO.write("#{working_dir}/stellar-core.env", config)
     end
 
     Contract None => Any
     def setup
       write_config
-      launch_state_container
     end
 
     Contract None => nil
     def run
       raise "already running!" if running?
+      setup
+      launch_state_container
       launch_stellar_core
     end
 
     Contract None => Bool
     def running?
       run_cmd "docker", %W(inspect #{container_name})
+      $?.success?
+    end
+
+    Contract None => Bool
+    def state_container_running?
+      run_cmd "docker", %W(inspect #{state_container_name})
       $?.success?
     end
 
@@ -96,12 +103,12 @@ module StellarCoreCommander
 
     Contract None => String
     def container_name
-      "c#{base_port}"
+      "scc-#{idname}"
     end
 
     Contract None => String
     def state_container_name
-      "db#{container_name}"
+      "scc-state-#{idname}"
     end
 
     Contract None => String
@@ -121,6 +128,7 @@ module StellarCoreCommander
 
     private
     def launch_stellar_core
+      $stderr.puts "launching stellar-core container #{container_name}"
       run_cmd "docker", %W(run
                            --name #{container_name}
                            --net host
@@ -143,12 +151,10 @@ module StellarCoreCommander
         main_PEER_SEED=#{identity.seed}
         main_VALIDATION_SEED=#{identity.seed}
 
-        MANUAL_CLOSE=true
+        QUORUM_THRESHOLD=#{threshold}
 
-        QUORUM_THRESHOLD=1
-
-        PREFERRED_PEERS=["127.0.0.1:#{peer_port}"]
-        QUORUM_SET=["#{identity.address}"]
+        PREFERRED_PEERS=#{peers}
+        QUORUM_SET=#{quorum}
 
         HISTORY_PEERS=["main"]
 

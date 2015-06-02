@@ -6,7 +6,7 @@ module StellarCoreCommander
     attr_reader :pid
     attr_reader :wait
 
-    def initialize(working_dir, base_port, identity, opts)
+    def initialize(transactor, working_dir, name, base_port, identity, quorum, thresh, opts)
       stellar_core_bin = opts[:stellar_core_bin]
       if stellar_core_bin.blank?
         search = `which stellar-core`.strip
@@ -69,7 +69,7 @@ module StellarCoreCommander
     Contract None => Num
     def run
       raise "already running!" if running?
-
+      setup
       forcescp
       launch_stellar_core
     end
@@ -120,7 +120,7 @@ module StellarCoreCommander
 
     Contract None => String
     def database_name
-      "stellar_core_tmp_#{basename}"
+      "stellar_core_tmp_#{idname}"
     end
 
     Contract None => String
@@ -145,7 +145,6 @@ module StellarCoreCommander
     Contract None => String
     def config
       <<-EOS.strip_heredoc
-        MANUAL_CLOSE=true
         PEER_PORT=#{peer_port}
         RUN_STANDALONE=false
         HTTP_PORT=#{http_port}
@@ -154,10 +153,11 @@ module StellarCoreCommander
         VALIDATION_SEED="#{@identity.seed}"
 
         DATABASE="#{dsn}"
+        PREFERRED_PEERS=#{peers}
 
         [QUORUM_SET]
-        THRESHOLD=1
-        VALIDATORS=["#{@identity.address}"]
+        THRESHOLD=#{threshold}
+        VALIDATORS=#{quorum}
 
         [HISTORY.main]
         get="cp history/main/{0} {1}"
