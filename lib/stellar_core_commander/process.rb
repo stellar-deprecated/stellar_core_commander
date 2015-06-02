@@ -9,8 +9,7 @@ module StellarCoreCommander
     attr_reader :base_port
     attr_reader :identity
     attr_reader :server
-    attr_reader :unverified
-    attr_writer :unverified
+    attr_accessor :unverified
     attr_reader :threshold
 
     def initialize(transactor, working_dir, name, base_port,
@@ -109,18 +108,18 @@ module StellarCoreCommander
 
     Contract None => Hash
     def metrics
-        response = server.get("/metrics") rescue false
-        if response
-          body = ActiveSupport::JSON.decode(response.body)
-          body["metrics"]
-        else
-          {}
-        end
+      response = server.get("/metrics")
+      body = ActiveSupport::JSON.decode(response.body)
+      body["metrics"]
+    rescue
+      {}
     end
 
     Contract None => Num
     def scp_ballots_prepared
       metrics["scp.ballot.prepare"]["count"]
+    rescue
+      0
     end
 
     Contract None => Num

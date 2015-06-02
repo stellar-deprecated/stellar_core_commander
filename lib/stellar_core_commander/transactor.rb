@@ -180,15 +180,13 @@ module StellarCoreCommander
     Contract Symbol, Proc => Any
     def on(process_name)
       require_process_running
+      tmp = @process
       p = get_process process_name
       $stderr.puts "executing steps on #{p.idname}"
-      tmp = @process
-      begin
-        @process = p
-        yield
-      ensure
-        @process = tmp
-      end
+      @process = p
+      yield
+    ensure
+      @process = tmp
     end
 
     Contract Stellar::KeyPair => Num
