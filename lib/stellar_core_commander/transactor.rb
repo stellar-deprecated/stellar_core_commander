@@ -126,6 +126,14 @@ module StellarCoreCommander
       submit_transaction envelope
     end
 
+    #
+    # @see StellarCoreCommander::OperationBuilder#merge_account
+    def merge_account(*args)
+      require_process_running
+      envelope = @operation_builder.merge_account(*args)
+      submit_transaction envelope
+    end
+
     Contract None => Any
     #
     # Triggers a ledger close.  Any unvalidated transaction will
