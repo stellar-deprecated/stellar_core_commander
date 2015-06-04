@@ -14,14 +14,15 @@ module StellarCoreCommander
 
     def initialize(transactor, working_dir, name, base_port,
                    identity, quorum, thresh, opts)
-      @transactor  = transactor
-      @working_dir = working_dir
-      @name        = name
-      @base_port   = base_port
-      @identity    = identity
-      @quorum      = quorum
-      @threshold   = thresh
-      @unverified  = []
+      @transactor   = transactor
+      @working_dir  = working_dir
+      @name         = name
+      @base_port    = base_port
+      @identity     = identity
+      @quorum       = quorum
+      @threshold    = thresh
+      @unverified   = []
+      @manual_close = opts[:manual_close] || false
 
       if not @quorum.include? @name
         @quorum << @name
@@ -82,11 +83,19 @@ module StellarCoreCommander
     end
 
     Contract None => Bool
+    def manual_close?
+      @manual_close
+    end
+
+    Contract None => Bool
     def close_ledger
       prev_ledger = latest_ledger
       next_ledger = prev_ledger + 1
 
       Timeout.timeout(close_timeout) do
+
+        server.get("manualclose") if manual_close?
+
         loop do
           current_ledger = latest_ledger
 

@@ -11,11 +11,14 @@ module StellarCoreCommander
 
     class FailedTransaction < StandardError ; end
 
+    attr_reader :manual_close
+
     Contract Commander => Any
     def initialize(commander)
       @commander         = commander
       @named             = {}.with_indifferent_access
       @operation_builder = OperationBuilder.new(self)
+      @manual_close      = false
 
       account :master, Stellar::KeyPair.from_raw_seed("allmylifemyhearthasbeensearching")
     end
@@ -171,6 +174,11 @@ module StellarCoreCommander
 
     Contract Symbol, ArrayOf[Symbol], Num => Process
     def process(name, quorum=[name], thresh=quorum.length)
+
+      if @manual_close
+        raise "Cannot use `process`, this recipe has previously declared  `use_manual_close`."
+      end
+
       $stderr.puts "creating process #{name}"
       p = @commander.make_process self, name, quorum, thresh
       $stderr.puts "process #{name} is #{p.idname}"
@@ -196,6 +204,12 @@ module StellarCoreCommander
       inflight_count = @process.unverified.select{|e| e.first.tx.source_account == account.public_key}.length
 
       base_sequence + inflight_count + 1
+    end
+
+    Contract None => Any
+    def use_manual_close()
+      $stderr.puts "using manual_close mode"
+      @manual_close = true
     end
 
     private

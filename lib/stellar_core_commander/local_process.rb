@@ -155,6 +155,8 @@ module StellarCoreCommander
         DATABASE="#{dsn}"
         PREFERRED_PEERS=#{peers}
 
+        #{"MANUAL_CLOSE=true" if manual_close?}
+
         [QUORUM_SET]
         THRESHOLD=#{threshold}
         VALIDATORS=#{quorum}

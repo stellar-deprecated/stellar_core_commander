@@ -18,15 +18,19 @@ module StellarCoreCommander
       @processes = []
     end
 
-    Contract Transactor, Symbol, ArrayOf[Symbol], Num => Process
+    Contract Transactor, Symbol, ArrayOf[Symbol], Num, Bool => Process
     #
     # make_process returns a new, unlaunched Process object, bound to a new
     # tmpdir
-    def make_process(transactor, name, quorum, thresh)
+    def make_process(transactor, name, quorum, thresh, manual_close=false)
       tmpdir = Dir.mktmpdir("scc")
 
       identity      = Stellar::KeyPair.random
       base_port     = 39132 + @processes.map(&:required_ports).sum
+
+      process_options = @process_options.merge({
+        manual_close: manual_close
+      })
 
       process_class = case @process_type
                         when 'local'
@@ -38,7 +42,7 @@ module StellarCoreCommander
                       end
 
       process_class.new(transactor, tmpdir, name, base_port,
-                        identity, quorum, thresh, @process_options).tap do |p|
+                        identity, quorum, thresh, process_options).tap do |p|
         @processes << p
       end
     end
@@ -46,7 +50,7 @@ module StellarCoreCommander
     Contract Transactor => Process
     def get_root_process(transactor)
       if @processes.size == 0
-        make_process transactor, :node0, [:node0], 1
+        make_process transactor, :node0, [:node0], 1, transactor.manual_close
       end
       @processes[0]
     end
