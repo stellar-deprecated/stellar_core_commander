@@ -134,6 +134,20 @@ module StellarCoreCommander
       tx.to_envelope(account)
     end
 
+    Contract Symbol, Symbol => Any
+    def merge_account(account, into)
+      account = get_account account
+      into    = get_account into
+
+      tx = Stellar::Transaction.account_merge({
+        account:     account,
+        sequence:    next_sequence(account),
+        destination: into,
+      })
+
+      tx.to_envelope(account)
+    end
+
     private
 
     delegate :get_account, to: :@transactor
