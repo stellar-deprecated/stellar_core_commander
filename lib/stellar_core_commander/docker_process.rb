@@ -151,6 +151,8 @@ module StellarCoreCommander
         main_PEER_SEED=#{identity.seed}
         main_VALIDATION_SEED=#{identity.seed}
 
+        #{"MANUAL_CLOSE=true" if manual_close?}
+
         QUORUM_THRESHOLD=#{threshold}
 
         PREFERRED_PEERS=#{peers}

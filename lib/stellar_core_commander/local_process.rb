@@ -6,21 +6,10 @@ module StellarCoreCommander
     attr_reader :pid
     attr_reader :wait
 
-    def initialize(transactor, working_dir, name, base_port, identity, quorum, thresh, opts)
-      stellar_core_bin = opts[:stellar_core_bin]
-      if stellar_core_bin.blank?
-        search = `which stellar-core`.strip
-
-        if $?.success?
-          stellar_core_bin = search
-        else
-          $stderr.puts "Could not find a `stellar-core` binary, please use --stellar-core-bin to specify"
-          exit 1
-        end
-      end
-
-      FileUtils.cp(stellar_core_bin, "#{working_dir}/stellar-core")
+    def initialize(params)
       super
+      @stellar_core_bin = params[:stellar_core_bin]
+      setup_working_dir
     end
 
     Contract None => Any
@@ -155,6 +144,8 @@ module StellarCoreCommander
         DATABASE="#{dsn}"
         PREFERRED_PEERS=#{peers}
 
+        #{"MANUAL_CLOSE=true" if manual_close?}
+
         [QUORUM_SET]
         THRESHOLD=#{threshold}
         VALIDATORS=#{quorum}
@@ -164,6 +155,21 @@ module StellarCoreCommander
         put="cp {0} history/main/{1}"
         mkdir="mkdir -p history/main/{0}"
       EOS
+    end
+
+    def setup_working_dir
+      if @stellar_core_bin.blank?
+        search = `which stellar-core`.strip
+
+        if $?.success?
+          @stellar_core_bin = search
+        else
+          $stderr.puts "Could not find a `stellar-core` binary, please use --stellar-core-bin to specify"
+          exit 1
+        end
+      end
+
+      FileUtils.cp(@stellar_core_bin, "#{working_dir}/stellar-core")
     end
 
   end

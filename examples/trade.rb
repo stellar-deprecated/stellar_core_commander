@@ -1,3 +1,5 @@
+use_manual_close #use_manual_close causes scc to run a process with MANUAL_CLOSE=true
+
 account :usd_gateway
 account :eur_gateway
 account :scott

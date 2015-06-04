@@ -12,16 +12,30 @@ module StellarCoreCommander
     attr_accessor :unverified
     attr_reader :threshold
 
-    def initialize(transactor, working_dir, name, base_port,
-                   identity, quorum, thresh, opts)
-      @transactor  = transactor
-      @working_dir = working_dir
-      @name        = name
-      @base_port   = base_port
-      @identity    = identity
-      @quorum      = quorum
-      @threshold   = thresh
-      @unverified  = []
+    Contract({
+      transactor:   Transactor,
+      working_dir:  String,
+      name:         Symbol,
+      base_port:    Num,
+      identity:     Stellar::KeyPair,
+      quorum:       ArrayOf[Symbol],
+      threshold:    Num,
+      manual_close: Or[Bool, nil],
+    } => Any)
+    def initialize(params)
+      #config
+      @transactor   = params[:transactor]
+      @working_dir  = params[:working_dir]
+      @name         = params[:name]
+      @base_port    = params[:base_port]
+      @identity     = params[:identity]
+      @quorum       = params[:quorum]
+      @threshold    = params[:threshold]
+      @manual_close = params[:manual_close] || false
+
+      # state
+      @unverified   = []
+
 
       if not @quorum.include? @name
         @quorum << @name
@@ -82,11 +96,19 @@ module StellarCoreCommander
     end
 
     Contract None => Bool
+    def manual_close?
+      @manual_close
+    end
+
+    Contract None => Bool
     def close_ledger
       prev_ledger = latest_ledger
       next_ledger = prev_ledger + 1
 
       Timeout.timeout(close_timeout) do
+
+        server.get("manualclose") if manual_close?
+
         loop do
           current_ledger = latest_ledger
 
@@ -154,9 +176,10 @@ module StellarCoreCommander
       database[:ledgerheaders].max(:ledgerseq)
     end
 
-    Contract String => String
+    Contract String => Maybe[String]
     def transaction_result(hex_hash)
       row = database[:txhistory].where(txid:hex_hash).first
+      return if row.blank?
       row[:txresult]
     end
 
