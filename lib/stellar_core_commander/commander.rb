@@ -25,10 +25,14 @@ module StellarCoreCommander
     def make_process(transactor, name, quorum, thresh, manual_close=false)
       tmpdir = Dir.mktmpdir("scc")
 
-      identity      = Stellar::KeyPair.random
-      base_port     = 39132 + @processes.map(&:required_ports).sum
-
       process_options = @process_options.merge({
+        transactor:   transactor,
+        working_dir:  tmpdir,
+        name:         name,
+        base_port:    39132 + @processes.map(&:required_ports).sum,
+        identity:     Stellar::KeyPair.random,
+        quorum:       quorum,
+        threshold:    thresh,
         manual_close: manual_close
       })
 
@@ -41,8 +45,7 @@ module StellarCoreCommander
                           raise "Unknown process type: #{@process_type}"
                       end
 
-      process_class.new(transactor, tmpdir, name, base_port,
-                        identity, quorum, thresh, process_options).tap do |p|
+      process_class.new(process_options).tap do |p|
         @processes << p
       end
     end

@@ -12,17 +12,30 @@ module StellarCoreCommander
     attr_accessor :unverified
     attr_reader :threshold
 
-    def initialize(transactor, working_dir, name, base_port,
-                   identity, quorum, thresh, opts)
-      @transactor   = transactor
-      @working_dir  = working_dir
-      @name         = name
-      @base_port    = base_port
-      @identity     = identity
-      @quorum       = quorum
-      @threshold    = thresh
+    Contract({
+      transactor:   Transactor,
+      working_dir:  String,
+      name:         Symbol,
+      base_port:    Num,
+      identity:     Stellar::KeyPair,
+      quorum:       ArrayOf[Symbol],
+      threshold:    Num,
+      manual_close: Or[Bool, nil],
+    } => Any)
+    def initialize(params)
+      #config
+      @transactor   = params[:transactor]
+      @working_dir  = params[:working_dir]
+      @name         = params[:name]
+      @base_port    = params[:base_port]
+      @identity     = params[:identity]
+      @quorum       = params[:quorum]
+      @threshold    = params[:threshold]
+      @manual_close = params[:manual_close] || false
+
+      # state
       @unverified   = []
-      @manual_close = opts[:manual_close] || false
+
 
       if not @quorum.include? @name
         @quorum << @name
