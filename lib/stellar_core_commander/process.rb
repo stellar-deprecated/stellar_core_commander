@@ -176,9 +176,10 @@ module StellarCoreCommander
       database[:ledgerheaders].max(:ledgerseq)
     end
 
-    Contract String => String
+    Contract String => Maybe[String]
     def transaction_result(hex_hash)
       row = database[:txhistory].where(txid:hex_hash).first
+      return if row.blank?
       row[:txresult]
     end
 

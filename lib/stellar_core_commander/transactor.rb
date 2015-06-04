@@ -10,6 +10,7 @@ module StellarCoreCommander
     include Contracts
 
     class FailedTransaction < StandardError ; end
+    class MissingTransaction < StandardError ; end
 
     attr_reader :manual_close
 
@@ -143,6 +144,9 @@ module StellarCoreCommander
           envelope, after_confirmation = *eb
           result = validate_transaction envelope
           after_confirmation.call(result) if after_confirmation
+        rescue MissingTransaction
+          $stderr.puts "Failed to validate tx: #{Convert.to_hex envelope.tx.hash}"
+          $stderr.puts "could not be found in txhistory table on process #{@process.name}"
         rescue FailedTransaction
           $stderr.puts "Failed to validate tx: #{Convert.to_hex envelope.tx.hash}"
           $stderr.puts "failed result: #{result.to_xdr(:hex)}"
@@ -239,7 +243,7 @@ module StellarCoreCommander
 
       base64_result = @process.transaction_result(hex_hash)
 
-      raise "couldn't find result for #{hex_hash}" if base64_result.blank?
+      raise MissingTransaction if base64_result.blank?
 
       raw_result = Convert.from_base64(base64_result)
 
