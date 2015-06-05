@@ -123,6 +123,14 @@ module StellarCoreCommander
     end
 
     #
+    # @see StellarCoreCommander::OperationBuilder#add_signer
+    def add_signer(*args)
+      require_process_running
+      envelope = @operation_builder.add_signer(*args)
+      submit_transaction envelope
+    end
+
+    #
     # @see StellarCoreCommander::OperationBuilder#allow_trust
     def allow_trust(*args)
       require_process_running

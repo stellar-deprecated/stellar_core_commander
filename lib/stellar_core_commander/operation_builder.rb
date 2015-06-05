@@ -134,6 +134,23 @@ module StellarCoreCommander
       tx.to_envelope(account)
     end
 
+
+    Contract Symbol, Stellar::KeyPair, Num => Any
+    def add_signer(account, key, weight)
+      account = get_account account
+      
+      tx = Stellar::Transaction.set_options({
+        account:  account,
+        sequence: next_sequence(account),
+        signer:   Stellar::Signer.new({
+          pub_key: key.public_key,
+          weight: weight
+        }),
+      })
+
+      tx.to_envelope(account)
+    end
+
     Contract Symbol, Symbol => Any
     def merge_account(account, into)
       account = get_account account
