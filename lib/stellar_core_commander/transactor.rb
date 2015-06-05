@@ -131,12 +131,21 @@ module StellarCoreCommander
     end
 
     #
+    # @see StellarCoreCommander::OperationBuilder#set_thresholds
+    def set_thresholds(*args)
+      require_process_running
+      envelope = @operation_builder.set_thresholds(*args)
+      submit_transaction envelope
+    end
+
+    #
     # @see StellarCoreCommander::OperationBuilder#allow_trust
     def allow_trust(*args)
       require_process_running
       envelope = @operation_builder.allow_trust(*args)
       submit_transaction envelope
     end
+
 
     #
     # @see StellarCoreCommander::OperationBuilder#merge_account

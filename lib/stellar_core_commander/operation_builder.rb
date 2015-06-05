@@ -17,6 +17,15 @@ module StellarCoreCommander
       {buy:Currency, with: Currency},
     ]
 
+    ThresholdByte = And[Num, lambda{|n| (0..255).include? n}]
+
+    Thresholds = {
+      low:           ThresholdByte,
+      medium:        ThresholdByte,
+      high:          ThresholdByte,
+      master_weight: ThresholdByte
+    }
+
     Contract Transactor => Any
     def initialize(transactor)
       @transactor = transactor
@@ -138,7 +147,7 @@ module StellarCoreCommander
     Contract Symbol, Stellar::KeyPair, Num => Any
     def add_signer(account, key, weight)
       account = get_account account
-      
+
       tx = Stellar::Transaction.set_options({
         account:  account,
         sequence: next_sequence(account),
@@ -146,6 +155,19 @@ module StellarCoreCommander
           pub_key: key.public_key,
           weight: weight
         }),
+      })
+
+      tx.to_envelope(account)
+    end
+
+    Contract(Symbol, Thresholds => Any)
+    def set_thresholds(account, thresholds)
+      account = get_account account
+
+      tx = Stellar::Transaction.set_options({
+        account:    account,
+        sequence:   next_sequence(account),
+        thresholds: make_thresholds_word(thresholds),
       })
 
       tx.to_envelope(account)
@@ -185,6 +207,11 @@ module StellarCoreCommander
     def make_account_flags(flags=nil)
       flags ||= []
       flags.map{|f| Stellar::AccountFlags.send(f)}
+    end
+
+    Contract Thresholds => String
+    def make_thresholds_word(thresholds)
+      thresholds.values_at(:master_weight, :low, :medium, :high).pack("C*")
     end
 
     Contract Amount => Any
