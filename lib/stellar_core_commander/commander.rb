@@ -62,7 +62,7 @@ module StellarCoreCommander
     def start_all_processes
       @processes.each do |p|
         if not p.running?
-          $stderr.puts "running #{p.idname}"
+          $stderr.puts "running #{p.idname} (dir:#{p.working_dir})"
           p.run
           p.wait_for_ready
         end
