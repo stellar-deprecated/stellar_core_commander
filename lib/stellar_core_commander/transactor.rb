@@ -135,10 +135,26 @@ module StellarCoreCommander
     end
 
     #
+    # @see StellarCoreCommander::OperationBuilder#remove_signer
+    def remove_signer(*args)
+      require_process_running
+      envelope = @operation_builder.remove_signer(*args)
+      submit_transaction envelope
+    end
+
+    #
     # @see StellarCoreCommander::OperationBuilder#set_thresholds
     def set_thresholds(*args)
       require_process_running
       envelope = @operation_builder.set_thresholds(*args)
+      submit_transaction envelope
+    end
+
+    #
+    # @see StellarCoreCommander::OperationBuilder#set_inflation_dest
+    def set_inflation_dest(*args)
+      require_process_running
+      envelope = @operation_builder.set_inflation_dest(*args)
       submit_transaction envelope
     end
 

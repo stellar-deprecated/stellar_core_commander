@@ -189,6 +189,11 @@ module StellarCoreCommander
       tx.to_envelope(account)
     end
 
+    Contract Symbol, Stellar::KeyPair => Any
+    def remove_signer(account, key)
+      add_signer account, key, 0
+    end
+
     Contract(Symbol, Thresholds => Any)
     def set_thresholds(account, thresholds)
       account = get_account account
@@ -197,6 +202,20 @@ module StellarCoreCommander
         account:    account,
         sequence:   next_sequence(account),
         thresholds: make_thresholds_word(thresholds),
+      })
+
+      tx.to_envelope(account)
+    end
+
+    Contract(Symbol, Symbol => Any)
+    def set_inflation_dest(account, destination)
+      account     = get_account account
+      destination = get_account destination
+
+      tx = Stellar::Transaction.set_options({
+        account:        account,
+        sequence:       next_sequence(account),
+        inflation_dest: destination,
       })
 
       tx.to_envelope(account)
