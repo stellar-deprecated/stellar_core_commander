@@ -201,15 +201,15 @@ module StellarCoreCommander
       end
     end
 
-    Contract Symbol, ArrayOf[Symbol], Num => Process
-    def process(name, quorum=[name], thresh=quorum.length)
+    Contract Symbol, ArrayOf[Symbol], Num, Hash => Process
+    def process(name, quorum=[name], thresh=quorum.length, options={})
 
       if @manual_close
         raise "Cannot use `process`, this recipe has previously declared  `use_manual_close`."
       end
 
       $stderr.puts "creating process #{name}"
-      p = @commander.make_process self, name, quorum, thresh
+      p = @commander.make_process self, name, quorum, thresh, options
       $stderr.puts "process #{name} is #{p.idname}"
       add_named name, p
     end
