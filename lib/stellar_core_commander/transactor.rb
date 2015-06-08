@@ -144,6 +144,14 @@ module StellarCoreCommander
 
 
     #
+    # @see StellarCoreCommander::OperationBuilder#revoke_trust
+    def revoke_trust(*args)
+      require_process_running
+      envelope = @operation_builder.revoke_trust(*args)
+      submit_transaction envelope
+    end
+
+    #
     # @see StellarCoreCommander::OperationBuilder#merge_account
     def merge_account(*args)
       require_process_running
