@@ -36,7 +36,7 @@ module StellarCoreCommander
       @quorum       = params[:quorum]
       @threshold    = params[:threshold]
       @manual_close = params[:manual_close] || false
-      @host         = params[:host] || DEFAULT_HOST
+      @host         = params[:host]
 
       # state
       @unverified   = []
@@ -46,7 +46,7 @@ module StellarCoreCommander
         @quorum << @name
       end
 
-      @server = Faraday.new(url: "http://#{http_host}:#{http_port}") do |conn|
+      @server = Faraday.new(url: "http://#{hostname}:#{http_port}") do |conn|
         conn.request :url_encoded
         conn.adapter Faraday.default_adapter
       end
@@ -63,7 +63,7 @@ module StellarCoreCommander
     def peers
       @quorum.map do |q|
         p = @transactor.get_process(q)
-        "#{p.host}:#{p.peer_port}"
+        "#{p.hostname}:#{p.peer_port}"
       end
     end
 
@@ -190,8 +190,8 @@ module StellarCoreCommander
     end
 
     Contract None => String
-    def http_host
-      host
+    def hostname
+      host || DEFAULT_HOST
     end
 
     Contract None => Num
