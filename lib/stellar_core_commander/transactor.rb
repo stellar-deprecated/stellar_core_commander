@@ -103,6 +103,14 @@ module StellarCoreCommander
     end
 
     #
+    # @see StellarCoreCommander::OperationBuilder#passive_offer
+    def passive_offer(*args)
+      require_process_running
+      envelope = @operation_builder.passive_offer(*args)
+      submit_transaction envelope
+    end
+
+    #
     # @see StellarCoreCommander::OperationBuilder#require_trust_auth
     def require_trust_auth(*args)
       require_process_running

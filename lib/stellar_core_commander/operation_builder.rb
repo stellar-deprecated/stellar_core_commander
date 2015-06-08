@@ -119,7 +119,31 @@ module StellarCoreCommander
         amount = (amount * price).floor
       end
 
-      Stellar::Transaction.create_offer({
+      Stellar::Transaction.manage_offer({
+        account:  account,
+        sequence: next_sequence(account),
+        taker_gets: taker_gets,
+        taker_pays: taker_pays,
+        amount: amount,
+        price: price,
+      }).to_envelope(account)
+    end
+
+    Contract Symbol, OfferCurrencies, Num, Num => Any
+    def passive_offer(account, currencies, amount, price)
+      account = get_account account
+
+      if currencies.has_key?(:sell)
+        taker_pays = make_currency currencies[:for]
+        taker_gets = make_currency currencies[:sell]
+      else
+        taker_pays = make_currency currencies[:buy]
+        taker_gets = make_currency currencies[:with]
+        price = 1 / price
+        amount = (amount * price).floor
+      end
+
+      Stellar::Transaction.create_passive_offer({
         account:  account,
         sequence: next_sequence(account),
         taker_gets: taker_gets,
