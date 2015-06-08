@@ -84,7 +84,7 @@ module StellarCoreCommander
       }).to_envelope(account)
     end
 
-    Contract Symbol, Symbol, String, Num, Bool => Any
+    Contract Symbol, Symbol, String, Bool => Any
     def allow_trust(account, trustor, code, authorize=true)
       currency = make_currency([code, account])
       account = get_account account
@@ -100,7 +100,7 @@ module StellarCoreCommander
       }).to_envelope(account)
     end
 
-    Contract Symbol, Symbol, String, Num => Any
+    Contract Symbol, Symbol, String => Any
     def revoke_trust(account, trustor, code)
       allow_trust(account, trustor, code, false)
     end
