@@ -11,6 +11,9 @@ module StellarCoreCommander
     attr_reader :server
     attr_accessor :unverified
     attr_reader :threshold
+    attr_reader :host
+
+    DEFAULT_HOST = '127.0.0.1'
 
     Contract({
       transactor:   Transactor,
@@ -21,6 +24,7 @@ module StellarCoreCommander
       quorum:       ArrayOf[Symbol],
       threshold:    Num,
       manual_close: Or[Bool, nil],
+      host:         Or[String, nil]
     } => Any)
     def initialize(params)
       #config
@@ -32,6 +36,7 @@ module StellarCoreCommander
       @quorum       = params[:quorum]
       @threshold    = params[:threshold]
       @manual_close = params[:manual_close] || false
+      @host         = params[:host] || DEFAULT_HOST
 
       # state
       @unverified   = []
@@ -57,7 +62,8 @@ module StellarCoreCommander
     Contract None => ArrayOf[String]
     def peers
       @quorum.map do |q|
-        "127.0.0.1:#{@transactor.get_process(q).peer_port}"
+        p = @transactor.get_process(q)
+        "#{p.host}:#{p.peer_port}"
       end
     end
 
@@ -185,7 +191,7 @@ module StellarCoreCommander
 
     Contract None => String
     def http_host
-      "127.0.0.1"
+      host
     end
 
     Contract None => Num

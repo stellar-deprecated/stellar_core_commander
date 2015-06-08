@@ -14,14 +14,14 @@ module StellarCoreCommander
     Contract None => Any
     def launch_state_container
       $stderr.puts "launching state container #{state_container_name}"
-      run_cmd "docker", %W(run --name #{state_container_name} -p #{postgres_port}:5432 --env-file stellar-core.env -d stellar/stellar-core-state)
+      docker %W(run --name #{state_container_name} -p #{postgres_port}:5432 --env-file stellar-core.env -d stellar/stellar-core-state)
       raise "Could not create state container" unless $?.success?
     end
 
     Contract None => Any
     def shutdown_state_container
       return true unless state_container_running?
-      run_cmd "docker", %W(rm -f -v #{state_container_name})
+      docker %W(rm -f -v #{state_container_name})
       raise "Could not drop db: #{database_name}" unless $?.success?
     end
 
@@ -45,20 +45,20 @@ module StellarCoreCommander
 
     Contract None => Bool
     def running?
-      run_cmd "docker", %W(inspect #{container_name})
+      docker %W(inspect #{container_name})
       $?.success?
     end
 
     Contract None => Bool
     def state_container_running?
-      run_cmd "docker", %W(inspect #{state_container_name})
+      docker %W(inspect #{state_container_name})
       $?.success?
     end
 
     Contract None => Any
     def shutdown
       return true unless running?
-      run_cmd "docker", %W(rm -f #{container_name})
+      docker %W(rm -f #{container_name})
     end
 
     Contract None => Any
@@ -72,6 +72,7 @@ module StellarCoreCommander
     Contract None => Any
     def dump_database
       Dir.chdir(working_dir) do
+        ENV['DOCKER_HOST'] = "tcp://#{host}:#{docker_port}"
         `docker exec #{state_container_name} pg_dump -U #{database_user} --clean --no-owner #{database_name}`
       end
     end
@@ -113,12 +114,14 @@ module StellarCoreCommander
 
     Contract None => String
     def docker_host
-      docker_uri = URI.parse(ENV['DOCKER_HOST'])
-      if docker_uri.scheme == "tcp"
-        docker_uri.host
-      else
-        "127.0.0.1"
+      if host == DEFAULT_HOST
+        docker_uri = URI.parse(ENV['DOCKER_HOST'])
+        if docker_uri.scheme == "tcp"
+          docker_uri.host
+        end
       end
+
+      host
     end
 
     Contract None => String
@@ -129,7 +132,7 @@ module StellarCoreCommander
     private
     def launch_stellar_core
       $stderr.puts "launching stellar-core container #{container_name}"
-      run_cmd "docker", %W(run
+      docker %W(run
                            --name #{container_name}
                            --net host
                            --volumes-from #{state_container_name}
@@ -164,6 +167,15 @@ module StellarCoreCommander
         HISTORY_PUT=cp {0} history/%s/{1}
         HISTORY_MKDIR=mkdir -p history/%s/{0}
       EOS
+    end
+
+    def docker_port
+      2376
+    end
+
+    def docker(args)
+      ENV['DOCKER_HOST'] = "tcp://#{host}:#{docker_port}"
+      run_cmd "docker", args
     end
   end
 end
