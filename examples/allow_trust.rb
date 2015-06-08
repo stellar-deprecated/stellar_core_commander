@@ -2,9 +2,9 @@ account :usd_gateway
 account :scott
 account :andrew
 
-payment :master, :usd_gateway, [:native, 1000 * Stellar::ONE]
-payment :master, :scott, [:native, 1000 * Stellar::ONE]
-payment :master, :andrew, [:native, 1000 * Stellar::ONE]
+create_account :usd_gateway
+create_account :scott
+create_account :andrew
 
 close_ledger
 

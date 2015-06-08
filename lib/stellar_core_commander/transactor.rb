@@ -55,10 +55,6 @@ module StellarCoreCommander
     # @param keypair=Stellar::KeyPair.random [Stellar::KeyPair] the keypair to use for this account
     #
     def account(name, keypair=Stellar::KeyPair.random)
-      unless keypair.is_a?(Stellar::KeyPair)
-        raise ArgumentError, "`#{keypair.class.name}` is not `Stellar::KeyPair`"
-      end
-
       add_named name, keypair
     end
 
