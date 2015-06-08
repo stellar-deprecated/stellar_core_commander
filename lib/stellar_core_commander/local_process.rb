@@ -9,6 +9,7 @@ module StellarCoreCommander
     def initialize(params)
       super
       @stellar_core_bin = params[:stellar_core_bin]
+      raise "`host` param is unsupported on LocalProcess, please use `-p docker` for this recipe." if params[:host]
       setup_working_dir
     end
 

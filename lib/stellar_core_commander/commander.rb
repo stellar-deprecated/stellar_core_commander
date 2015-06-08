@@ -53,7 +53,7 @@ module StellarCoreCommander
     Contract Transactor => Process
     def get_root_process(transactor)
       if @processes.size == 0
-        make_process transactor, :node0, [:node0], 1, transactor.manual_close
+        make_process transactor, :node0, [:node0], 1, { manual_close: transactor.manual_close }
       end
       @processes[0]
     end

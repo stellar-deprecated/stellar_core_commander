@@ -72,7 +72,7 @@ module StellarCoreCommander
     Contract None => Any
     def dump_database
       Dir.chdir(working_dir) do
-        ENV['DOCKER_HOST'] = "tcp://#{host}:#{docker_port}"
+        ENV['DOCKER_HOST'] = "tcp://#{docker_host}:#{docker_port}"
         `docker exec #{state_container_name} pg_dump -U #{database_user} --clean --no-owner #{database_name}`
       end
     end
@@ -114,14 +114,11 @@ module StellarCoreCommander
 
     Contract None => String
     def docker_host
-      if host == DEFAULT_HOST
-        docker_uri = URI.parse(ENV['DOCKER_HOST'])
-        if docker_uri.scheme == "tcp"
-          docker_uri.host
-        end
+      if host == DEFAULT_HOST && ENV['DOCKER_HOST']
+        URI.parse(ENV['DOCKER_HOST']).host
+      else
+        host
       end
-
-      host
     end
 
     Contract None => String
@@ -174,7 +171,7 @@ module StellarCoreCommander
     end
 
     def docker(args)
-      ENV['DOCKER_HOST'] = "tcp://#{host}:#{docker_port}"
+      ENV['DOCKER_HOST'] = "tcp://#{docker_host}:#{docker_port}"
       run_cmd "docker", args
     end
   end
