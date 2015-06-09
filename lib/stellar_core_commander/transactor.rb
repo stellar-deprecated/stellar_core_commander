@@ -219,6 +219,11 @@ module StellarCoreCommander
       @process.start_load_generation accounts, txs, txrate
     end
 
+    Contract None => Hash
+    def metrics
+      @process.metrics
+    end
+
     Contract Symbol, ArrayOf[Symbol], Num, Hash => Process
     def process(name, quorum=[name], thresh=quorum.length, options={})
 
