@@ -78,20 +78,17 @@ module StellarCoreCommander
 
     Contract None => Bool
     def running?
-      docker %W(inspect #{container_name})
-      $?.success?
+      container_running? container_name
     end
 
     Contract None => Bool
     def heka_container_running?
-      docker %W(inspect #{heka_container_name})
-      $?.success?
+      container_running? heka_container_name
     end
 
     Contract None => Bool
     def state_container_running?
-      docker %W(inspect #{state_container_name})
-      $?.success?
+      container_running? state_container_name
     end
 
     Contract None => Any
@@ -249,6 +246,11 @@ module StellarCoreCommander
 
     def docker(args)
       run_cmd "docker", docker_args + args
+    end
+
+    def container_running?(name)
+      docker ['inspect', '-f', '{{.Name}} running: {{.State.Running}}', name]
+      $?.success?
     end
   end
 end
