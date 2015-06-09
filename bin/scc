@@ -29,6 +29,14 @@ def run
       'docker image to use for state',
       argument: true,
       default: 'stellar/stellar-core-state'
+    on 'atlas',
+      'atlas endpoint for publishing metrics (e.g., http://192.168.59.103:7101/api/v1/publish)',
+      argument: true,
+      default: nil
+    on 'atlas-interval',
+       'number of seconds to wait between publishing metric payloads',
+       argument: true,
+       default: 1
   end
 
   recipe    = load_recipe
@@ -55,7 +63,9 @@ def make_commander
   opts = {
     stellar_core_bin: $opts[:"stellar-core-bin"],
     docker_core_image: $opts[:"docker-core-image"],
-    docker_state_image: $opts[:"docker-state-image"]
+    docker_state_image: $opts[:"docker-state-image"],
+    atlas: $opts[:"atlas"],
+    atlas_interval: $opts[:"atlas-interval"].to_i
   }
 
   StellarCoreCommander::Commander.new($opts[:"process"], opts).tap do |c|
