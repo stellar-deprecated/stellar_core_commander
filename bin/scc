@@ -29,6 +29,9 @@ def run
       'docker image to use for state',
       argument: true,
       default: 'stellar/stellar-core-state'
+    on 'docker-pull',
+       'docker pull images before use',
+       default: false
     on 'atlas',
       'atlas endpoint for publishing metrics (e.g., http://192.168.59.103:7101/api/v1/publish)',
       argument: true,
@@ -64,6 +67,7 @@ def make_commander
     stellar_core_bin: $opts[:"stellar-core-bin"],
     docker_core_image: $opts[:"docker-core-image"],
     docker_state_image: $opts[:"docker-state-image"],
+    docker_pull: $opts[:"docker-pull"],
     atlas: $opts[:"atlas"],
     atlas_interval: $opts[:"atlas-interval"].to_i
   }

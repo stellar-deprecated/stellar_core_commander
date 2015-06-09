@@ -8,11 +8,13 @@ module StellarCoreCommander
 
     Contract({
       docker_state_image: String,
-      docker_core_image:  String
+      docker_core_image:  String,
+      docker_pull: Bool
     } => Any)
     def initialize(params)
       @docker_state_image = params[:docker_state_image]
       @docker_core_image  = params[:docker_core_image]
+      @docker_pull  = params[:docker_pull]
       super
     end
 
@@ -24,6 +26,7 @@ module StellarCoreCommander
     Contract None => Any
     def launch_heka_container
       $stderr.puts "launching heka container #{heka_container_name}"
+      docker %W(pull stellar/heka) if docker_pull?
       docker %W(run
         --name #{heka_container_name}
         --net container:#{container_name}
@@ -35,6 +38,7 @@ module StellarCoreCommander
     Contract None => Any
     def launch_state_container
       $stderr.puts "launching state container #{state_container_name} from image #{@docker_state_image}"
+      docker %W(pull #{@docker_state_image}) if docker_pull?
       docker %W(run --name #{state_container_name} -p #{postgres_port}:5432 --env-file stellar-core.env -d #{@docker_state_image})
       raise "Could not create state container" unless $?.success?
     end
@@ -165,9 +169,15 @@ module StellarCoreCommander
       docker_host
     end
 
+    Contract None => Bool
+    def docker_pull?
+      @docker_pull
+    end
+
     private
     def launch_stellar_core
       $stderr.puts "launching stellar-core container #{container_name}"
+      docker %W(pull #{@docker_core_image}) if docker_pull?
       docker %W(run
                            --name #{container_name}
                            --net host
