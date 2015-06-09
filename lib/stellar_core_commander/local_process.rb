@@ -100,7 +100,7 @@ module StellarCoreCommander
     Contract None => Any
     def dump_database
       Dir.chdir(@working_dir) do
-        `pg_dump #{database_name} --clean --no-owner`
+        `pg_dump #{database_name} --clean --no-owner --no-privileges`
       end
     end
 
