@@ -77,11 +77,6 @@ module StellarCoreCommander
       2
     end
 
-    Contract None => Any
-    def rm_working_dir
-      FileUtils.rm_rf working_dir
-    end
-
     Contract None => String
     def idname
       "#{@name}-#{@base_port}-#{@identity.address[0..5]}"

@@ -104,7 +104,6 @@ module StellarCoreCommander
       shutdown
       shutdown_state_container
       shutdown_heka_container if atlas
-      rm_working_dir
     end
 
     Contract None => Any

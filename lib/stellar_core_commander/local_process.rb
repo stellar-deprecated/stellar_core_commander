@@ -95,7 +95,6 @@ module StellarCoreCommander
       database.disconnect
       shutdown
       drop_database
-      rm_working_dir
     end
 
     Contract None => Any

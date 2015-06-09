@@ -40,6 +40,10 @@ def run
       'number of seconds to wait between publishing metric payloads',
       argument: true,
       default: 1
+    on 'destination',
+      'where to store logs and other artifacts (default: a temporary directory)',
+      argument: true,
+      default: nil
   end
 
   recipe    = load_recipe
@@ -47,7 +51,6 @@ def run
 
   #run recipe
   transactor = StellarCoreCommander::Transactor.new(commander)
-
 
   transactor.run_recipe recipe
   transactor.close_ledger
@@ -72,7 +75,9 @@ def make_commander
     atlas_interval: $opts[:"atlas-interval"].to_i
   }
 
-  StellarCoreCommander::Commander.new($opts[:"process"], opts).tap do |c|
+  destination = $opts[:"destination"] || Dir.mktmpdir("scc")
+
+  StellarCoreCommander::Commander.new($opts[:"process"], destination, opts).tap do |c|
     c.cleanup_at_exit!
   end
 end
