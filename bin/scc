@@ -19,8 +19,8 @@ def run
       default: 'local'
     on 'w', 'wait',
       'wait for TERM signal before shutting down and cleaning up',
-       argument: false,
-       default: false
+      argument: false,
+      default: false
     on 'docker-core-image',
       'docker image to use for stellar-core',
       argument: true,
@@ -30,16 +30,16 @@ def run
       argument: true,
       default: 'stellar/stellar-core-state'
     on 'docker-pull',
-       'docker pull images before use',
-       default: false
+      'docker pull images before use',
+      default: false
     on 'atlas',
       'atlas endpoint for publishing metrics (e.g., http://192.168.59.103:7101/api/v1/publish)',
       argument: true,
       default: nil
     on 'atlas-interval',
-       'number of seconds to wait between publishing metric payloads',
-       argument: true,
-       default: 1
+      'number of seconds to wait between publishing metric payloads',
+      argument: true,
+      default: 1
   end
 
   recipe    = load_recipe
