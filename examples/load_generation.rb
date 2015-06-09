@@ -6,14 +6,16 @@ on :node1 do
   start_load_generation 10000, 10000, 100
 end
 
-on :node2 do
-  while true
+runs = 0
+while runs == 0
+  on :node2 do
     m = metrics
-    puts "transactions applied: #{m["ledger.transaction.apply"]["count"]}"
-    puts "transactions per sec: #{m["ledger.transaction.apply"]["mean_rate"]}"
+    puts "node2: transactions applied: #{m["ledger.transaction.apply"]["count"]}"
+    puts "node2: transactions per sec: #{m["ledger.transaction.apply"]["mean_rate"]}"
     sleep 5
-    if (m["loadgen.run.complete"]["count"] rescue 0) > 0
-      break
-    end
+  end
+  on :node1 do
+    m = metrics
+    runs = m["loadgen.run.complete"]["count"] rescue 0
   end
 end
