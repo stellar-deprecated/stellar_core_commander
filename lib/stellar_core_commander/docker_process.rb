@@ -100,10 +100,15 @@ module StellarCoreCommander
     Contract None => Any
     def cleanup
       database.disconnect
+      dump_logs
       shutdown
       shutdown_state_container
       shutdown_heka_container if atlas
-      rm_working_dir
+    end
+
+    Contract None => Any
+    def dump_logs
+      docker ["logs", container_name]
     end
 
     Contract None => Any

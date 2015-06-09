@@ -1,4 +1,5 @@
 require 'fileutils'
+
 module StellarCoreCommander
 
   #
@@ -11,9 +12,10 @@ module StellarCoreCommander
     #
     # Creates a new core commander
     #
-    Contract Or["local", "docker"], Hash => Any
-    def initialize(process_type, process_options={})
+    Contract Or["local", "docker"], String, Hash => Any
+    def initialize(process_type, destination, process_options={})
       @process_type = process_type
+      @destination = destination
       @process_options = process_options
       @processes = []
     end
@@ -23,11 +25,12 @@ module StellarCoreCommander
     # make_process returns a new, unlaunched Process object, bound to a new
     # tmpdir
     def make_process(transactor, name, quorum, thresh, options={})
-      tmpdir = Dir.mktmpdir("scc")
+      working_dir = File.join(@destination, name.to_s)
+      FileUtils.mkpath(working_dir)
 
       process_options = @process_options.merge({
         transactor:   transactor,
-        working_dir:  tmpdir,
+        working_dir:  working_dir,
         name:         name,
         base_port:    39132 + @processes.map(&:required_ports).sum,
         identity:     Stellar::KeyPair.random,
@@ -73,12 +76,12 @@ module StellarCoreCommander
       @processes.each(&:cleanup)
     end
 
-    def cleanup_at_exit!
+    def cleanup_at_exit!(clean_up_destination)
       at_exit do
         $stderr.puts "cleaning up #{@processes.length} processes"
         cleanup
+        FileUtils.rm_rf @destination if clean_up_destination
       end
     end
-
   end
 end
