@@ -185,7 +185,8 @@ module StellarCoreCommander
         POSTGRES_PASSWORD=#{database_password}
 
         ENVIRONMENT=scc
-        CLUSTER_NAME=#{idname}
+        CLUSTER_NAME=#{File.basename($opts[:recipe], '.rb')}
+        HOSTNAME=#{idname}
 
         main_POSTGRES_PORT=#{postgres_port}
         main_PEER_PORT=#{peer_port}
