@@ -6,6 +6,16 @@ module StellarCoreCommander
   class DockerProcess < Process
     include Contracts
 
+    Contract({
+      docker_state_image: String,
+      docker_core_image:  String
+    } => Any)
+    def initialize(params)
+      @docker_state_image = params[:docker_state_image]
+      @docker_core_image  = params[:docker_core_image]
+      super
+    end
+
     Contract None => Num
     def required_ports
       3
@@ -13,8 +23,8 @@ module StellarCoreCommander
 
     Contract None => Any
     def launch_state_container
-      $stderr.puts "launching state container #{state_container_name}"
-      docker %W(run --name #{state_container_name} -p #{postgres_port}:5432 --env-file stellar-core.env -d stellar/stellar-core-state)
+      $stderr.puts "launching state container #{state_container_name} from image #{@docker_state_image}"
+      docker %W(run --name #{state_container_name} -p #{postgres_port}:5432 --env-file stellar-core.env -d #{@docker_state_image})
       raise "Could not create state container" unless $?.success?
     end
 
@@ -132,7 +142,7 @@ module StellarCoreCommander
                            --net host
                            --volumes-from #{state_container_name}
                            --env-file stellar-core.env
-                           -d stellar/stellar-core
+                           -d #{@docker_core_image}
                            /run main fresh forcescp
                         )
       raise "Could not create stellar-core container" unless $?.success?
@@ -150,6 +160,8 @@ module StellarCoreCommander
         main_VALIDATION_SEED=#{identity.seed}
 
         #{"MANUAL_CLOSE=true" if manual_close?}
+
+        ARTIFICIALLY_GENERATE_LOAD_FOR_TESTING=true
 
         QUORUM_THRESHOLD=#{threshold}
 
