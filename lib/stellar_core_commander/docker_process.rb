@@ -22,6 +22,17 @@ module StellarCoreCommander
     end
 
     Contract None => Any
+    def launch_heka_container
+      $stderr.puts "launching heka container #{heka_container_name}"
+      docker %W(run
+        --name #{heka_container_name}
+        --net container:#{container_name}
+        --volumes-from #{container_name}
+        -d stellar/heka
+      )
+    end
+
+    Contract None => Any
     def launch_state_container
       $stderr.puts "launching state container #{state_container_name} from image #{@docker_state_image}"
       docker %W(run --name #{state_container_name} -p #{postgres_port}:5432 --env-file stellar-core.env -d #{@docker_state_image})
@@ -36,6 +47,13 @@ module StellarCoreCommander
     end
 
     Contract None => Any
+    def shutdown_heka_container
+      return true unless heka_container_running?
+      docker %W(rm -f -v #{heka_container_name})
+      raise "Could not stop heka container: #{heka_container_name}" unless $?.success?
+    end
+
+    Contract None => Any
     def write_config
       IO.write("#{working_dir}/stellar-core.env", config)
     end
@@ -45,17 +63,24 @@ module StellarCoreCommander
       write_config
     end
 
-    Contract None => nil
+    Contract None => Any
     def run
       raise "already running!" if running?
       setup
       launch_state_container
       launch_stellar_core
+      launch_heka_container if atlas
     end
 
     Contract None => Bool
     def running?
       docker %W(inspect #{container_name})
+      $?.success?
+    end
+
+    Contract None => Bool
+    def heka_container_running?
+      docker %W(inspect #{heka_container_name})
       $?.success?
     end
 
@@ -76,6 +101,7 @@ module StellarCoreCommander
       database.disconnect
       shutdown
       shutdown_state_container
+      shutdown_heka_container if atlas
       rm_working_dir
     end
 
@@ -123,6 +149,11 @@ module StellarCoreCommander
     end
 
     Contract None => String
+    def heka_container_name
+      "scc-heka-#{idname}"
+    end
+
+    Contract None => String
     def docker_host
       return host if host
       return URI.parse(ENV['DOCKER_HOST']).host if ENV['DOCKER_HOST']
@@ -153,6 +184,9 @@ module StellarCoreCommander
       <<-EOS.strip_heredoc
         POSTGRES_PASSWORD=#{database_password}
 
+        ENVIRONMENT=scc
+        CLUSTER_NAME=#{idname}
+
         main_POSTGRES_PORT=#{postgres_port}
         main_PEER_PORT=#{peer_port}
         main_HTTP_PORT=#{http_port}
@@ -162,6 +196,10 @@ module StellarCoreCommander
         #{"MANUAL_CLOSE=true" if manual_close?}
 
         ARTIFICIALLY_GENERATE_LOAD_FOR_TESTING=true
+
+        #{"ATLAS_ADDRESS=" + atlas if atlas}
+
+        METRICS_INTERVAL=#{atlas_interval}
 
         QUORUM_THRESHOLD=#{threshold}
 

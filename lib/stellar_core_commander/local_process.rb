@@ -7,9 +7,12 @@ module StellarCoreCommander
     attr_reader :wait
 
     def initialize(params)
+      raise "`host` param is unsupported on LocalProcess, please use `-p docker` for this recipe." if params[:host]
+      $stderr.puts "Warning: Ignoring `atlas` param since LocalProcess doesn't support this." if params[:atlas]
+
       super
       @stellar_core_bin = params[:stellar_core_bin]
-      raise "`host` param is unsupported on LocalProcess, please use `-p docker` for this recipe." if params[:host]
+
       setup_working_dir
     end
 

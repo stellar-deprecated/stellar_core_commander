@@ -12,35 +12,40 @@ module StellarCoreCommander
     attr_accessor :unverified
     attr_reader :threshold
     attr_reader :host
+    attr_reader :atlas
+    attr_reader :atlas_interval
 
     DEFAULT_HOST = '127.0.0.1'
 
     Contract({
-      transactor:   Transactor,
-      working_dir:  String,
-      name:         Symbol,
-      base_port:    Num,
-      identity:     Stellar::KeyPair,
-      quorum:       ArrayOf[Symbol],
-      threshold:    Num,
-      manual_close: Or[Bool, nil],
-      host:         Or[String, nil]
+      transactor:     Transactor,
+      working_dir:    String,
+      name:           Symbol,
+      base_port:      Num,
+      identity:       Stellar::KeyPair,
+      quorum:         ArrayOf[Symbol],
+      threshold:      Num,
+      manual_close:   Or[Bool, nil],
+      host:           Or[String, nil],
+      atlas:          Or[String, nil],
+      atlas_interval: Num
     } => Any)
     def initialize(params)
       #config
-      @transactor   = params[:transactor]
-      @working_dir  = params[:working_dir]
-      @name         = params[:name]
-      @base_port    = params[:base_port]
-      @identity     = params[:identity]
-      @quorum       = params[:quorum]
-      @threshold    = params[:threshold]
-      @manual_close = params[:manual_close] || false
-      @host         = params[:host]
+      @transactor     = params[:transactor]
+      @working_dir    = params[:working_dir]
+      @name           = params[:name]
+      @base_port      = params[:base_port]
+      @identity       = params[:identity]
+      @quorum         = params[:quorum]
+      @threshold      = params[:threshold]
+      @manual_close   = params[:manual_close] || false
+      @host           = params[:host]
+      @atlas          = params[:atlas]
+      @atlas_interval = params[:atlas_interval]
 
       # state
       @unverified   = []
-
 
       if not @quorum.include? @name
         @quorum << @name
