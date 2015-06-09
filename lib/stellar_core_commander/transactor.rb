@@ -213,6 +213,12 @@ module StellarCoreCommander
       end
     end
 
+    Contract Num, Num, Num => Any
+    def start_load_generation(accounts=10000000, txs=10000000, txrate=500)
+      $stderr.puts "starting load generation: #{accounts} accounts, #{txs} txs, #{txrate} tx/s"
+      @process.start_load_generation accounts, txs, txrate
+    end
+
     Contract Symbol, ArrayOf[Symbol], Num, Hash => Process
     def process(name, quorum=[name], thresh=quorum.length, options={})
 

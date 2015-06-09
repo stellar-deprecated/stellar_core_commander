@@ -150,6 +150,11 @@ module StellarCoreCommander
       0
     end
 
+    Contract Num, Num, Num => Any
+    def start_load_generation(accounts, txs, txrate)
+      server.get("/generateload?accounts=#{accounts}&txs=#{txs}&txrate=#{txrate}")
+    end
+
     Contract None => Num
     def http_port
       base_port
