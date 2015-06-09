@@ -26,6 +26,15 @@ module StellarCoreCommander
       master_weight: ThresholdByte
     }
 
+    SetOptionsArgs = {
+      inflation_dest: Maybe[Symbol],
+      clear_flags:    Maybe[ArrayOf[Symbol]],
+      set_flags:      Maybe[ArrayOf[Symbol]],
+      thresholds:     Maybe[Thresholds],
+      home_domain:    Maybe[String],
+      signer:         Maybe[Stellar::Signer],
+    }
+
     Contract Transactor => Any
     def initialize(transactor)
       @transactor = transactor
@@ -153,40 +162,65 @@ module StellarCoreCommander
       }).to_envelope(account)
     end
 
+    Contract Symbol, SetOptionsArgs => Any
+    def set_options(account, args)
+      account = get_account account
+
+      params = {
+        account:  account,
+        sequence: next_sequence(account),
+      }
+
+      if args[:inflation_dest].present?
+        params[:inflation_dest] = get_account args[:inflation_dest]
+      end
+
+      if args[:set_flags].present?
+        params[:set] = make_account_flags(args[:set_flags])
+      end
+
+      if args[:clear_flags].present?
+        params[:clear] = make_account_flags(args[:clear_flags])
+      end
+
+      if args[:thresholds].present?
+        params[:thresholds] = make_thresholds_word(args[:thresholds])
+      end
+
+      if args[:home_domain].present?
+        params[:home_domain] = args[:home_domain]
+      end
+
+      if args[:signer].present?
+        params[:signer] = args[:signer]
+      end
+
+      tx = Stellar::Transaction.set_options(params)
+      tx.to_envelope(account)
+    end
+
+
+    Contract Symbol, ArrayOf[Symbol] => Any
+    def set_flags(account, flags)
+      set_options account, set_flags: flags
+    end
+
+    Contract Symbol, ArrayOf[Symbol] => Any
+    def clear_flags(account, flags)
+      set_options account, clear_flags: flags
+    end
 
     Contract Symbol => Any
     def require_trust_auth(account)
       set_flags account, [:auth_required_flag]
     end
 
-    Contract Symbol, ArrayOf[Symbol] => Any
-    def set_flags(account, flags)
-      account = get_account account
-
-      tx = Stellar::Transaction.set_options({
-        account:  account,
-        sequence: next_sequence(account),
-        set:      make_account_flags(flags),
-      })
-
-      tx.to_envelope(account)
-    end
-
-
     Contract Symbol, Stellar::KeyPair, Num => Any
     def add_signer(account, key, weight)
-      account = get_account account
-
-      tx = Stellar::Transaction.set_options({
-        account:  account,
-        sequence: next_sequence(account),
-        signer:   Stellar::Signer.new({
-          pub_key: key.public_key,
-          weight: weight
-        }),
+      set_options account, signer: Stellar::Signer.new({
+        pub_key: key.public_key,
+        weight: weight
       })
-
-      tx.to_envelope(account)
     end
 
     Contract Symbol, Stellar::KeyPair => Any
@@ -196,29 +230,17 @@ module StellarCoreCommander
 
     Contract(Symbol, Thresholds => Any)
     def set_thresholds(account, thresholds)
-      account = get_account account
-
-      tx = Stellar::Transaction.set_options({
-        account:    account,
-        sequence:   next_sequence(account),
-        thresholds: make_thresholds_word(thresholds),
-      })
-
-      tx.to_envelope(account)
+      set_options account, thresholds: thresholds
     end
 
     Contract(Symbol, Symbol => Any)
     def set_inflation_dest(account, destination)
-      account     = get_account account
-      destination = get_account destination
+      set_options account, inflation_dest: destination
+    end
 
-      tx = Stellar::Transaction.set_options({
-        account:        account,
-        sequence:       next_sequence(account),
-        inflation_dest: destination,
-      })
-
-      tx.to_envelope(account)
+    Contract(Symbol, String => Any)
+    def set_home_domain(account, domain)
+      set_options account, home_domain: domain
     end
 
     Contract Symbol, Symbol => Any

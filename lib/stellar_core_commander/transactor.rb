@@ -111,10 +111,10 @@ module StellarCoreCommander
     end
 
     #
-    # @see StellarCoreCommander::OperationBuilder#require_trust_auth
-    def require_trust_auth(*args)
+    # @see StellarCoreCommander::OperationBuilder#set_options
+    def set_options(*args)
       require_process_running
-      envelope = @operation_builder.require_trust_auth(*args)
+      envelope = @operation_builder.set_options(*args)
       submit_transaction envelope
     end
 
@@ -123,6 +123,22 @@ module StellarCoreCommander
     def set_flags(*args)
       require_process_running
       envelope = @operation_builder.set_flags(*args)
+      submit_transaction envelope
+    end
+
+    #
+    # @see StellarCoreCommander::OperationBuilder#clear_flags
+    def clear_flags(*args)
+      require_process_running
+      envelope = @operation_builder.clear_flags(*args)
+      submit_transaction envelope
+    end
+
+    #
+    # @see StellarCoreCommander::OperationBuilder#require_trust_auth
+    def require_trust_auth(*args)
+      require_process_running
+      envelope = @operation_builder.require_trust_auth(*args)
       submit_transaction envelope
     end
 
@@ -155,6 +171,14 @@ module StellarCoreCommander
     def set_inflation_dest(*args)
       require_process_running
       envelope = @operation_builder.set_inflation_dest(*args)
+      submit_transaction envelope
+    end
+
+    #
+    # @see StellarCoreCommander::OperationBuilder#set_home_domain
+    def set_home_domain(*args)
+      require_process_running
+      envelope = @operation_builder.set_home_domain(*args)
       submit_transaction envelope
     end
 
