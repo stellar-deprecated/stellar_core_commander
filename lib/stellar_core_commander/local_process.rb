@@ -142,6 +142,8 @@ module StellarCoreCommander
         PEER_SEED="#{@identity.seed}"
         VALIDATION_SEED="#{@identity.seed}"
 
+        ARTIFICIALLY_GENERATE_LOAD_FOR_TESTING=true
+
         DATABASE="#{dsn}"
         PREFERRED_PEERS=#{peers}
 

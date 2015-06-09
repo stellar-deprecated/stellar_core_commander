@@ -161,6 +161,8 @@ module StellarCoreCommander
 
         #{"MANUAL_CLOSE=true" if manual_close?}
 
+        ARTIFICIALLY_GENERATE_LOAD_FOR_TESTING=true
+
         QUORUM_THRESHOLD=#{threshold}
 
         PREFERRED_PEERS=#{peers}
