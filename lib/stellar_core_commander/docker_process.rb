@@ -185,7 +185,7 @@ module StellarCoreCommander
         POSTGRES_PASSWORD=#{database_password}
 
         ENVIRONMENT=scc
-        CLUSTER_NAME=#{File.basename($opts[:recipe], '.rb')}
+        CLUSTER_NAME=#{recipe_name}
         HOSTNAME=#{idname}
 
         main_POSTGRES_PORT=#{postgres_port}
@@ -213,6 +213,12 @@ module StellarCoreCommander
         HISTORY_PUT=cp {0} history/%s/{1}
         HISTORY_MKDIR=mkdir -p history/%s/{0}
       EOS
+    end
+
+    def recipe_name
+      File.basename($opts[:recipe], '.rb')
+    rescue TypeError
+      'recipe_name_not_found'
     end
 
     def docker_port
