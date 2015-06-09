@@ -75,10 +75,16 @@ def make_commander
     atlas_interval: $opts[:"atlas-interval"].to_i
   }
 
-  destination = $opts[:"destination"] || Dir.mktmpdir("scc")
+  destination = $opts[:"destination"]
+  if destination
+    clean_up_destination = false
+  else
+    destination = Dir.mktmpdir("scc")
+    clean_up_destination = true
+  end
 
   StellarCoreCommander::Commander.new($opts[:"process"], destination, opts).tap do |c|
-    c.cleanup_at_exit!
+    c.cleanup_at_exit!(clean_up_destination)
   end
 end
 

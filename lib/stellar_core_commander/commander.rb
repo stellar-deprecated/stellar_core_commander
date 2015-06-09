@@ -76,12 +76,12 @@ module StellarCoreCommander
       @processes.each(&:cleanup)
     end
 
-    def cleanup_at_exit!
+    def cleanup_at_exit!(clean_up_destination)
       at_exit do
         $stderr.puts "cleaning up #{@processes.length} processes"
         cleanup
+        FileUtils.rm_rf @destination if clean_up_destination
       end
     end
-
   end
 end
