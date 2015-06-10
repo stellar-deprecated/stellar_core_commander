@@ -230,10 +230,8 @@ module StellarCoreCommander
         QUORUM_SET=#{quorum}
 
         HISTORY_PEERS=#{peer_names}
-
-        HISTORY_GET=cp history/%s/{0} {1}
-        HISTORY_PUT=cp {0} history/%s/{1}
-        HISTORY_MKDIR=mkdir -p history/%s/{0}
+        HISTORY_GET=aws s3 --region #{@s3_history_region} cp #{@s3_history_prefix}/%s/{0} {1}
+        HISTORY_PUT=aws s3 --region #{@s3_history_region} cp {0} #{@s3_history_prefix}/%s/{1}
       EOS
     end
 

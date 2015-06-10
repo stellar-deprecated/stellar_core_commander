@@ -28,7 +28,9 @@ module StellarCoreCommander
       manual_close:   Or[Bool, nil],
       host:           Or[String, nil],
       atlas:          Or[String, nil],
-      atlas_interval: Num
+      atlas_interval: Num,
+      s3_history_prefix: String,
+      s3_history_region: String
     } => Any)
     def initialize(params)
       #config
@@ -43,6 +45,8 @@ module StellarCoreCommander
       @host           = params[:host]
       @atlas          = params[:atlas]
       @atlas_interval = params[:atlas_interval]
+      @s3_history_region = params[:s3_history_region]
+      @s3_history_prefix = params[:s3_history_prefix]
 
       # state
       @unverified   = []
