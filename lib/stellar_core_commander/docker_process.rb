@@ -186,7 +186,7 @@ module StellarCoreCommander
                            --volumes-from #{state_container_name}
                            --env-file stellar-core.env
                            -d #{@docker_core_image}
-                           /run main fresh forcescp
+                           /run #{@name} fresh forcescp
                         )
       raise "Could not create stellar-core container" unless $?.success?
     end
@@ -200,11 +200,11 @@ module StellarCoreCommander
         CLUSTER_NAME=#{recipe_name}
         HOSTNAME=#{idname}
 
-        main_POSTGRES_PORT=#{postgres_port}
-        main_PEER_PORT=#{peer_port}
-        main_HTTP_PORT=#{http_port}
-        main_PEER_SEED=#{identity.seed}
-        main_VALIDATION_SEED=#{identity.seed}
+        #{@name}_POSTGRES_PORT=#{postgres_port}
+        #{@name}_PEER_PORT=#{peer_port}
+        #{@name}_HTTP_PORT=#{http_port}
+        #{@name}_PEER_SEED=#{identity.seed}
+        #{@name}_VALIDATION_SEED=#{identity.seed}
 
         #{"MANUAL_CLOSE=true" if manual_close?}
 
@@ -219,7 +219,7 @@ module StellarCoreCommander
         PREFERRED_PEERS=#{peer_connections}
         QUORUM_SET=#{quorum}
 
-        HISTORY_PEERS=["main"]
+        HISTORY_PEERS=#{peer_names}
 
         HISTORY_GET=cp history/%s/{0} {1}
         HISTORY_PUT=cp {0} history/%s/{1}
