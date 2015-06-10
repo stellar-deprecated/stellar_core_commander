@@ -60,6 +60,7 @@ module StellarCoreCommander
     Contract None => Any
     def write_config
       IO.write("#{working_dir}/stellar-core.env", config)
+      IO.write("/tmp/stellar-core.env", config)
     end
 
     Contract None => Any
@@ -176,23 +177,73 @@ module StellarCoreCommander
       @docker_pull
     end
 
+    Contract None => ArrayOf[String]
+    def aws_credentials_volume
+      if use_s3 and (not host)
+        ["-v", "#{ENV['HOME']}/.aws:/root/.aws:ro"]
+      else
+        []
+      end
+    end
+
+    Contract None => Bool
+    def use_s3
+      if @use_s3
+        true
+      else
+        if host and (@quorum.size > 1)
+          $stderr.puts "WARNING: multi-peer with remote docker host, but no s3; history will not be shared"
+        end
+        false
+      end
+    end
+
+    Contract None => ArrayOf[String]
+    def shared_history_volume
+      if use_s3
+        []
+      else
+        dir = File.expand_path("#{working_dir}/../history-archives")
+        Dir.mkdir(dir) unless File.exists?(dir)
+        ["-v", "#{dir}:/history"]
+      end
+    end
+
+    Contract None => String
+    def history_commands
+      if use_s3
+        <<-EOS.strip_heredoc
+          HISTORY_GET=aws s3 --region #{@s3_history_region} cp #{@s3_history_prefix}/%s/{0} {1}
+          HISTORY_PUT=aws s3 --region #{@s3_history_region} cp {0} #{@s3_history_prefix}/%s/{1}
+        EOS
+      else
+        <<-EOS.strip_heredoc
+          HISTORY_GET=cp /history/%s/{0} {1}
+          HISTORY_PUT=cp {0} /history/%s/{1}
+          HISTORY_MKDIR=mkdir -p /history/%s/{0}
+        EOS
+      end
+    end
+
     private
     def launch_stellar_core
       $stderr.puts "launching stellar-core container #{container_name}"
       docker %W(pull #{@docker_core_image}) if docker_pull?
-      docker %W(run
+      docker (%W(run
                            --name #{container_name}
                            --net host
                            --volumes-from #{state_container_name}
+               ) + aws_credentials_volume + shared_history_volume + %W(
                            --env-file stellar-core.env
                            -d #{@docker_core_image}
-                           /run main fresh forcescp
-                        )
+                           /run #{@name} fresh forcescp
+               ))
       raise "Could not create stellar-core container" unless $?.success?
     end
 
     Contract None => String
     def config
+      (
       <<-EOS.strip_heredoc
         POSTGRES_PASSWORD=#{database_password}
 
@@ -200,11 +251,11 @@ module StellarCoreCommander
         CLUSTER_NAME=#{recipe_name}
         HOSTNAME=#{idname}
 
-        main_POSTGRES_PORT=#{postgres_port}
-        main_PEER_PORT=#{peer_port}
-        main_HTTP_PORT=#{http_port}
-        main_PEER_SEED=#{identity.seed}
-        main_VALIDATION_SEED=#{identity.seed}
+        #{@name}_POSTGRES_PORT=#{postgres_port}
+        #{@name}_PEER_PORT=#{peer_port}
+        #{@name}_HTTP_PORT=#{http_port}
+        #{@name}_PEER_SEED=#{identity.seed}
+        #{@name}_VALIDATION_SEED=#{identity.seed}
 
         #{"MANUAL_CLOSE=true" if manual_close?}
 
@@ -216,15 +267,12 @@ module StellarCoreCommander
 
         QUORUM_THRESHOLD=#{threshold}
 
-        PREFERRED_PEERS=#{peers}
+        PREFERRED_PEERS=#{peer_connections}
         QUORUM_SET=#{quorum}
 
-        HISTORY_PEERS=["main"]
-
-        HISTORY_GET=cp history/%s/{0} {1}
-        HISTORY_PUT=cp {0} history/%s/{1}
-        HISTORY_MKDIR=mkdir -p history/%s/{0}
+        HISTORY_PEERS=#{peer_names}
       EOS
+      ) + history_commands
     end
 
     def recipe_name
@@ -250,6 +298,7 @@ module StellarCoreCommander
     end
 
     def docker(args)
+      # $stderr.puts (["docker"] + docker_args + args).join(" ")
       run_cmd "docker", docker_args + args
     end
 

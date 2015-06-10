@@ -28,7 +28,10 @@ module StellarCoreCommander
       manual_close:   Or[Bool, nil],
       host:           Or[String, nil],
       atlas:          Or[String, nil],
-      atlas_interval: Num
+      atlas_interval: Num,
+      use_s3:         Bool,
+      s3_history_prefix: String,
+      s3_history_region: String
     } => Any)
     def initialize(params)
       #config
@@ -43,6 +46,9 @@ module StellarCoreCommander
       @host           = params[:host]
       @atlas          = params[:atlas]
       @atlas_interval = params[:atlas_interval]
+      @use_s3         = params[:use_s3]
+      @s3_history_region = params[:s3_history_region]
+      @s3_history_prefix = params[:s3_history_prefix]
 
       # state
       @unverified   = []
@@ -65,7 +71,12 @@ module StellarCoreCommander
     end
 
     Contract None => ArrayOf[String]
-    def peers
+    def peer_names
+      @quorum.map {|x| x.to_s}
+    end
+
+    Contract None => ArrayOf[String]
+    def peer_connections
       @quorum.map do |q|
         p = @transactor.get_process(q)
         "#{p.hostname}:#{p.peer_port}"

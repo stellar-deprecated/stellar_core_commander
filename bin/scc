@@ -44,6 +44,18 @@ def run
       'where to store logs and other artifacts (default: a temporary directory)',
       argument: true,
       default: nil
+    on 'use-s3',
+      'share history via s3',
+      argument: false,
+      default: false
+    on 's3-history-prefix',
+      's3 prefix to store temp history in (default: subdir of s3://history-stg.stellar.org/dev/scc)',
+      argument: true,
+      default: "s3://history-stg.stellar.org/dev/scc/#{Time.now.to_i}-#{rand 100000}"
+    on 's3-history-region',
+      's3 region to store temp history in (default: eu-west-1)',
+      argument: true,
+      default: "eu-west-1"
   end
 
   recipe    = load_recipe
@@ -72,7 +84,10 @@ def make_commander
     docker_state_image: $opts[:"docker-state-image"],
     docker_pull: $opts[:"docker-pull"],
     atlas: $opts[:"atlas"],
-    atlas_interval: $opts[:"atlas-interval"].to_i
+    atlas_interval: $opts[:"atlas-interval"].to_i,
+    use_s3: $opts[:"use-s3"],
+    s3_history_region: $opts[:"s3-history-region"],
+    s3_history_prefix: $opts[:"s3-history-prefix"]
   }
 
   destination = $opts[:"destination"]
