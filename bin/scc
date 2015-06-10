@@ -44,6 +44,10 @@ def run
       'where to store logs and other artifacts (default: a temporary directory)',
       argument: true,
       default: nil
+    on 'use-s3',
+      'share history via s3',
+      argument: false,
+      default: false
     on 's3-history-prefix',
       's3 prefix to store temp history in (default: subdir of s3://history-stg.stellar.org/dev/scc)',
       argument: true,
@@ -81,6 +85,7 @@ def make_commander
     docker_pull: $opts[:"docker-pull"],
     atlas: $opts[:"atlas"],
     atlas_interval: $opts[:"atlas-interval"].to_i,
+    use_s3: $opts[:"use-s3"],
     s3_history_region: $opts[:"s3-history-region"],
     s3_history_prefix: $opts[:"s3-history-prefix"]
   }

@@ -29,6 +29,7 @@ module StellarCoreCommander
       host:           Or[String, nil],
       atlas:          Or[String, nil],
       atlas_interval: Num,
+      use_s3:         Bool,
       s3_history_prefix: String,
       s3_history_region: String
     } => Any)
@@ -45,6 +46,7 @@ module StellarCoreCommander
       @host           = params[:host]
       @atlas          = params[:atlas]
       @atlas_interval = params[:atlas_interval]
+      @use_s3         = params[:use_s3]
       @s3_history_region = params[:s3_history_region]
       @s3_history_prefix = params[:s3_history_prefix]
 
