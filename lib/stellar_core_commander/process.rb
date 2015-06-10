@@ -96,17 +96,7 @@ module StellarCoreCommander
     Contract None => Any
     def wait_for_ready
       loop do
-
-        response = server.get("/info") rescue false
-
-        if response
-          body = ActiveSupport::JSON.decode(response.body)
-
-          state = body["info"]["state"]
-          $stderr.puts "state: #{state}"
-          break if state == "Synced!"
-        end
-
+        break if synced?
         $stderr.puts "waiting until stellar-core #{idname} is synced"
         sleep 1
       end
@@ -146,6 +136,28 @@ module StellarCoreCommander
     end
 
     Contract None => Hash
+    def info
+      response = server.get("/info")
+      body = ActiveSupport::JSON.decode(response.body)
+      body["info"]
+    rescue
+      {}
+    end
+
+    Contract String => Any
+    def info_field(k)
+      i = info
+      i[k]
+    rescue
+      false
+    end
+
+    Contract None => Bool
+    def synced?
+      (info_field "state") == "Synced!"
+    end
+
+    Contract None => Hash
     def metrics
       response = server.get("/metrics")
       body = ActiveSupport::JSON.decode(response.body)
@@ -154,11 +166,17 @@ module StellarCoreCommander
       {}
     end
 
-    Contract None => Num
-    def scp_ballots_prepared
-      metrics["scp.ballot.prepare"]["count"]
+    Contract String => Num
+    def metrics_count(k)
+      m = metrics
+      m[k]["count"]
     rescue
       0
+    end
+
+    Contract None => Num
+    def scp_ballots_prepared
+      metrics_count "scp.ballot.prepare"
     end
 
     Contract Num, Num, Num => Any
