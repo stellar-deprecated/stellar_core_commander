@@ -176,18 +176,28 @@ module StellarCoreCommander
       @docker_pull
     end
 
+    Contract None => ArrayOf[String]
+    def aws_credentials_volume
+      if host
+        []
+      else
+        ["-v", "#{ENV['HOME']}/.aws:/root/.aws:ro"]
+      end
+    end
+
     private
     def launch_stellar_core
       $stderr.puts "launching stellar-core container #{container_name}"
       docker %W(pull #{@docker_core_image}) if docker_pull?
-      docker %W(run
+      docker (%W(run
                            --name #{container_name}
                            --net host
                            --volumes-from #{state_container_name}
+               ) + aws_credentials_volume + %W(
                            --env-file stellar-core.env
                            -d #{@docker_core_image}
                            /run #{@name} fresh forcescp
-                        )
+               ))
       raise "Could not create stellar-core container" unless $?.success?
     end
 
