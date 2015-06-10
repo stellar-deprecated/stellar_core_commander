@@ -72,6 +72,15 @@ module StellarCoreCommander
       end
     end
 
+    Contract None => ArrayOf[Process]
+    def require_processes_in_sync
+      @processes.each do |p|
+        if not p.synced?
+          raise "process #{p.name} lost sync"
+        end
+      end
+    end
+
     def cleanup
       @processes.each(&:cleanup)
     end
