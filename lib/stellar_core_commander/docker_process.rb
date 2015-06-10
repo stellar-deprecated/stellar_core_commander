@@ -60,7 +60,6 @@ module StellarCoreCommander
     Contract None => Any
     def write_config
       IO.write("#{working_dir}/stellar-core.env", config)
-      IO.write("/tmp/stellar-core.env", config)
     end
 
     Contract None => Any
@@ -95,6 +94,8 @@ module StellarCoreCommander
     Contract None => Any
     def shutdown
       return true unless running?
+      docker %W(stop #{container_name})
+      docker %W(exec #{container_name} rm -rf /history)
       docker %W(rm -f #{container_name})
     end
 
@@ -298,7 +299,6 @@ module StellarCoreCommander
     end
 
     def docker(args)
-      # $stderr.puts (["docker"] + docker_args + args).join(" ")
       run_cmd "docker", docker_args + args
     end
 
