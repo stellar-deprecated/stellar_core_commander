@@ -94,6 +94,8 @@ module StellarCoreCommander
     Contract None => Any
     def shutdown
       return true unless running?
+      docker %W(stop #{container_name})
+      docker %W(exec #{container_name} rm -rf /history)
       docker %W(rm -f #{container_name})
     end
 
