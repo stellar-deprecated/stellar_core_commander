@@ -60,7 +60,6 @@ module StellarCoreCommander
     Contract None => Any
     def write_config
       IO.write("#{working_dir}/stellar-core.env", config)
-      IO.write("/tmp/stellar-core.env", config)
     end
 
     Contract None => Any
@@ -298,7 +297,6 @@ module StellarCoreCommander
     end
 
     def docker(args)
-      # $stderr.puts (["docker"] + docker_args + args).join(" ")
       run_cmd "docker", docker_args + args
     end
 
