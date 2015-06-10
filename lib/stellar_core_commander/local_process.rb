@@ -147,7 +147,7 @@ module StellarCoreCommander
         ARTIFICIALLY_GENERATE_LOAD_FOR_TESTING=true
 
         DATABASE="#{dsn}"
-        PREFERRED_PEERS=#{peers}
+        PREFERRED_PEERS=#{peer_connections}
 
         #{"MANUAL_CLOSE=true" if manual_close?}
 

@@ -65,7 +65,7 @@ module StellarCoreCommander
     end
 
     Contract None => ArrayOf[String]
-    def peers
+    def peer_connections
       @quorum.map do |q|
         p = @transactor.get_process(q)
         "#{p.hostname}:#{p.peer_port}"

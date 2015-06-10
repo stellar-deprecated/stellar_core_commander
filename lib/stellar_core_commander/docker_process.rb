@@ -216,7 +216,7 @@ module StellarCoreCommander
 
         QUORUM_THRESHOLD=#{threshold}
 
-        PREFERRED_PEERS=#{peers}
+        PREFERRED_PEERS=#{peer_connections}
         QUORUM_SET=#{quorum}
 
         HISTORY_PEERS=["main"]
