@@ -43,7 +43,7 @@ module StellarCoreCommander
     #
     def run_recipe(recipe_path)
       recipe_content = IO.read(recipe_path)
-      instance_eval recipe_content, recipe_path, 0
+      instance_eval recipe_content, recipe_path, 1
     rescue => e
       puts
       puts "Error! (#{e.class.name}): #{e.message}"
