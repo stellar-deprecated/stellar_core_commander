@@ -308,6 +308,20 @@ module StellarCoreCommander
       base_sequence + inflight_count + 1
     end
 
+    Contract Or[Symbol, Stellar::KeyPair] => Bool
+    def account_created(account)
+      require_process_running
+      if account.is_a?(Symbol)
+        account = get_account(account)
+      end
+      begin
+        @process.account_row(account)
+        return true
+      rescue
+        return false
+      end
+    end
+
     Contract Or[Symbol, Stellar::KeyPair] => Num
     def balance(account)
       require_process_running
