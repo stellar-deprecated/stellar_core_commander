@@ -205,10 +205,21 @@ module StellarCoreCommander
 
     end
 
+    Contract Stellar::KeyPair => Any
+    def account_row(account)
+      row = database[:accounts].where(:accountid => account.address).first
+      raise "Missing account in #{idname}'s database: #{account.address}" unless row
+      row
+    end
+
     Contract Stellar::KeyPair => Num
     def sequence_for(account)
-      row = database[:accounts].where(:accountid => account.address).first
-      row[:seqnum]
+      (account_row account)[:seqnum]
+    end
+
+    Contract Stellar::KeyPair => Num
+    def balance_for(account)
+      (account_row account)[:balance]
     end
 
     Contract None => Num

@@ -308,6 +308,16 @@ module StellarCoreCommander
       base_sequence + inflight_count + 1
     end
 
+    Contract Or[Symbol, Stellar::KeyPair] => Num
+    def balance(account)
+      require_process_running
+      if account.is_a?(Symbol)
+        account = get_account(account)
+      end
+      raise "no process!" unless @process
+      @process.balance_for(account)
+    end
+
     Contract None => Any
     def use_manual_close()
       $stderr.puts "using manual_close mode"
