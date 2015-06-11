@@ -43,7 +43,16 @@ module StellarCoreCommander
     #
     def run_recipe(recipe_path)
       recipe_content = IO.read(recipe_path)
-      instance_eval recipe_content
+      instance_eval recipe_content, recipe_path, 0
+    rescue => e
+      puts
+      puts "Error! (#{e.class.name}): #{e.message}"
+      puts
+      puts e.backtrace.
+        reject{|l| l =~ %r{gems/contracts-.+?/} }. # filter contract frames
+        join("\n")
+      puts
+      exit 1
     end
 
 
