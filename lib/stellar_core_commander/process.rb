@@ -200,6 +200,11 @@ module StellarCoreCommander
       metrics_count "scp.ballot.prepare"
     end
 
+    Contract None => Num
+    def scp_quorum_heard
+      metrics_count "scp.quorum.heard"
+    end
+
     Contract Num, Num, Num => Any
     def start_load_generation(accounts, txs, txrate)
       server.get("/generateload?accounts=#{accounts}&txs=#{txs}&txrate=#{txrate}")
