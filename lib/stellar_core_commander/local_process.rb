@@ -63,7 +63,7 @@ module StellarCoreCommander
     def run
       raise "already running!" if running?
       setup
-      forcescp
+      forcescp if @forcescp
       launch_stellar_core
     end
 

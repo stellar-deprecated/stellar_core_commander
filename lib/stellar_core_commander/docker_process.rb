@@ -237,7 +237,7 @@ module StellarCoreCommander
                ) + aws_credentials_volume + shared_history_volume + %W(
                            --env-file stellar-core.env
                            -d #{@docker_core_image}
-                           /run #{@name} fresh forcescp
+                           /run #{@name} fresh #{"forcescp" if @forcescp}
                ))
       raise "Could not create stellar-core container" unless $?.success?
     end

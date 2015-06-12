@@ -26,6 +26,7 @@ module StellarCoreCommander
       quorum:         ArrayOf[Symbol],
       threshold:      Num,
       manual_close:   Or[Bool, nil],
+      forcescp:       Or[Bool, nil],
       host:           Or[String, nil],
       atlas:          Or[String, nil],
       atlas_interval: Num,
@@ -43,6 +44,7 @@ module StellarCoreCommander
       @quorum         = params[:quorum]
       @threshold      = params[:threshold]
       @manual_close   = params[:manual_close] || false
+      @forcescp       = params[:forcescp].nil? && true
       @host           = params[:host]
       @atlas          = params[:atlas]
       @atlas_interval = params[:atlas_interval]
