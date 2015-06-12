@@ -277,8 +277,8 @@ module StellarCoreCommander
     Contract Symbol, ArrayOf[Symbol], Num, Hash => Process
     def process(name, quorum=[name], thresh=quorum.length, options={})
 
-      if @manual_close
-        raise "Cannot use `process`, this recipe has previously declared  `use_manual_close`."
+      if @manual_close and quorum.size != 1
+        raise "Cannot use `process` with multi-node quorum, this recipe has previously declared  `use_manual_close`."
       end
 
       $stderr.puts "creating process #{name}"
