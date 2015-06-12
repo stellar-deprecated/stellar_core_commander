@@ -124,8 +124,8 @@ module StellarCoreCommander
       else
         taker_pays = make_currency currencies[:buy]
         taker_gets = make_currency currencies[:with]
-        price = 1 / price
         amount = (amount * price).floor
+        price = 1 / price
       end
 
       Stellar::Transaction.manage_offer({
@@ -148,8 +148,8 @@ module StellarCoreCommander
       else
         taker_pays = make_currency currencies[:buy]
         taker_gets = make_currency currencies[:with]
-        price = 1 / price
         amount = (amount * price).floor
+        price = 1 / price
       end
 
       Stellar::Transaction.create_passive_offer({
