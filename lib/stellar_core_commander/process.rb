@@ -27,6 +27,7 @@ module StellarCoreCommander
       threshold:      Num,
       manual_close:   Or[Bool, nil],
       await_sync:     Or[Bool, nil],
+      accelerate_time: Or[Bool, nil],
       forcescp:       Or[Bool, nil],
       host:           Or[String, nil],
       atlas:          Or[String, nil],
@@ -46,6 +47,7 @@ module StellarCoreCommander
       @threshold      = params[:threshold]
       @manual_close   = params[:manual_close] || false
       @await_sync     = params[:await_sync].nil? && true
+      @accelerate_time = params[:accelerate_time] || false
       @forcescp       = params[:forcescp].nil? && true
       @host           = params[:host]
       @atlas          = params[:atlas]

@@ -145,6 +145,7 @@ module StellarCoreCommander
         VALIDATION_SEED="#{@identity.seed}"
 
         ARTIFICIALLY_GENERATE_LOAD_FOR_TESTING=true
+        #{"ARTIFICIALLY_ACCELERATE_TIME_FOR_TESTING=true" if @accelerate_time}
 
         DATABASE="#{dsn}"
         PREFERRED_PEERS=#{peer_connections}

@@ -261,6 +261,7 @@ module StellarCoreCommander
         #{"MANUAL_CLOSE=true" if manual_close?}
 
         ARTIFICIALLY_GENERATE_LOAD_FOR_TESTING=true
+        #{"ARTIFICIALLY_ACCELERATE_TIME_FOR_TESTING=true" if @accelerate_time}
 
         #{"ATLAS_ADDRESS=" + atlas if atlas}
 
