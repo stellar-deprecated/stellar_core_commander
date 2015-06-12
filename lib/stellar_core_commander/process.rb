@@ -161,6 +161,13 @@ module StellarCoreCommander
       (info_field "state") == "Synced!"
     end
 
+    Contract None => Num
+    def ledger_num
+      (info_field "ledger")["num"]
+    rescue
+      0
+    end
+
     Contract None => Bool
     def await_sync?
       @await_sync

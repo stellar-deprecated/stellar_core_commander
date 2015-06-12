@@ -244,6 +244,11 @@ module StellarCoreCommander
       @process.unverified.clear
     end
 
+    Contract None => Num
+    def ledger_num
+      require_process_running
+      @process.ledger_num
+    end
     Contract Symbol => Stellar::KeyPair
     def get_account(name)
       require_process_running
