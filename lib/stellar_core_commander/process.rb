@@ -26,6 +26,7 @@ module StellarCoreCommander
       quorum:         ArrayOf[Symbol],
       threshold:      Num,
       manual_close:   Or[Bool, nil],
+      await_sync:     Or[Bool, nil],
       forcescp:       Or[Bool, nil],
       host:           Or[String, nil],
       atlas:          Or[String, nil],
@@ -44,6 +45,7 @@ module StellarCoreCommander
       @quorum         = params[:quorum]
       @threshold      = params[:threshold]
       @manual_close   = params[:manual_close] || false
+      @await_sync     = params[:await_sync].nil? && true
       @forcescp       = params[:forcescp].nil? && true
       @host           = params[:host]
       @atlas          = params[:atlas]
@@ -157,6 +159,11 @@ module StellarCoreCommander
     Contract None => Bool
     def synced?
       (info_field "state") == "Synced!"
+    end
+
+    Contract None => Bool
+    def await_sync?
+      @await_sync
     end
 
     Contract None => Hash

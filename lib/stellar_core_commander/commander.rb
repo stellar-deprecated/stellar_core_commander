@@ -67,7 +67,9 @@ module StellarCoreCommander
         if not p.running?
           $stderr.puts "running #{p.idname} (dir:#{p.working_dir})"
           p.run
-          p.wait_for_ready
+          if p.await_sync?
+            p.wait_for_ready
+          end
         end
       end
     end
@@ -75,7 +77,7 @@ module StellarCoreCommander
     Contract None => ArrayOf[Process]
     def require_processes_in_sync
       @processes.each do |p|
-        if not p.synced?
+        if p.await_sync? and not p.synced?
           raise "process #{p.name} lost sync"
         end
       end
