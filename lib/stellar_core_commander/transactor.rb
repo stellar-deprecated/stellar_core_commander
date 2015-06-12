@@ -249,6 +249,14 @@ module StellarCoreCommander
       require_process_running
       @process.ledger_num
     end
+
+    Contract Num, Symbol => Any
+    def catchup(ledger, mode=:minimal)
+      require_process_running
+      @process.catchup ledger, mode
+    end
+
+
     Contract Symbol => Stellar::KeyPair
     def get_account(name)
       require_process_running

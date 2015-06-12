@@ -139,6 +139,11 @@ module StellarCoreCommander
       true
     end
 
+    Contract Num, Symbol => Any
+    def catchup(ledger, mode)
+      server.get("/catchup?ledger=#{ledger}&mode=#{mode}")
+    end
+
     Contract None => Hash
     def info
       response = server.get("/info")
