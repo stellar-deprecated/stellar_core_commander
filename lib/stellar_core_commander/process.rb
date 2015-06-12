@@ -103,7 +103,7 @@ module StellarCoreCommander
     def wait_for_ready
       loop do
         break if synced?
-        $stderr.puts "waiting until stellar-core #{idname} is synced"
+        $stderr.puts "waiting until stellar-core #{idname} is synced (state: #{info_field 'state'}, quorum heard: #{scp_quorum_heard})"
         sleep 1
       end
     end
