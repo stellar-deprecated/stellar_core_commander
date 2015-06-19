@@ -338,6 +338,18 @@ module StellarCoreCommander
       @manual_close = true
     end
 
+    Contract ArrayOf[Or[Symbol, Process]] => nil
+    def check_equal_states(processes)
+      raise "no process!" unless @process
+      for p in processes
+        if p.is_a?(Symbol)
+          p = get_process(p)
+        end
+        @process.check_equal_state(p)
+      end
+      nil
+    end
+
     private
     Contract Symbol, Any => Any
     def add_named(name, object)

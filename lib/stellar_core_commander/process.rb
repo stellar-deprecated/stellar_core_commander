@@ -1,5 +1,16 @@
 module StellarCoreCommander
 
+  class UnexpectedDifference < StandardError
+    def initialize(kind, x, y)
+      @kind = kind
+      @x = x
+      @y = y
+    end
+    def message
+      "Unexpected difference in #{@kind}: #{@x} != #{@y}"
+    end
+  end
+
   class Process
     include Contracts
 
@@ -225,6 +236,88 @@ module StellarCoreCommander
     Contract None => Num
     def latest_ledger
       database[:ledgerheaders].max(:ledgerseq)
+    end
+
+    Contract String => Any
+    def db_store_state(name)
+      database.select(:state).from(:storestate).filter(:statename=>name).first[:state]
+    end
+
+    Contract None => String
+    def latest_ledger_hash
+      s_lcl = db_store_state("lastclosedledger")
+      t_lcl = database.select(:ledgerhash)
+        .from(:ledgerheaders)
+        .filter(:ledgerseq=>latest_ledger).first[:ledgerhash]
+      raise "inconsistent last-ledger hashes in db: #{t_lcl} vs. #{s_lcl}" if t_lcl != s_lcl
+      s_lcl
+    end
+
+    Contract None => Any
+    def history_archive_state
+      ActiveSupport::JSON.decode(db_store_state("historyarchivestate"))
+    end
+
+    Contract None => Num
+    def account_count
+      database.fetch("SELECT count(*) FROM accounts").first[:count]
+    end
+
+    Contract None => Num
+    def trustline_count
+      database.fetch("SELECT count(*) FROM trustlines").first[:count]
+    end
+
+    Contract None => Num
+    def offer_count
+      database.fetch("SELECT count(*) FROM offers").first[:count]
+    end
+
+    Contract None => Num
+    def tx_count
+      database.fetch("SELECT count(*) FROM txhistory").first[:count]
+    end
+
+    Contract None => ArrayOf[Any]
+    def ten_accounts
+      database.fetch("SELECT * FROM accounts ORDER BY accountid LIMIT 10").all
+    end
+
+    Contract None => ArrayOf[Any]
+    def ten_offers
+      database.fetch("SELECT * FROM offers ORDER BY accountid LIMIT 10").all
+    end
+
+    Contract None => ArrayOf[Any]
+    def ten_trustlines
+      database.fetch("SELECT * FROM trustlines ORDER BY accountid LIMIT 10").all
+    end
+
+    Contract None => ArrayOf[Any]
+    def ten_txs
+      database.fetch("SELECT * FROM txhistory ORDER BY txid LIMIT 10").all
+    end
+
+    Contract String, Any, Any => nil
+    def check_equal(kind, x, y)
+      raise UnexpectedDifference.new(kind, x, y) if x != y
+    end
+
+    Contract Process => nil
+    def check_equal_state(other)
+      check_equal "ledger", latest_ledger, other.latest_ledger
+      check_equal "ledger hash", latest_ledger_hash, other.latest_ledger_hash
+      check_equal "history", history_archive_state, other.history_archive_state
+
+      check_equal "account count", account_count, other.account_count
+      check_equal "trustline count", trustline_count, other.trustline_count
+      check_equal "offer count", offer_count, other.offer_count
+      check_equal "tx count", tx_count, other.tx_count
+
+      check_equal "ten accounts", ten_accounts, other.ten_accounts
+      check_equal "ten trustlines", ten_trustlines, other.ten_trustlines
+      check_equal "ten offers", ten_offers, other.ten_offers
+      check_equal "ten txs", ten_txs, other.ten_txs
     end
 
     Contract String => Maybe[String]
