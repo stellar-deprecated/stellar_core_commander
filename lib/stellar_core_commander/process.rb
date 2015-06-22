@@ -26,6 +26,9 @@ module StellarCoreCommander
       quorum:         ArrayOf[Symbol],
       threshold:      Num,
       manual_close:   Or[Bool, nil],
+      await_sync:     Or[Bool, nil],
+      accelerate_time: Or[Bool, nil],
+      forcescp:       Or[Bool, nil],
       host:           Or[String, nil],
       atlas:          Or[String, nil],
       atlas_interval: Num,
@@ -43,6 +46,9 @@ module StellarCoreCommander
       @quorum         = params[:quorum]
       @threshold      = params[:threshold]
       @manual_close   = params[:manual_close] || false
+      @await_sync     = params[:await_sync].nil? && true
+      @accelerate_time = params[:accelerate_time] || false
+      @forcescp       = params[:forcescp].nil? && true
       @host           = params[:host]
       @atlas          = params[:atlas]
       @atlas_interval = params[:atlas_interval]
@@ -97,7 +103,7 @@ module StellarCoreCommander
     def wait_for_ready
       loop do
         break if synced?
-        $stderr.puts "waiting until stellar-core #{idname} is synced"
+        $stderr.puts "waiting until stellar-core #{idname} is synced (state: #{info_field 'state'}, quorum heard: #{scp_quorum_heard})"
         sleep 1
       end
     end
@@ -135,6 +141,11 @@ module StellarCoreCommander
       true
     end
 
+    Contract Num, Symbol => Any
+    def catchup(ledger, mode)
+      server.get("/catchup?ledger=#{ledger}&mode=#{mode}")
+    end
+
     Contract None => Hash
     def info
       response = server.get("/info")
@@ -157,6 +168,18 @@ module StellarCoreCommander
       (info_field "state") == "Synced!"
     end
 
+    Contract None => Num
+    def ledger_num
+      (info_field "ledger")["num"]
+    rescue
+      0
+    end
+
+    Contract None => Bool
+    def await_sync?
+      @await_sync
+    end
+
     Contract None => Hash
     def metrics
       response = server.get("/metrics")
@@ -177,6 +200,11 @@ module StellarCoreCommander
     Contract None => Num
     def scp_ballots_prepared
       metrics_count "scp.ballot.prepare"
+    end
+
+    Contract None => Num
+    def scp_quorum_heard
+      metrics_count "scp.quorum.heard"
     end
 
     Contract Num, Num, Num => Any

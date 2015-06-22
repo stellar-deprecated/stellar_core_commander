@@ -36,7 +36,7 @@ module StellarCoreCommander
         identity:     Stellar::KeyPair.random,
         quorum:       quorum,
         threshold:    thresh,
-        manual_close: false
+        manual_close: transactor.manual_close
       }).merge(options)
 
       process_class = case @process_type
@@ -56,7 +56,7 @@ module StellarCoreCommander
     Contract Transactor => Process
     def get_root_process(transactor)
       if @processes.size == 0
-        make_process transactor, :node0, [:node0], 1, { manual_close: transactor.manual_close }
+        make_process transactor, :node0, [:node0], 1
       end
       @processes[0]
     end
@@ -67,7 +67,9 @@ module StellarCoreCommander
         if not p.running?
           $stderr.puts "running #{p.idname} (dir:#{p.working_dir})"
           p.run
-          p.wait_for_ready
+          if p.await_sync?
+            p.wait_for_ready
+          end
         end
       end
     end
@@ -75,7 +77,7 @@ module StellarCoreCommander
     Contract None => ArrayOf[Process]
     def require_processes_in_sync
       @processes.each do |p|
-        if not p.synced?
+        if p.await_sync? and not p.synced?
           raise "process #{p.name} lost sync"
         end
       end

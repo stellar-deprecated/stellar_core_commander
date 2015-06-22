@@ -237,7 +237,7 @@ module StellarCoreCommander
                ) + aws_credentials_volume + shared_history_volume + %W(
                            --env-file stellar-core.env
                            -d #{@docker_core_image}
-                           /start #{@name} fresh forcescp
+                           /start #{@name} fresh #{"forcescp" if @forcescp}
                ))
       raise "Could not create stellar-core container" unless $?.success?
     end
@@ -261,6 +261,7 @@ module StellarCoreCommander
         #{"MANUAL_CLOSE=true" if manual_close?}
 
         ARTIFICIALLY_GENERATE_LOAD_FOR_TESTING=true
+        #{"ARTIFICIALLY_ACCELERATE_TIME_FOR_TESTING=true" if @accelerate_time}
 
         #{"ATLAS_ADDRESS=" + atlas if atlas}
 

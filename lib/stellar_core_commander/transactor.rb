@@ -244,6 +244,19 @@ module StellarCoreCommander
       @process.unverified.clear
     end
 
+    Contract None => Num
+    def ledger_num
+      require_process_running
+      @process.ledger_num
+    end
+
+    Contract Num, Symbol => Any
+    def catchup(ledger, mode=:minimal)
+      require_process_running
+      @process.catchup ledger, mode
+    end
+
+
     Contract Symbol => Stellar::KeyPair
     def get_account(name)
       require_process_running
@@ -277,8 +290,8 @@ module StellarCoreCommander
     Contract Symbol, ArrayOf[Symbol], Num, Hash => Process
     def process(name, quorum=[name], thresh=quorum.length, options={})
 
-      if @manual_close
-        raise "Cannot use `process`, this recipe has previously declared  `use_manual_close`."
+      if @manual_close and quorum.size != 1
+        raise "Cannot use `process` with multi-node quorum, this recipe has previously declared  `use_manual_close`."
       end
 
       $stderr.puts "creating process #{name}"
