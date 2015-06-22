@@ -26,7 +26,6 @@ module StellarCoreCommander
     Contract None => Any
     def launch_heka_container
       $stderr.puts "launching heka container #{heka_container_name}"
-      docker %W(pull stellar/heka) if docker_pull?
       docker %W(run
         --name #{heka_container_name}
         --net container:#{container_name}
@@ -38,7 +37,6 @@ module StellarCoreCommander
     Contract None => Any
     def launch_state_container
       $stderr.puts "launching state container #{state_container_name} from image #{@docker_state_image}"
-      docker %W(pull #{@docker_state_image}) if docker_pull?
       docker %W(run --name #{state_container_name} -p #{postgres_port}:5432 --env-file stellar-core.env -d #{@docker_state_image})
       raise "Could not create state container" unless $?.success?
     end
@@ -226,10 +224,17 @@ module StellarCoreCommander
       end
     end
 
+    def prepare
+      $stderr.puts "preparing #{idname} (dir:#{working_dir})"
+      return unless docker_pull?
+      docker %W(pull #{@docker_state_image})
+      docker %W(pull #{@docker_core_image})
+      docker %W(pull stellar/heka)
+    end
+
     private
     def launch_stellar_core
       $stderr.puts "launching stellar-core container #{container_name}"
-      docker %W(pull #{@docker_core_image}) if docker_pull?
       docker (%W(run
                            --name #{container_name}
                            --net host

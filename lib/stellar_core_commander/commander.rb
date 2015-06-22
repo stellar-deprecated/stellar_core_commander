@@ -63,7 +63,13 @@ module StellarCoreCommander
 
     Contract None => ArrayOf[Process]
     def start_all_processes
-      @processes.each do |p|
+      stopped = @processes.select(&:stopped?)
+
+      stopped.each do |p|
+        p.prepare
+      end
+
+      stopped.each do |p|
         if not p.running?
           $stderr.puts "running #{p.idname} (dir:#{p.working_dir})"
           p.run
