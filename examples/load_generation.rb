@@ -1,9 +1,9 @@
-process :node1, [:node1, :node2, :node3], 2
-process :node2, [:node1, :node2, :node3], 2
-process :node3, [:node1, :node2, :node3], 2
+process :node1, [:node1, :node2, :node3], 3
+process :node2, [:node1, :node2, :node3], 3
+process :node3, [:node1, :node2, :node3], 3
 
 on :node1 do
-  start_load_generation 10000, 10000, 100
+  start_load_generation 1000, 1000, 30
 end
 
 retry_until_true retries: 100 do
