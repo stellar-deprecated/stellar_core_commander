@@ -377,5 +377,14 @@ module StellarCoreCommander
       end
     end
 
+    Contract None => Bool
+    def stopped?
+      !running?
+    end
+
+    Contract None => Any
+    def prepare
+      nil
+    end
   end
 end
