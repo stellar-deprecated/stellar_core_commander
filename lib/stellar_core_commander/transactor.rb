@@ -312,6 +312,21 @@ module StellarCoreCommander
       @process = tmp
     end
 
+    def retry_until_true(**opts, &block)
+      retries = opts[:retries] || 20
+      timeout = opts[:timeout] || 3
+      while retries > 0
+        b = begin yield block rescue false end
+        if b
+          return b
+        end
+        retries -= 1
+        $stderr.puts "sleeping #{timeout} secs, #{retries} retries left"
+        sleep timeout
+      end
+      raise "Ran out of retries while waiting for success"
+    end
+
     Contract Stellar::KeyPair => Num
     def next_sequence(account)
       require_process_running
@@ -351,7 +366,7 @@ module StellarCoreCommander
       @manual_close = true
     end
 
-    Contract ArrayOf[Or[Symbol, Process]] => nil
+    Contract ArrayOf[Or[Symbol, Process]] => Bool
     def check_equal_states(processes)
       raise "no process!" unless @process
       for p in processes
@@ -360,7 +375,7 @@ module StellarCoreCommander
         end
         @process.check_equal_state(p)
       end
-      nil
+      true
     end
 
     private
