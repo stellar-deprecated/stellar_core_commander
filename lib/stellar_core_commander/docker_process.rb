@@ -180,7 +180,7 @@ module StellarCoreCommander
 
     Contract None => ArrayOf[String]
     def aws_credentials_volume
-      if use_s3 and (not host)
+      if use_s3 and File.exists?("#{ENV['HOME']}/.aws")
         ["-v", "#{ENV['HOME']}/.aws:/root/.aws:ro"]
       else
         []
