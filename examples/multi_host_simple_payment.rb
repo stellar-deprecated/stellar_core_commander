@@ -11,11 +11,11 @@ on :node1 do
   create_account :alice, :master
   create_account :bob, :master
   close_ledger
-  payment :master, :bob, [:native, 1000_000000]
+  payment :master, :bob, [:native, 100 * Stellar::ONE]
   close_ledger
 end
 
-payment :master, :alice, [:native, 1000_000000]
+payment :master, :alice, [:native, 100 * Stellar::ONE]
 
 on :node1 do
   retries = 10
