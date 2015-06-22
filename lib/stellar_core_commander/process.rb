@@ -268,7 +268,7 @@ module StellarCoreCommander
 
     Contract String => Any
     def db_store_state(name)
-      database.select(:state).from(:storestate).filter(:statename=>name).first[:state]
+      database.select(:state).from(:storestate).filter(statename: name).first[:state]
     end
 
     Contract None => String
