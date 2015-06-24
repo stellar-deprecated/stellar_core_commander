@@ -366,6 +366,12 @@ module StellarCoreCommander
       @manual_close = true
     end
 
+    Contract None => Bool
+    def check_no_error_metrics
+      raise "no process!" unless @process
+      @process.check_no_error_metrics
+    end
+
     Contract ArrayOf[Or[Symbol, Process]] => Bool
     def check_equal_states(processes)
       raise "no process!" unless @process
