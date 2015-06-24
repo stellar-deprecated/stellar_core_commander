@@ -393,6 +393,11 @@ module StellarCoreCommander
       15.0
     end
 
+    Contract None => Num
+    def sync_timeout
+      15.0
+    end
+
     Contract String, ArrayOf[String] => Maybe[Bool]
     def run_cmd(cmd, args)
       args += [{
