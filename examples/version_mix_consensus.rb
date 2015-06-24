@@ -23,20 +23,20 @@ on :oldnode2 do
   end
   $stderr.puts "oldnode2 bob balance: #{(balance :bob)}"
   $stderr.puts "oldnode2 alice balance: #{(balance :alice)}"
-  payment :master, :bob, [:native, 1000_000000]
+  payment :master, :bob, [:native, 100 * Stellar::ONE]
   close_ledger
 end
 
 on :newnode1 do
   $stderr.puts "newnode1 bob balance: #{(balance :bob)}"
   $stderr.puts "newnode1 alice balance: #{(balance :alice)}"
-  raise if (balance :bob) != 11000_000000
-  payment :master, :alice, [:native, 1000_000000]
+  raise if (balance :bob) != 1100 * Stellar::ONE
+  payment :master, :alice, [:native, 100 * Stellar::ONE]
   close_ledger
 end
 
 on :oldnode1 do
   $stderr.puts "oldnode1 bob balance: #{(balance :bob)}"
   $stderr.puts "oldnode1 alice balance: #{(balance :alice)}"
-  raise if (balance :alice) != 11000_000000
+  raise if (balance :alice) != 1100 * Stellar::ONE
 end

@@ -101,6 +101,7 @@ module StellarCoreCommander
     def cleanup
       database.disconnect
       dump_logs
+      dump_metrics
       shutdown
       shutdown_state_container
       shutdown_heka_container if atlas

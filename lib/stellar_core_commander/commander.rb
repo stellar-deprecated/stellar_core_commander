@@ -89,6 +89,14 @@ module StellarCoreCommander
       end
     end
 
+    Contract None => Bool
+    def check_no_process_error_metrics
+      @processes.each do |p|
+        p.check_no_error_metrics
+      end
+      true
+    end
+
     def cleanup
       @processes.each(&:cleanup)
     end

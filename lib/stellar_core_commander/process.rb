@@ -112,10 +112,12 @@ module StellarCoreCommander
 
     Contract None => Any
     def wait_for_ready
-      loop do
-        break if synced?
-        $stderr.puts "waiting until stellar-core #{idname} is synced (state: #{info_field 'state'}, quorum heard: #{scp_quorum_heard})"
-        sleep 1
+      Timeout.timeout(sync_timeout) do
+        loop do
+          break if synced?
+          $stderr.puts "waiting until stellar-core #{idname} is synced (state: #{info_field 'state'}, quorum heard: #{scp_quorum_heard})"
+          sleep 1
+        end
       end
     end
 
@@ -208,6 +210,14 @@ module StellarCoreCommander
       0
     end
 
+    Contract None => Any
+    def dump_metrics
+      response = server.get("/metrics")
+      File.open("#{working_dir}/stellar-metrics.json", 'w') {|f| f.write(response.body) }
+    rescue
+      nil
+    end
+
     Contract None => Num
     def scp_ballots_prepared
       metrics_count "scp.ballot.prepare"
@@ -216,6 +226,24 @@ module StellarCoreCommander
     Contract None => Num
     def scp_quorum_heard
       metrics_count "scp.quorum.heard"
+    end
+
+    Contract None => Bool
+    def check_no_error_metrics
+      m = metrics
+      for metric in ["scp.ballot.invalid",
+                     "scp.ballot.invalidsig",
+                     "scp.envelope.invalidsig",
+                     "scp.value.invalid",
+                     "scp.sync.lost",
+                     "history.publish.failure",
+                     "history.catchup.failure"]
+        c = m[metric]["count"] rescue 0
+        if c != 0
+          raise "nonzero metrics count for #{metric}: #{c}"
+        end
+      end
+      true
     end
 
     Contract Num, Num, Num => Any
@@ -362,6 +390,11 @@ module StellarCoreCommander
 
     Contract None => Num
     def close_timeout
+      15.0
+    end
+
+    Contract None => Num
+    def sync_timeout
       15.0
     end
 
