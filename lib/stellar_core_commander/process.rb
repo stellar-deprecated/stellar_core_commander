@@ -210,6 +210,14 @@ module StellarCoreCommander
       0
     end
 
+    Contract None => Any
+    def dump_metrics
+      response = server.get("/metrics")
+      File.open("#{working_dir}/stellar-metrics.json", 'w') {|f| f.write(response.body) }
+    rescue
+      nil
+    end
+
     Contract None => Num
     def scp_ballots_prepared
       metrics_count "scp.ballot.prepare"

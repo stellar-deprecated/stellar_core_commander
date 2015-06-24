@@ -93,6 +93,7 @@ module StellarCoreCommander
     Contract None => Any
     def cleanup
       database.disconnect
+      dump_metrics
       shutdown
       drop_database
     end
