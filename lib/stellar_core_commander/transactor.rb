@@ -368,8 +368,7 @@ module StellarCoreCommander
 
     Contract None => Bool
     def check_no_error_metrics
-      raise "no process!" unless @process
-      @process.check_no_error_metrics
+      @commander.check_no_process_error_metrics
     end
 
     Contract ArrayOf[Or[Symbol, Process]] => Bool
