@@ -271,6 +271,8 @@ module StellarCoreCommander
 
         #{"ATLAS_ADDRESS=" + atlas if atlas}
 
+        #{"USE_SYSLOG=true" if use_syslog?}
+
         METRICS_INTERVAL=#{atlas_interval}
 
         QUORUM_THRESHOLD=#{threshold}
@@ -297,12 +299,15 @@ module StellarCoreCommander
       end
     end
 
+    def use_syslog?
+      ENV['USE_SYSLOG']
+    end
+
     def docker_args
-      if host
-        ["-H", "tcp://#{docker_host}:#{docker_port}"]
-      else
-        []
-      end
+      args = []
+      args += ["-H", "tcp://#{docker_host}:#{docker_port}"] if host
+      args += ['--log-driver', 'syslog'] if use_syslog?
+      args
     end
 
     def docker(args)
