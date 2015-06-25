@@ -395,7 +395,7 @@ module StellarCoreCommander
 
     Contract None => Num
     def sync_timeout
-      15.0
+      60.0 * 8
     end
 
     Contract String, ArrayOf[String] => Maybe[Bool]
