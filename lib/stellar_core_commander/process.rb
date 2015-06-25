@@ -57,9 +57,9 @@ module StellarCoreCommander
       @quorum         = params[:quorum]
       @threshold      = params[:threshold]
       @manual_close   = params[:manual_close] || false
-      @await_sync     = params[:await_sync].nil? && true
+      @await_sync     = params.fetch(:await_sync, true)
       @accelerate_time = params[:accelerate_time] || false
-      @forcescp       = params[:forcescp].nil? && true
+      @forcescp       = params.fetch(:forcescp, true)
       @host           = params[:host]
       @atlas          = params[:atlas]
       @atlas_interval = params[:atlas_interval]
