@@ -7,7 +7,7 @@ on :node1 do
   end
 end
 
-process :node2, [:node1], 1, forcescp: false, accelerate_time: true
+process :node2, [:node1], 1, forcescp: false, accelerate_time: true, catchup_complete: true
 on :node2 do
   raise "node2 synced but failed to catch up" if ledger_num < 5
   while ledger_num < 15

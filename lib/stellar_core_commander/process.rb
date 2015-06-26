@@ -39,6 +39,7 @@ module StellarCoreCommander
       manual_close:      Maybe[Bool],
       await_sync:        Maybe[Bool],
       accelerate_time:   Maybe[Bool],
+      catchup_complete:  Maybe[Bool],
       forcescp:          Maybe[Bool],
       host:              Maybe[String],
       atlas:             Maybe[String],
@@ -61,6 +62,7 @@ module StellarCoreCommander
       @manual_close      = params[:manual_close] || false
       @await_sync        = params.fetch(:await_sync, true)
       @accelerate_time   = params[:accelerate_time] || false
+      @catchup_complete  = params[:catchup_complete] || false
       @forcescp          = params.fetch(:forcescp, true)
       @host              = params[:host]
       @atlas             = params[:atlas]
