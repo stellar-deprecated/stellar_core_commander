@@ -8,6 +8,7 @@ require "fileutils"
 require "open3"
 require "sequel"
 require "pg"
+require "uri"
 
 module StellarCoreCommander
   extend ActiveSupport::Autoload

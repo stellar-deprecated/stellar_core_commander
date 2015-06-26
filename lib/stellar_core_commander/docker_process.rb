@@ -120,24 +120,10 @@ module StellarCoreCommander
       end
     end
 
-    Contract None => Sequel::Database
-    def database
-      @database ||= Sequel.postgres(database_name, host: docker_host, port: postgres_port, user: database_user, password: database_password)
-    end
-
     Contract None => String
-    def database_name
-      "stellar"
-    end
-
-    Contract None => String
-    def database_user
-      "postgres"
-    end
-
-    Contract None => String
-    def database_password
+    def default_database_url
       @database_password ||= SecureRandom.hex
+      "postgres://postgres:#{@database_password}@#{docker_host}:#{postgres_port}/stellar"
     end
 
     Contract None => Num
