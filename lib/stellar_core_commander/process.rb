@@ -29,43 +29,47 @@ module StellarCoreCommander
     DEFAULT_HOST = '127.0.0.1'
 
     Contract({
-      transactor:     Transactor,
-      working_dir:    String,
-      name:           Symbol,
-      base_port:      Num,
-      identity:       Stellar::KeyPair,
-      quorum:         ArrayOf[Symbol],
-      threshold:      Num,
-      manual_close:   Or[Bool, nil],
-      await_sync:     Or[Bool, nil],
-      accelerate_time: Or[Bool, nil],
-      forcescp:       Or[Bool, nil],
-      host:           Or[String, nil],
-      atlas:          Or[String, nil],
-      atlas_interval: Num,
-      use_s3:         Bool,
+      transactor:        Transactor,
+      working_dir:       String,
+      name:              Symbol,
+      base_port:         Num,
+      identity:          Stellar::KeyPair,
+      quorum:            ArrayOf[Symbol],
+      threshold:         Num,
+      manual_close:      Maybe[Bool],
+      await_sync:        Maybe[Bool],
+      accelerate_time:   Maybe[Bool],
+      forcescp:          Maybe[Bool],
+      host:              Maybe[String],
+      atlas:             Maybe[String],
+      atlas_interval:    Num,
+      use_s3:            Bool,
       s3_history_prefix: String,
-      s3_history_region: String
+      s3_history_region: String,
+      database_url:      Maybe[String],
+      keep_database:     Maybe[Bool],
     } => Any)
     def initialize(params)
       #config
-      @transactor     = params[:transactor]
-      @working_dir    = params[:working_dir]
-      @name           = params[:name]
-      @base_port      = params[:base_port]
-      @identity       = params[:identity]
-      @quorum         = params[:quorum]
-      @threshold      = params[:threshold]
-      @manual_close   = params[:manual_close] || false
-      @await_sync     = params.fetch(:await_sync, true)
-      @accelerate_time = params[:accelerate_time] || false
-      @forcescp       = params.fetch(:forcescp, true)
-      @host           = params[:host]
-      @atlas          = params[:atlas]
-      @atlas_interval = params[:atlas_interval]
-      @use_s3         = params[:use_s3]
+      @transactor        = params[:transactor]
+      @working_dir       = params[:working_dir]
+      @name              = params[:name]
+      @base_port         = params[:base_port]
+      @identity          = params[:identity]
+      @quorum            = params[:quorum]
+      @threshold         = params[:threshold]
+      @manual_close      = params[:manual_close] || false
+      @await_sync        = params.fetch(:await_sync, true)
+      @accelerate_time   = params[:accelerate_time] || false
+      @forcescp          = params.fetch(:forcescp, true)
+      @host              = params[:host]
+      @atlas             = params[:atlas]
+      @atlas_interval    = params[:atlas_interval]
+      @use_s3            = params[:use_s3]
       @s3_history_region = params[:s3_history_region]
       @s3_history_prefix = params[:s3_history_prefix]
+      @database_url      = params[:database_url]
+      @keep_database     = params[:keep_database]
 
       # state
       @unverified   = []
@@ -108,6 +112,60 @@ module StellarCoreCommander
     Contract None => String
     def idname
       "#{@name}-#{@base_port}-#{@identity.address[0..5]}"
+    end
+
+    Contract None => String
+    def database_url
+      if @database_url.present?
+        @database_url.strip
+      else
+        default_database_url
+      end
+    end
+
+    Contract None => URI::Generic
+    def database_uri
+      URI.parse(database_url)
+    end
+
+    Contract None => String
+    def database_host
+      database_uri.host
+    end
+
+    Contract None => String
+    def database_name
+      database_uri.path[1..-1]
+    end
+
+    Contract None => Sequel::Database
+    def database
+      @database ||= Sequel.connect(database_url)
+    end
+
+    Contract None => Maybe[String]
+    def database_user
+      database_uri.user
+    end
+
+    Contract None => Maybe[String]
+    def database_password
+      database_uri.password
+    end
+
+    Contract None => String
+    def database_port
+      database_uri.port || "5432"
+    end
+
+    Contract None => String
+    def dsn
+      base = "postgresql://dbname=#{database_name} host=#{database_host} port=#{database_port}"
+      base << " user=#{database_user}" if database_user.present?
+      base << " password=#{database_password}" if database_password.present?
+      base << " host=#{database_host}" if database_host.present?
+
+      base
     end
 
     Contract None => Any

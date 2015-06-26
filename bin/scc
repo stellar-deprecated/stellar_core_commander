@@ -70,7 +70,7 @@ def run
   output_results(commander.get_root_process transactor)
 
   if $opts[:wait]
-    puts "Waiting for INT signal..."
+    $stderr.puts "Waiting for INT signal..."
     Signal.trap("INT"){ exit }
     sleep
   end

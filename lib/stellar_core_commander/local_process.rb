@@ -12,6 +12,7 @@ module StellarCoreCommander
 
       super
       @stellar_core_bin = params[:stellar_core_bin]
+      @database_url     = params[:database].try(:strip)
 
       setup_working_dir
     end
@@ -54,7 +55,7 @@ module StellarCoreCommander
     Contract None => Any
     def setup
       write_config
-      create_database
+      create_database unless @keep_database
       initialize_history
       initialize_database
     end
@@ -95,7 +96,7 @@ module StellarCoreCommander
       database.disconnect
       dump_metrics
       shutdown
-      drop_database
+      drop_database unless @keep_database
     end
 
     Contract None => Any
@@ -105,20 +106,9 @@ module StellarCoreCommander
       end
     end
 
-
-    Contract None => Sequel::Database
-    def database
-      @database ||= Sequel.postgres(database_name)
-    end
-
     Contract None => String
-    def database_name
-      "stellar_core_tmp_#{idname}"
-    end
-
-    Contract None => String
-    def dsn
-      "postgresql://dbname=#{database_name}"
+    def default_database_url
+      "postgres://localhost/#{idname}"
     end
 
     private
