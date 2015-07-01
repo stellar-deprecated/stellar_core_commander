@@ -6,6 +6,9 @@ module StellarCoreCommander
   class DockerProcess < Process
     include Contracts
 
+    attr_reader :docker_core_image
+    attr_reader :docker_state_image
+
     Contract({
       docker_state_image: String,
       docker_core_image:  String,
@@ -36,8 +39,8 @@ module StellarCoreCommander
 
     Contract None => Any
     def launch_state_container
-      $stderr.puts "launching state container #{state_container_name} from image #{@docker_state_image}"
-      docker %W(run --name #{state_container_name} -p #{postgres_port}:5432 --env-file stellar-core.env -d #{@docker_state_image})
+      $stderr.puts "launching state container #{state_container_name} from image #{docker_state_image}"
+      docker %W(run --name #{state_container_name} -p #{postgres_port}:5432 --env-file stellar-core.env -d #{docker_state_image})
       raise "Could not create state container" unless $?.success?
     end
 
@@ -101,6 +104,7 @@ module StellarCoreCommander
     def cleanup
       database.disconnect
       dump_logs
+      dump_cores
       dump_metrics
       shutdown
       shutdown_state_container
@@ -110,6 +114,12 @@ module StellarCoreCommander
     Contract None => Any
     def dump_logs
       docker ["logs", container_name]
+    end
+
+    Contract None => Any
+    def dump_cores
+      docker %W(run --volumes-from #{container_name} --rm -e MODE=local #{docker_core_image} /utils/core_file_processor.py)
+      docker %W(cp #{container_name}:/cores .)
     end
 
     Contract None => Any
@@ -214,8 +224,8 @@ module StellarCoreCommander
     def prepare
       $stderr.puts "preparing #{idname} (dir:#{working_dir})"
       return unless docker_pull?
-      docker %W(pull #{@docker_state_image})
-      docker %W(pull #{@docker_core_image})
+      docker %W(pull #{docker_state_image})
+      docker %W(pull #{docker_core_image})
       docker %W(pull stellar/heka)
     end
 
@@ -232,7 +242,7 @@ module StellarCoreCommander
                            --volumes-from #{state_container_name}
                ) + aws_credentials_volume + shared_history_volume + %W(
                            --env-file stellar-core.env
-                           -d #{@docker_core_image}
+                           -d #{docker_core_image}
                            /start #{@name} fresh #{"forcescp" if @forcescp}
                ))
       raise "Could not create stellar-core container" unless $?.success?
