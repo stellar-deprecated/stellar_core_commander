@@ -256,6 +256,10 @@ module StellarCoreCommander
       @process.catchup ledger, mode
     end
 
+    Contract None => Any
+    def crash
+      @process.crash
+    end
 
     Contract Symbol => Stellar::KeyPair
     def get_account(name)
