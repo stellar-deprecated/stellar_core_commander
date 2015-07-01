@@ -219,6 +219,10 @@ module StellarCoreCommander
       docker %W(pull stellar/heka)
     end
 
+    def crash
+      docker %W(exec #{container_name} pkill -ABRT stellar-core)
+    end
+
     private
     def launch_stellar_core
       $stderr.puts "launching stellar-core container #{container_name}"

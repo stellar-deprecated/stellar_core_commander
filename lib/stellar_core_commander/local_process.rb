@@ -111,6 +111,10 @@ module StellarCoreCommander
       "postgres://localhost/#{idname}"
     end
 
+    def crash
+      `kill -ABRT #{@pid}`
+    end
+
     private
     def launch_stellar_core
       Dir.chdir @working_dir do
