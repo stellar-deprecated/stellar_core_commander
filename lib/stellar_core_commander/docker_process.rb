@@ -268,6 +268,7 @@ module StellarCoreCommander
 
         ARTIFICIALLY_GENERATE_LOAD_FOR_TESTING=true
         #{"ARTIFICIALLY_ACCELERATE_TIME_FOR_TESTING=true" if @accelerate_time}
+        #{"CATCHUP_COMPLETE=true" if @catchup_complete}
 
         #{"ATLAS_ADDRESS=" + atlas if atlas}
 
