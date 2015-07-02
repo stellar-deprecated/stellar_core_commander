@@ -257,6 +257,19 @@ module StellarCoreCommander
       tx.to_envelope(account)
     end
 
+
+    Contract None => Any
+    def inflation(account=:master)
+      account = get_account account
+
+      tx = Stellar::Transaction.inflation({
+        account:     account,
+        sequence:    next_sequence(account),
+      })
+
+      tx.to_envelope(account)
+    end
+
     private
 
     delegate :get_account, to: :@transactor
