@@ -206,18 +206,44 @@ module StellarCoreCommander
     end
 
     Contract None => String
-    def history_commands
-      if use_s3
-        <<-EOS.strip_heredoc
-          HISTORY_GET=aws s3 --region #{@s3_history_region} cp #{@s3_history_prefix}/%s/{0} {1}
-          HISTORY_PUT=aws s3 --region #{@s3_history_region} cp {0} #{@s3_history_prefix}/%s/{1}
-        EOS
+    def history_get_command
+      cmds = {}
+      @quorum.each do |q|
+        if q == @name
+          next
+        end
+        cmd = ""
+        if SPECIAL_PEERS.has_key? q
+          cmd = SPECIAL_PEERS[q][:get]
+        elsif use_s3
+          cmd = "aws s3 --region #{@s3_history_region} cp #{@s3_history_prefix}/%s/{0} {1}"
+        else
+          cmd = "cp /history/%s/{0} {1}"
+        end
+        cmds[cmd] = ()
+      end
+      if cmds.size != 1
+        raise "Conflicting get commands: #{cmds.keys}"
+      end
+      <<-EOS.strip_heredoc
+        HISTORY_GET=#{cmds.keys.first}
+      EOS
+    end
+
+    Contract None => String
+    def history_put_commands
+      if @quorum.any? {|q| SPECIAL_PEERS.has_key? q}
+        ""
       else
-        <<-EOS.strip_heredoc
-          HISTORY_GET=cp /history/%s/{0} {1}
-          HISTORY_PUT=cp {0} /history/%s/{1}
-          HISTORY_MKDIR=mkdir -p /history/%s/{0}
-        EOS
+        if use_s3
+          <<-EOS.strip_heredoc
+            HISTORY_PUT=aws s3 --region #{@s3_history_region} cp {0} #{@s3_history_prefix}/%s/{1}
+          EOS
+        else
+          <<-EOS.strip_heredoc
+            HISTORY_GET=#{get}
+          EOS
+        end
       end
     end
 
@@ -280,7 +306,7 @@ module StellarCoreCommander
 
         HISTORY_PEERS=#{peer_names}
       EOS
-      ) + history_commands
+      ) + history_get_command + history_put_commands
     end
 
     def recipe_name
