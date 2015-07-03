@@ -105,38 +105,47 @@ module StellarCoreCommander
       end
     end
 
-    Contract None => ArrayOf[String]
-    def quorum
-      specials = @quorum.select {|q| SPECIAL_PEERS.has_key? q}
+    Contract None => ArrayOf[Symbol]
+    def special_quorum_nodes
+      @quorum.select {|q| SPECIAL_PEERS.has_key? q}
+    end
+
+    Contract None => Bool
+    def has_special_nodes?
+      @quorum.any? {|q| SPECIAL_PEERS.has_key? q}
+    end
+
+    Contract Symbol, Proc => ArrayOf[String]
+    def quorum_map_or_special_field(field)
+      specials = special_quorum_nodes
       if specials.empty?
         @quorum.map do |q|
-          @transactor.get_process(q).identity.address
+          yield q
         end
       else
-        specials.map {|q| SPECIAL_PEERS[q][:key]}
+        specials.map {|q| SPECIAL_PEERS[q][field]}
+      end
+    end
+
+    Contract None => ArrayOf[String]
+    def quorum
+      quorum_map_or_special_field :key do |q|
+          @transactor.get_process(q).identity.address
       end
     end
 
     Contract None => ArrayOf[String]
     def peer_names
-      specials = @quorum.select {|q| SPECIAL_PEERS.has_key? q}
-      if specials.empty?
-        @quorum.map {|q| q.to_s}
-      else
-        specials.map {|q| SPECIAL_PEERS[q][:name]}
+      quorum_map_or_special_field :name do |q|
+        q.to_s
       end
     end
 
     Contract None => ArrayOf[String]
     def peer_connections
-      specials = @quorum.select {|q| SPECIAL_PEERS.has_key? q}
-      if specials.empty?
-        @quorum.map do |q|
-          p = @transactor.get_process(q)
-          "#{p.hostname}:#{p.peer_port}"
-        end
-      else
-        specials.map {|q| SPECIAL_PEERS[q][:dns]}
+      quorum_map_or_special_field :dns do |q|
+        p = @transactor.get_process(q)
+        "#{p.hostname}:#{p.peer_port}"
       end
     end
 

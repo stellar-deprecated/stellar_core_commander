@@ -1,4 +1,5 @@
 require 'uri'
+require 'set'
 require 'securerandom'
 
 module StellarCoreCommander
@@ -207,32 +208,30 @@ module StellarCoreCommander
 
     Contract None => String
     def history_get_command
-      cmds = {}
+      cmds = Set.new
       @quorum.each do |q|
         if q == @name
           next
         end
-        cmd = ""
         if SPECIAL_PEERS.has_key? q
-          cmd = SPECIAL_PEERS[q][:get]
+          cmds.add SPECIAL_PEERS[q][:get]
         elsif use_s3
-          cmd = "aws s3 --region #{@s3_history_region} cp #{@s3_history_prefix}/%s/{0} {1}"
+          cmds.add "aws s3 --region #{@s3_history_region} cp #{@s3_history_prefix}/%s/{0} {1}"
         else
-          cmd = "cp /history/%s/{0} {1}"
+          cmds.add "cp /history/%s/{0} {1}"
         end
-        cmds[cmd] = ()
       end
       if cmds.size != 1
-        raise "Conflicting get commands: #{cmds.keys}"
+        raise "Conflicting get commands: #{cmds}"
       end
       <<-EOS.strip_heredoc
-        HISTORY_GET=#{cmds.keys.first}
+        HISTORY_GET=#{cmds.to_a.first}
       EOS
     end
 
     Contract None => String
     def history_put_commands
-      if @quorum.any? {|q| SPECIAL_PEERS.has_key? q}
+      if has_special_nodes?
         ""
       else
         if use_s3
@@ -241,7 +240,8 @@ module StellarCoreCommander
           EOS
         else
           <<-EOS.strip_heredoc
-            HISTORY_GET=#{get}
+            HISTORY_PUT=cp {0} /history/%s/{1}
+            HISTORY_MKDIR=mkdir -p /history/%s/{0}
           EOS
         end
       end
