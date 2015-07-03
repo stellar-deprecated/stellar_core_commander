@@ -28,6 +28,27 @@ module StellarCoreCommander
 
     DEFAULT_HOST = '127.0.0.1'
 
+    SPECIAL_PEERS = {
+      :testnet1 => {
+        :dns => "core-testnet1.stellar.org",
+        :key => "gTDZhQ14WuP8rQ9SrkS1EhWNhZyybv97cHNsGRADKQtBoJpTTk",
+        :name => "core-testnet-001",
+        :get => "curl -sf https://s3-eu-west-1.amazonaws.com/history.stellar.org/prd/core-testnet/%s/{0} -o {1}"
+      },
+      :testnet2 => {
+        :dns => "core-testnet2.stellar.org",
+        :key => "gsjjWTsQP5C2HpcetiLz4LDa9VECGvZMTyhPUDWi57ZKafV5sA4",
+        :name => "core-testnet-002",
+        :get => "curl -sf https://s3-eu-west-1.amazonaws.com/history.stellar.org/prd/core-testnet/%s/{0} -o {1}"
+      },
+      :testnet3 => {
+        :dns => "core-testnet3.stellar.org",
+        :key => "gSCB2HML88CvMwt2iryJGdS61gDr2nhMeYFVWF2B4m6w5js73T",
+        :name => "core-testnet-003",
+        :get => "curl -sf https://s3-eu-west-1.amazonaws.com/history.stellar.org/prd/core-testnet/%s/{0} -o {1}"
+      }
+    }
+
     Contract({
       transactor:        Transactor,
       working_dir:       String,
@@ -86,21 +107,45 @@ module StellarCoreCommander
       end
     end
 
+    Contract None => ArrayOf[Symbol]
+    def special_quorum_nodes
+      @quorum.select {|q| SPECIAL_PEERS.has_key? q}
+    end
+
+    Contract None => Bool
+    def has_special_nodes?
+      @quorum.any? {|q| SPECIAL_PEERS.has_key? q}
+    end
+
+    Contract Symbol, Proc => ArrayOf[String]
+    def quorum_map_or_special_field(field)
+      specials = special_quorum_nodes
+      if specials.empty?
+        @quorum.map do |q|
+          yield q
+        end
+      else
+        specials.map {|q| SPECIAL_PEERS[q][field]}
+      end
+    end
+
     Contract None => ArrayOf[String]
     def quorum
-      @quorum.map do |q|
-        @transactor.get_process(q).identity.address
+      quorum_map_or_special_field :key do |q|
+          @transactor.get_process(q).identity.address
       end
     end
 
     Contract None => ArrayOf[String]
     def peer_names
-      @quorum.map {|x| x.to_s}
+      quorum_map_or_special_field :name do |q|
+        q.to_s
+      end
     end
 
     Contract None => ArrayOf[String]
     def peer_connections
-      @quorum.map do |q|
+      quorum_map_or_special_field :dns do |q|
         p = @transactor.get_process(q)
         "#{p.hostname}:#{p.peer_port}"
       end
