@@ -217,6 +217,14 @@ module StellarCoreCommander
       submit_transaction envelope
     end
 
+    #
+    # @see StellarCoreCommander::OperationBuilder#inflation
+    def inflation(*args)
+      require_process_running
+      envelope = @operation_builder.inflation(*args)
+      submit_transaction envelope
+    end
+
     Contract None => Any
     #
     # Triggers a ledger close.  Any unvalidated transaction will
