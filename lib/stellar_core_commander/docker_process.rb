@@ -221,8 +221,13 @@ module StellarCoreCommander
           cmds.add "cp /history/%s/{0} {1}"
         end
       end
+
+      if cmds.size == 0
+        cmds.add "cp /history/%s/{0} {1}"
+      end
+
       if cmds.size != 1
-        raise "Conflicting get commands: #{cmds}"
+        raise "Conflicting get commands: #{cmds.to_a.inspect}"
       end
       <<-EOS.strip_heredoc
         HISTORY_GET=#{cmds.to_a.first}
