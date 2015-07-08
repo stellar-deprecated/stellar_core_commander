@@ -495,7 +495,7 @@ module StellarCoreCommander
 
     Contract None => Num
     def close_timeout
-      15.0
+      150.0
     end
 
     Contract None => Num
