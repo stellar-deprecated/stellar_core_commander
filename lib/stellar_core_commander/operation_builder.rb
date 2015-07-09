@@ -17,13 +17,14 @@ module StellarCoreCommander
       {buy:Currency, with: Currency},
     ]
 
-    ThresholdByte = And[Num, lambda{|n| (0..255).include? n}]
+    Byte = And[Num, lambda{|n| (0..255).include? n}]
+    ThresholdByte = Byte
+    MasterWeightByte = Byte
 
     Thresholds = {
-      low:           ThresholdByte,
-      medium:        ThresholdByte,
-      high:          ThresholdByte,
-      master_weight: ThresholdByte
+      low:    Maybe[ThresholdByte],
+      medium: Maybe[ThresholdByte],
+      high:   Maybe[ThresholdByte],
     }
 
     SetOptionsArgs = {
@@ -31,6 +32,7 @@ module StellarCoreCommander
       clear_flags:    Maybe[ArrayOf[Symbol]],
       set_flags:      Maybe[ArrayOf[Symbol]],
       thresholds:     Maybe[Thresholds],
+      master_weight:  Maybe[MasterWeightByte],
       home_domain:    Maybe[String],
       signer:         Maybe[Stellar::Signer],
     }
@@ -183,8 +185,14 @@ module StellarCoreCommander
         params[:clear] = make_account_flags(args[:clear_flags])
       end
 
+      if args[:master_weight].present?
+        params[:master_weight] = args[:master_weight]
+      end
+
       if args[:thresholds].present?
-        params[:thresholds] = make_thresholds_word(args[:thresholds])
+        params[:low_threshold] = args[:thresholds][:low]
+        params[:med_threshold] = args[:thresholds][:medium]
+        params[:high_threshold] = args[:thresholds][:high]
       end
 
       if args[:home_domain].present?
@@ -226,6 +234,11 @@ module StellarCoreCommander
     Contract Symbol, Stellar::KeyPair => Any
     def remove_signer(account, key)
       add_signer account, key, 0
+    end
+
+    Contract(Symbol, MasterWeightByte => Any)
+    def set_master_signer_weight(account, weight)
+      set_options account, master_weight: weight
     end
 
     Contract(Symbol, Thresholds => Any)
