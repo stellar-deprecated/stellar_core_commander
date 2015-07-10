@@ -161,6 +161,14 @@ module StellarCoreCommander
     end
 
     #
+    # @see StellarCoreCommander::OperationBuilder#set_master_signer_weight
+    def set_master_signer_weight(*args)
+      require_process_running
+      envelope = @operation_builder.set_master_signer_weight(*args)
+      submit_transaction envelope
+    end
+
+    #
     # @see StellarCoreCommander::OperationBuilder#remove_signer
     def remove_signer(*args)
       require_process_running
