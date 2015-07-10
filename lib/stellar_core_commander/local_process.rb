@@ -25,7 +25,8 @@ module StellarCoreCommander
 
     Contract None => Any
     def initialize_history
-      run_cmd "./stellar-core", ["--newhist", "main"]
+      Dir.mkdir(history_dir) unless File.exists?(history_dir)
+      run_cmd "./stellar-core", ["--newhist", @name.to_s]
       raise "Could not initialize history" unless $?.success?
     end
 
@@ -50,6 +51,11 @@ module StellarCoreCommander
     Contract None => Any
     def write_config
       IO.write("#{@working_dir}/stellar-core.cfg", config)
+    end
+
+    Contract None => String
+    def history_dir
+      File.expand_path("#{working_dir}/../history-archives")
     end
 
     Contract None => Any
@@ -152,11 +158,38 @@ module StellarCoreCommander
         THRESHOLD=#{threshold}
         VALIDATORS=#{quorum}
 
-        [HISTORY.main]
-        get="cp history/main/{0} {1}"
-        put="cp {0} history/main/{1}"
-        mkdir="mkdir -p history/main/{0}"
+        #{history_sources}
       EOS
+    end
+
+    Contract Symbol => String
+    def one_history_source(n)
+      dir = "#{history_dir}/#{n}"
+      if n == @name
+        <<-EOS.strip_heredoc
+          [HISTORY.#{n}]
+          get="cp #{dir}/{0} {1}"
+          put="cp {0} #{dir}/{1}"
+          mkdir="mkdir -p #{dir}/{0}"
+        EOS
+      else
+        name = n.to_s
+        get = "cp /#{history_dir}/%s/{0} {1}"
+        if SPECIAL_PEERS.has_key? n
+          name = SPECIAL_PEERS[n][:name]
+          get = SPECIAL_PEERS[n][:get]
+        end
+        get.sub!('%s', name)
+        <<-EOS.strip_heredoc
+          [HISTORY.#{name}]
+          get="#{get}"
+        EOS
+      end
+    end
+
+    Contract None => String
+    def history_sources
+      @quorum.map {|n| one_history_source n}.join("\n")
     end
 
     def setup_working_dir
