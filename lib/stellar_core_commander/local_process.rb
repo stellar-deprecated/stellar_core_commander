@@ -121,11 +121,28 @@ module StellarCoreCommander
         sin, sout, serr, wait = Open3.popen3("./stellar-core")
 
         # throwaway stdout, stderr (the logs will record any output)
-        Thread.new{ until (line = sout.gets).nil? ; end }
-        Thread.new{ until (line = serr.gets).nil? ; end }
+        write_to_file(sout, "#{@working_dir}/stdout.txt")
+        write_to_file(serr, "#{@working_dir}/stderr.txt")
 
         @wait = wait
         @pid = wait.pid
+      end
+    end
+
+    def write_to_file(reader, path)
+      Thread.new do
+        out = open(path, 'w+')
+
+        begin
+          loop do
+            line = reader.gets
+            break if line.nil?
+            out.puts line
+            out.flush
+          end
+        ensure
+          out.close
+        end
       end
     end
 
