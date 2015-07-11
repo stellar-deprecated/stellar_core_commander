@@ -434,11 +434,6 @@ module StellarCoreCommander
       database.fetch("SELECT count(*) FROM offers").first[:count]
     end
 
-    Contract None => Num
-    def tx_count
-      database.fetch("SELECT count(*) FROM txhistory").first[:count]
-    end
-
     Contract None => ArrayOf[Any]
     def ten_accounts
       database.fetch("SELECT * FROM accounts ORDER BY accountid LIMIT 10").all
@@ -451,12 +446,7 @@ module StellarCoreCommander
 
     Contract None => ArrayOf[Any]
     def ten_trustlines
-      database.fetch("SELECT * FROM trustlines ORDER BY accountid LIMIT 10").all
-    end
-
-    Contract None => ArrayOf[Any]
-    def ten_txs
-      database.fetch("SELECT * FROM txhistory ORDER BY txid LIMIT 10").all
+      database.fetch("SELECT * FROM trustlines ORDER BY accountid, issuer, alphanumcurrency LIMIT 10").all
     end
 
     Contract String, Any, Any => nil
@@ -473,12 +463,10 @@ module StellarCoreCommander
       check_equal "account count", account_count, other.account_count
       check_equal "trustline count", trustline_count, other.trustline_count
       check_equal "offer count", offer_count, other.offer_count
-      check_equal "tx count", tx_count, other.tx_count
 
       check_equal "ten accounts", ten_accounts, other.ten_accounts
       check_equal "ten trustlines", ten_trustlines, other.ten_trustlines
       check_equal "ten offers", ten_offers, other.ten_offers
-      check_equal "ten txs", ten_txs, other.ten_txs
     end
 
     Contract String => Maybe[String]
