@@ -12,7 +12,7 @@ on :node2_minimal do
   retry_until_true retries: 100 do
     ledger_num > 15
   end
-  check_equal_states [:node2]
+  check_equal_states [:node1]
 end
 
 
@@ -21,5 +21,5 @@ on :node2_complete do
   retry_until_true retries: 100 do
     ledger_num > 15
   end
-  check_equal_states [:node2]
+  check_equal_states [:node1]
 end
