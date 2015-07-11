@@ -191,7 +191,7 @@ module StellarCoreCommander
         EOS
       else
         name = n.to_s
-        get = "cp /#{history_dir}/%s/{0} {1}"
+        get = "cp #{history_dir}/%s/{0} {1}"
         if SPECIAL_PEERS.has_key? n
           name = SPECIAL_PEERS[n][:name]
           get = SPECIAL_PEERS[n][:get]
