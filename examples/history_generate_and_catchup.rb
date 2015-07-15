@@ -1,10 +1,10 @@
 process :node1, [:node1], 1, accelerate_time: true
 on :node1 do
-  start_load_generation 2000, 2000, 20
+  generate_load_and_await_completion 100, 100, 20
   retry_until_true retries: 100 do
-    $stderr.puts "load generation on node1: ledger #{ledger_num}"
     ledger_num > 10
   end
+  check_database_against_ledger_buckets
 end
 
 process :node2_minimal, [:node1], 1, forcescp: false, accelerate_time: true
@@ -12,7 +12,9 @@ on :node2_minimal do
   retry_until_true retries: 100 do
     ledger_num > 15
   end
-  check_equal_states [:node1]
+  check_database_against_ledger_buckets
+  check_equal_ledger_objects [:node1]
+  check_ledger_sequence_is_prefix_of :node1
 end
 
 
@@ -21,5 +23,7 @@ on :node2_complete do
   retry_until_true retries: 100 do
     ledger_num > 15
   end
-  check_equal_states [:node1]
+  check_database_against_ledger_buckets
+  check_equal_ledger_objects [:node1, :node2_minimal]
+  check_ledger_sequence_is_prefix_of :node1
 end
