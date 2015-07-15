@@ -357,6 +357,31 @@ module StellarCoreCommander
     end
 
     Contract None => Num
+    def load_generation_runs
+      metrics_count "loadgen.run.complete"
+    end
+
+    Contract None => Num
+    def transactions_applied
+      metrics_count "ledger.transaction.apply"
+    end
+
+    Contract None => Any
+    def start_checkdb
+      server.get("/checkdb")
+    end
+
+    Contract None => Num
+    def checkdb_runs
+      metrics_count "bucket.checkdb.execute"
+    end
+
+    Contract None => Num
+    def objects_checked
+      metrics_count "bucket.checkdb.object-compare"
+    end
+
+    Contract None => Num
     def http_port
       base_port
     end
@@ -455,11 +480,7 @@ module StellarCoreCommander
     end
 
     Contract Process => nil
-    def check_equal_state(other)
-      check_equal "ledger", latest_ledger, other.latest_ledger
-      check_equal "ledger hash", latest_ledger_hash, other.latest_ledger_hash
-      check_equal "history", history_archive_state, other.history_archive_state
-
+    def check_equal_ledger_objects(other)
       check_equal "account count", account_count, other.account_count
       check_equal "trustline count", trustline_count, other.trustline_count
       check_equal "offer count", offer_count, other.offer_count
@@ -467,6 +488,21 @@ module StellarCoreCommander
       check_equal "ten accounts", ten_accounts, other.ten_accounts
       check_equal "ten trustlines", ten_trustlines, other.ten_trustlines
       check_equal "ten offers", ten_offers, other.ten_offers
+    end
+
+    Contract Process => Any
+    def check_ledger_sequence_is_prefix_of(other)
+      q = "SELECT ledgerseq, ledgerhash FROM ledgerheaders ORDER BY ledgerseq"
+      our_headers = other.database.fetch(q).all
+      other_headers = other.database.fetch(q).all
+      our_hash = {}
+      other_hash = {}
+      other_headers.each do |row|
+        other_hash[row[:ledgerseq]] = row[:ledgerhash]
+      end
+      our_headers.each do |row|
+        check_equal "ledger hashes", other_hash[row[:ledgerseq]], row[:ledgerhash]
+      end
     end
 
     Contract String => Maybe[String]

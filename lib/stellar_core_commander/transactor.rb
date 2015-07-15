@@ -302,6 +302,23 @@ module StellarCoreCommander
       @process.start_load_generation accounts, txs, txrate
     end
 
+    Contract None => Bool
+    def load_generation_complete
+      @process.load_generation_complete
+    end
+
+    Contract Num, Num, Num => Any
+    def generate_load_and_await_completion(accounts, txs, txrate)
+      runs = @process.load_generation_runs
+      start_load_generation accounts, txs, txrate
+      retry_until_true retries: accounts + txs do
+        txs = @process.transactions_applied
+        r = @process.load_generation_runs
+        $stderr.puts "loadgen runs: #{r}, ledger: #{ledger_num}, txs: #{txs}"
+        r != runs
+      end
+    end
+
     Contract None => Hash
     def metrics
       @process.metrics
@@ -336,7 +353,7 @@ module StellarCoreCommander
       retries = opts[:retries] || 20
       timeout = opts[:timeout] || 3
       while retries > 0
-        b = begin yield block rescue false end
+        b = begin yield block end
         if b
           return b
         end
@@ -392,15 +409,35 @@ module StellarCoreCommander
     end
 
     Contract ArrayOf[Or[Symbol, Process]] => Bool
-    def check_equal_states(processes)
+    def check_equal_ledger_objects(processes)
       raise "no process!" unless @process
       for p in processes
         if p.is_a?(Symbol)
           p = get_process(p)
         end
-        @process.check_equal_state(p)
+        @process.check_equal_ledger_objects(p)
       end
       true
+    end
+
+    Contract Or[Symbol, Process] => Any
+    def check_ledger_sequence_is_prefix_of(other)
+      raise "no process!" unless @process
+      if other.is_a?(Symbol)
+        other = get_process(other)
+      end
+      @process.check_ledger_sequence_is_prefix_of(other)
+    end
+
+    Contract None => Bool
+    def check_database_against_ledger_buckets
+      runs = @process.checkdb_runs
+      @process.start_checkdb
+      retry_until_true do
+        r = @process.checkdb_runs
+        $stderr.puts "checkdb runs: #{r}, checked: #{@process.objects_checked}"
+        r != runs
+      end
     end
 
     private
