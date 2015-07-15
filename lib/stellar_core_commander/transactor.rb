@@ -51,14 +51,7 @@ module StellarCoreCommander
       recipe_content = IO.read(recipe_path)
       instance_eval recipe_content, recipe_path, 1
     rescue => e
-      puts
-      puts "Error! (#{e.class.name}): #{e.message}"
-      puts
-      puts e.backtrace.
-        reject{|l| l =~ %r{gems/contracts-.+?/} }. # filter contract frames
-        join("\n")
-      puts
-      exit 1
+      crash_recipe e
     end
 
 
@@ -74,170 +67,93 @@ module StellarCoreCommander
       add_named name, keypair
     end
 
+    # recipe_step is a helper method to define
+    # a method that follows the common procedure of executing a recipe step:
+    #
+    # 1. ensure all processes are running
+    # 2. build the envelope by forwarding to the operation builder
+    # 3. submit the envelope to the process
+    #
+    #
+    def self.recipe_step(name, &block)
+      define_method name do |*args|
+        require_process_running
+        envelope = @operation_builder.send(name, *args)
+
+        if block
+          block.call envelope, *args
+        else
+          submit_transaction envelope
+        end
+      end
+    end
+
 
     #
     # @see StellarCoreCommander::OperationBuilder#payment
-    def payment(*args)
-      require_process_running
-      envelope = @operation_builder.payment(*args)
+    recipe_step :payment do |envelope, *args|
       submit_transaction envelope do |result|
         payment_result = result.result.results!.first.tr!.value
         raise FailedTransaction unless payment_result.code.value >= 0
       end
     end
 
-    #
     # @see StellarCoreCommander::OperationBuilder#create_account
-    def create_account(*args)
-      require_process_running
-      envelope = @operation_builder.create_account(*args)
-      submit_transaction envelope
-    end
+    recipe_step :create_account
 
-    #
     # @see StellarCoreCommander::OperationBuilder#trust
-    def trust(*args)
-      require_process_running
-      envelope = @operation_builder.trust(*args)
-      submit_transaction envelope
-    end
+    recipe_step :trust
 
-    #
     # @see StellarCoreCommander::OperationBuilder#change_trust
-    def change_trust(*args)
-      require_process_running
-      envelope = @operation_builder.change_trust(*args)
-      submit_transaction envelope
-    end
+    recipe_step :change_trust
 
-    #
     # @see StellarCoreCommander::OperationBuilder#offer
-    def offer(*args)
-      require_process_running
-      envelope = @operation_builder.offer(*args)
-      submit_transaction envelope
-    end
+    recipe_step :offer
 
-    #
     # @see StellarCoreCommander::OperationBuilder#passive_offer
-    def passive_offer(*args)
-      require_process_running
-      envelope = @operation_builder.passive_offer(*args)
-      submit_transaction envelope
-    end
+    recipe_step :passive_offer
 
-    #
     # @see StellarCoreCommander::OperationBuilder#set_options
-    def set_options(*args)
-      require_process_running
-      envelope = @operation_builder.set_options(*args)
-      submit_transaction envelope
-    end
+    recipe_step :set_options
 
-    #
     # @see StellarCoreCommander::OperationBuilder#set_flags
-    def set_flags(*args)
-      require_process_running
-      envelope = @operation_builder.set_flags(*args)
-      submit_transaction envelope
-    end
+    recipe_step :set_flags
 
-    #
     # @see StellarCoreCommander::OperationBuilder#clear_flags
-    def clear_flags(*args)
-      require_process_running
-      envelope = @operation_builder.clear_flags(*args)
-      submit_transaction envelope
-    end
+    recipe_step :clear_flags
 
-    #
     # @see StellarCoreCommander::OperationBuilder#require_trust_auth
-    def require_trust_auth(*args)
-      require_process_running
-      envelope = @operation_builder.require_trust_auth(*args)
-      submit_transaction envelope
-    end
+    recipe_step :require_trust_auth
 
-    #
     # @see StellarCoreCommander::OperationBuilder#add_signer
-    def add_signer(*args)
-      require_process_running
-      envelope = @operation_builder.add_signer(*args)
-      submit_transaction envelope
-    end
+    recipe_step :add_signer
 
-    #
     # @see StellarCoreCommander::OperationBuilder#set_master_signer_weight
-    def set_master_signer_weight(*args)
-      require_process_running
-      envelope = @operation_builder.set_master_signer_weight(*args)
-      submit_transaction envelope
-    end
+    recipe_step :set_master_signer_weight
 
-    #
     # @see StellarCoreCommander::OperationBuilder#remove_signer
-    def remove_signer(*args)
-      require_process_running
-      envelope = @operation_builder.remove_signer(*args)
-      submit_transaction envelope
-    end
+    recipe_step :remove_signer
 
-    #
     # @see StellarCoreCommander::OperationBuilder#set_thresholds
-    def set_thresholds(*args)
-      require_process_running
-      envelope = @operation_builder.set_thresholds(*args)
-      submit_transaction envelope
-    end
+    recipe_step :set_thresholds
 
-    #
     # @see StellarCoreCommander::OperationBuilder#set_inflation_dest
-    def set_inflation_dest(*args)
-      require_process_running
-      envelope = @operation_builder.set_inflation_dest(*args)
-      submit_transaction envelope
-    end
+    recipe_step :set_inflation_dest
 
-    #
     # @see StellarCoreCommander::OperationBuilder#set_home_domain
-    def set_home_domain(*args)
-      require_process_running
-      envelope = @operation_builder.set_home_domain(*args)
-      submit_transaction envelope
-    end
+    recipe_step :set_home_domain
 
-    #
     # @see StellarCoreCommander::OperationBuilder#allow_trust
-    def allow_trust(*args)
-      require_process_running
-      envelope = @operation_builder.allow_trust(*args)
-      submit_transaction envelope
-    end
+    recipe_step :allow_trust
 
-
-    #
     # @see StellarCoreCommander::OperationBuilder#revoke_trust
-    def revoke_trust(*args)
-      require_process_running
-      envelope = @operation_builder.revoke_trust(*args)
-      submit_transaction envelope
-    end
+    recipe_step :revoke_trust
 
-    #
     # @see StellarCoreCommander::OperationBuilder#merge_account
-    def merge_account(*args)
-      require_process_running
-      envelope = @operation_builder.merge_account(*args)
-      submit_transaction envelope
-    end
+    recipe_step :merge_account
 
-    #
     # @see StellarCoreCommander::OperationBuilder#inflation
-    def inflation(*args)
-      require_process_running
-      envelope = @operation_builder.inflation(*args)
-      submit_transaction envelope
-    end
+    recipe_step :inflation
 
     Contract None => Any
     #
@@ -494,6 +410,19 @@ module StellarCoreCommander
       raise "transaction failed: #{base64_result}" unless expected == actual
 
       result
+    end
+
+    Contract Exception => Any
+    def crash_recipe(e)
+      puts
+      puts "Error! (#{e.class.name}): #{e.message}"
+      puts
+      puts e.backtrace.
+        reject{|l| l =~ %r{gems/contracts-.+?/} }. # filter contract frames
+        join("\n")
+      puts
+
+      exit 1
     end
 
   end
