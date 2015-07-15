@@ -14,6 +14,9 @@ module StellarCoreCommander
   class Process
     include Contracts
 
+    class Crash < StandardError ; end
+    class AlreadyRunning < StandardError ; end
+
     attr_reader :transactor
     attr_reader :working_dir
     attr_reader :name
@@ -508,9 +511,41 @@ module StellarCoreCommander
       !running?
     end
 
+    Contract None => Bool
+    def launched?
+      !!@launched
+    end
+
+    Contract None => Bool
+    def crashed?
+      launched? && stopped?
+    end
+
     Contract None => Any
     def prepare
+      # noop by default, implement in subclass to customize behavior
       nil
+    end
+
+    Contract None => Any
+    def run
+      raise Process::AlreadyRunning, "already running!" if running?
+      raise Process::Crash, "process #{name} has crashed. cannot run process again" if crashed?
+
+      setup
+      launch_process
+      @launched = true
+    end
+
+    private
+    Contract None => Any
+    def launch_process
+      raise NotImplementedError, "implement in subclass"
+    end
+
+    Contract None => Any
+    def setup
+      raise NotImplementedError, "implement in subclass"
     end
   end
 end

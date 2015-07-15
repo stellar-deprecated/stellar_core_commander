@@ -64,28 +64,24 @@ module StellarCoreCommander
     Contract None => ArrayOf[Process]
     def start_all_processes
       stopped = @processes.select(&:stopped?)
+      
+      stopped.each(&:prepare)
 
       stopped.each do |p|
-        p.prepare
-      end
+        next if p.running?
 
-      stopped.each do |p|
-        if not p.running?
-          $stderr.puts "running #{p.idname} (dir:#{p.working_dir})"
-          p.run
-          if p.await_sync?
-            p.wait_for_ready
-          end
-        end
+        $stderr.puts "running #{p.idname} (dir:#{p.working_dir})"
+        p.run
+        p.wait_for_ready if p.await_sync?
+
       end
     end
 
     Contract None => ArrayOf[Process]
     def require_processes_in_sync
       @processes.each do |p|
-        if p.await_sync? and not p.synced?
-          raise "process #{p.name} lost sync"
-        end
+        next unless p.await_sync?
+        raise "process #{p.name} lost sync" unless p.synced?
       end
     end
 

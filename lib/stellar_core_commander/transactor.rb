@@ -25,14 +25,20 @@ module StellarCoreCommander
     end
 
     def require_process_running
-      if @process == nil
+      if @process.nil?
         @process = @commander.get_root_process self
+
         if not @named.has_key? @process.name
           add_named @process.name, @process
         end
       end
+
       @commander.start_all_processes
       @commander.require_processes_in_sync
+    end
+
+    def shutdown(*args)
+      @process.shutdown *args
     end
 
     Contract String => Any
