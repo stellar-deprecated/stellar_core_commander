@@ -4,6 +4,7 @@ on :node1 do
   retry_until_true retries: 100 do
     ledger_num > 10
   end
+  check_no_error_metrics
   check_database_against_ledger_buckets
 end
 
@@ -12,9 +13,7 @@ on :node2_minimal do
   retry_until_true retries: 100 do
     ledger_num > 15
   end
-  check_database_against_ledger_buckets
-  check_equal_ledger_objects [:node1]
-  check_ledger_sequence_is_prefix_of :node1
+  check_integrity_against :node1
 end
 
 
@@ -23,7 +22,5 @@ on :node2_complete do
   retry_until_true retries: 100 do
     ledger_num > 15
   end
-  check_database_against_ledger_buckets
-  check_equal_ledger_objects [:node1, :node2_minimal]
-  check_ledger_sequence_is_prefix_of :node1
+  check_integrity_against :node1
 end

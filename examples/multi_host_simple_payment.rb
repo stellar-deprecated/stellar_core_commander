@@ -18,7 +18,9 @@ end
 payment :master, :alice, [:native, 100 * Stellar::ONE]
 
 on :node2 do
-  check_database_against_ledger_buckets
-  check_ledger_sequence_is_prefix_of :node1
-  equal_ledger_objects [:node1, :node3]
+  check_integrity_against :node1
+end
+
+on :node3 do
+  check_integrity_against :node1
 end
