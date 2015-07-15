@@ -33,10 +33,14 @@ on :newnode1 do
   raise if (balance :bob) != 1100 * Stellar::ONE
   payment :master, :alice, [:native, 100 * Stellar::ONE]
   close_ledger
+  check_integrity_against :oldnode1
+  check_integrity_against :oldnode2
 end
 
 on :oldnode1 do
   $stderr.puts "oldnode1 bob balance: #{(balance :bob)}"
   $stderr.puts "oldnode1 alice balance: #{(balance :alice)}"
   raise if (balance :alice) != 1100 * Stellar::ONE
+  check_integrity_against :newnode1
+  check_integrity_against :newnode2
 end

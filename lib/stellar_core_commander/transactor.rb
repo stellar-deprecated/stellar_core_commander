@@ -446,6 +446,14 @@ module StellarCoreCommander
       end
     end
 
+    Contract Or[Symbol, Process] => Any
+    def check_integrity_against(other)
+      check_no_error_metrics
+      check_database_against_ledger_buckets
+      check_equal_ledger_objects [other]
+      check_ledger_sequence_is_prefix_of other
+    end
+
     private
     Contract Symbol, Any => Any
     def add_named(name, object)
