@@ -510,7 +510,13 @@ module StellarCoreCommander
 
     Contract None => Any
     def prepare
+      # noop by default, implement in subclass to customize behavior
       nil
+    end
+
+    Contract None => Any
+    def run
+      raise NotImplementedError, "implement in subclass"
     end
   end
 end
