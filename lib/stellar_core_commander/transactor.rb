@@ -67,7 +67,6 @@ module StellarCoreCommander
       add_named name, keypair
     end
 
-    Contract Symbol, Proc => Any
     # recipe_step is a helper method to define
     # a method that follows the common procedure of executing a recipe step:
     #
