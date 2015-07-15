@@ -67,9 +67,7 @@ module StellarCoreCommander
     end
 
     Contract None => Num
-    def run
-      raise "already running!" if running?
-      setup
+    def launch_process
       forcescp if @forcescp
       launch_stellar_core
     end

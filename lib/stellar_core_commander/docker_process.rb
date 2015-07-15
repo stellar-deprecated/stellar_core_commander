@@ -70,9 +70,7 @@ module StellarCoreCommander
     end
 
     Contract None => Any
-    def run
-      raise "already running!" if running?
-      setup
+    def launch_process
       launch_state_container
       launch_stellar_core
       launch_heka_container if atlas
