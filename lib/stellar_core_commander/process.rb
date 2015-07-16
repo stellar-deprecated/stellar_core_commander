@@ -339,11 +339,7 @@ module StellarCoreCommander
     Contract None => Bool
     def check_no_error_metrics
       m = metrics
-      for metric in ["scp.ballot.invalid",
-                     "scp.ballot.invalidsig",
-                     "scp.envelope.invalidsig",
-                     "scp.value.invalid",
-                     "scp.sync.lost",
+      for metric in ["scp.envelope.invalidsig",
                      "history.publish.failure",
                      "history.catchup.failure"]
         c = m[metric]["count"] rescue 0
