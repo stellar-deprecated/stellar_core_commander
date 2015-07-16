@@ -67,6 +67,7 @@ module StellarCoreCommander
       add_named name, keypair
     end
 
+    Contract Symbol => Any
     # recipe_step is a helper method to define
     # a method that follows the common procedure of executing a recipe step:
     #
@@ -74,33 +75,22 @@ module StellarCoreCommander
     # 2. build the envelope by forwarding to the operation builder
     # 3. submit the envelope to the process
     #
-    # Step 3 is only performed provided a block is not providing.  The block
-    # argument is provided to allow you to override or modify the built envelope
-    # prior to submission.  See the usage of this method with :payment below
-    # for an example.
-    #
-    # NOTE: perhaps we should change the way we codify additional transaction
-    # validations (through a block argument to submit_transaction).  That may
-    # allow us to avoid confusion regarding this note about step 3 above.
-    #
     # @param name [Symbol] the method to be defined and delegated to @operation_builder
-    def self.recipe_step(name, &block)
+    def self.recipe_step(name)
       define_method name do |*args|
         require_process_running
         envelope = @operation_builder.send(name, *args)
-
-        if block
-          block.call envelope, *args
-        else
-          submit_transaction envelope
-        end
+        submit_transaction envelope
       end
     end
 
 
     #
     # @see StellarCoreCommander::OperationBuilder#payment
-    recipe_step :payment do |envelope, *args|
+    def payment(*args)
+      require_process_running
+      envelope = @operation_builder.payment(*args)
+
       submit_transaction envelope do |result|
         payment_result = result.result.results!.first.tr!.value
         raise FailedTransaction unless payment_result.code.value >= 0
