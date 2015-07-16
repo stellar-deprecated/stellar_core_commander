@@ -207,6 +207,8 @@ module StellarCoreCommander
     Contract None => String
     def history_get_command
       cmds = Set.new
+      localget = "cp /history/%s/{0} {1}"
+      s3get = "aws s3 --region #{@s3_history_region} cp #{@s3_history_prefix}/%s/{0} {1}"
       @quorum.each do |q|
         if q == @name
           next
@@ -214,14 +216,18 @@ module StellarCoreCommander
         if SPECIAL_PEERS.has_key? q
           cmds.add SPECIAL_PEERS[q][:get]
         elsif use_s3
-          cmds.add "aws s3 --region #{@s3_history_region} cp #{@s3_history_prefix}/%s/{0} {1}"
+          cmds.add s3get
         else
-          cmds.add "cp /history/%s/{0} {1}"
+          cmds.add localget
         end
       end
 
       if cmds.size == 0
-        cmds.add "cp /history/%s/{0} {1}"
+        if use_s3
+          cmds.add s3get
+        else
+          cmds.add localget
+        end
       end
 
       if cmds.size != 1
