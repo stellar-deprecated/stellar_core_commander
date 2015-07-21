@@ -465,12 +465,12 @@ module StellarCoreCommander
 
     Contract None => ArrayOf[Any]
     def ten_offers
-      database.fetch("SELECT * FROM offers ORDER BY accountid LIMIT 10").all
+      database.fetch("SELECT * FROM offers ORDER BY sellerid LIMIT 10").all
     end
 
     Contract None => ArrayOf[Any]
     def ten_trustlines
-      database.fetch("SELECT * FROM trustlines ORDER BY accountid, issuer, alphanumcurrency LIMIT 10").all
+      database.fetch("SELECT * FROM trustlines ORDER BY accountid, issuer, assetcode LIMIT 10").all
     end
 
     Contract String, Any, Any => nil

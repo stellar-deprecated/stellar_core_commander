@@ -173,7 +173,7 @@ module StellarCoreCommander
           $stderr.puts "could not be found in txhistory table on process #{@process.name}"
         rescue FailedTransaction
           $stderr.puts "Failed to validate tx: #{Convert.to_hex envelope.tx.hash}"
-          $stderr.puts "failed result: #{result.to_xdr(:hex)}"
+          $stderr.puts "failed result: #{result.to_xdr(:base64)}"
           exit 1
         end
       end
@@ -382,8 +382,8 @@ module StellarCoreCommander
     Contract Stellar::TransactionEnvelope, Or[nil, Proc] => Any
     def submit_transaction(envelope, &after_confirmation)
       require_process_running
-      hex    = envelope.to_xdr(:hex)
-      @process.submit_transaction hex
+      b64    = envelope.to_xdr(:base64)
+      @process.submit_transaction b64
 
       # submit to process
       @process.unverified << [envelope, after_confirmation]

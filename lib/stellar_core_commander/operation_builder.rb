@@ -3,7 +3,7 @@ module StellarCoreCommander
   class OperationBuilder
     include Contracts
 
-    Currency = Or[
+    Asset = Or[
       [String, Symbol],
       :native,
     ]
@@ -13,8 +13,8 @@ module StellarCoreCommander
     ]
 
     OfferCurrencies = Or[
-      {sell:Currency, for: Currency},
-      {buy:Currency, with: Currency},
+      {sell:Asset, for: Asset},
+      {buy:Asset, with: Asset},
     ]
 
     Byte = And[Num, lambda{|n| (0..255).include? n}]
@@ -42,7 +42,7 @@ module StellarCoreCommander
       @transactor = transactor
     end
 
-    Contract Symbol, Symbol, Amount, Or[{}, {path: ArrayOf[Currency], with:Amount}] => Any
+    Contract Symbol, Symbol, Amount, Or[{}, {path: ArrayOf[Asset], with:Amount}] => Any
     def payment(from, to, amount, options={})
       from = get_account from
       to   = get_account to
@@ -56,7 +56,7 @@ module StellarCoreCommander
 
       tx =  if options[:with]
               attrs[:with] = normalize_amount(options[:with])
-              attrs[:path] = options[:path].map{|p| make_currency p}
+              attrs[:path] = options[:path].map{|p| make_asset p}
               Stellar::Transaction.path_payment(attrs)
             else
               Stellar::Transaction.payment(attrs)
@@ -90,14 +90,14 @@ module StellarCoreCommander
       Stellar::Transaction.change_trust({
         account:  account,
         sequence: next_sequence(account),
-        line:     make_currency([code, issuer]),
+        line:     make_asset([code, issuer]),
         limit:    limit
       }).to_envelope(account)
     end
 
     Contract Symbol, Symbol, String, Bool => Any
     def allow_trust(account, trustor, code, authorize=true)
-      currency = make_currency([code, account])
+      asset = make_asset([code, account])
       account = get_account account
       trustor = get_account trustor
 
@@ -105,7 +105,7 @@ module StellarCoreCommander
       Stellar::Transaction.allow_trust({
         account:  account,
         sequence: next_sequence(account),
-        currency: currency,
+        asset: asset,
         trustor:  trustor,
         authorize: authorize,
       }).to_envelope(account)
@@ -121,11 +121,11 @@ module StellarCoreCommander
       account = get_account account
 
       if currencies.has_key?(:sell)
-        taker_pays = make_currency currencies[:for]
-        taker_gets = make_currency currencies[:sell]
+        buying = make_asset currencies[:for]
+        selling = make_asset currencies[:sell]
       else
-        taker_pays = make_currency currencies[:buy]
-        taker_gets = make_currency currencies[:with]
+        buying = make_asset currencies[:buy]
+        selling = make_asset currencies[:with]
         price = 1 / price
         amount = (amount * price).floor
       end
@@ -133,8 +133,8 @@ module StellarCoreCommander
       Stellar::Transaction.manage_offer({
         account:  account,
         sequence: next_sequence(account),
-        taker_gets: taker_gets,
-        taker_pays: taker_pays,
+        selling: selling,
+        buying: buying,
         amount: amount,
         price: price,
       }).to_envelope(account)
@@ -145,11 +145,11 @@ module StellarCoreCommander
       account = get_account account
 
       if currencies.has_key?(:sell)
-        taker_pays = make_currency currencies[:for]
-        taker_gets = make_currency currencies[:sell]
+        buying = make_asset currencies[:for]
+        selling = make_asset currencies[:sell]
       else
-        taker_pays = make_currency currencies[:buy]
-        taker_gets = make_currency currencies[:with]
+        buying = make_asset currencies[:buy]
+        selling = make_asset currencies[:with]
         price = 1 / price
         amount = (amount * price).floor
       end
@@ -157,8 +157,8 @@ module StellarCoreCommander
       Stellar::Transaction.create_passive_offer({
         account:  account,
         sequence: next_sequence(account),
-        taker_gets: taker_gets,
-        taker_pays: taker_pays,
+        selling: selling,
+        buying: buying,
         amount: amount,
         price: price,
       }).to_envelope(account)
@@ -288,8 +288,8 @@ module StellarCoreCommander
     delegate :get_account, to: :@transactor
     delegate :next_sequence, to: :@transactor
 
-    Contract Currency => Or[[Symbol, String, Stellar::KeyPair], [:native]]
-    def make_currency(input)
+    Contract Asset => Or[[Symbol, String, Stellar::KeyPair], [:native]]
+    def make_asset(input)
       if input == :native
         return [:native]
       end
@@ -297,7 +297,7 @@ module StellarCoreCommander
       code, issuer = *input
       issuer = get_account issuer
 
-      [:alphanum, code, issuer]
+      [:alphanum4, code, issuer]
     end
 
     def make_account_flags(flags=nil)
@@ -314,7 +314,7 @@ module StellarCoreCommander
     def normalize_amount(amount)
       return amount if amount.first == :native
 
-      amount = [:alphanum] + amount
+      amount = [:alphanum4] + amount
       amount[2] = get_account(amount[2]) # translate issuer to account
 
       amount
