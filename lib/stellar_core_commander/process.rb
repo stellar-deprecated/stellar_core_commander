@@ -465,7 +465,7 @@ module StellarCoreCommander
 
     Contract None => ArrayOf[Any]
     def ten_offers
-      database.fetch("SELECT * FROM offers ORDER BY accountid LIMIT 10").all
+      database.fetch("SELECT * FROM offers ORDER BY sellerid LIMIT 10").all
     end
 
     Contract None => ArrayOf[Any]
