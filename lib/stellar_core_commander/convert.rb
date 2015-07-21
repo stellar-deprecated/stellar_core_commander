@@ -21,10 +21,6 @@ module StellarCoreCommander
       Base64.strict_decode64(base64_string)
     end
 
-    def base58
-      Stellar::Util::Base58.stellar
-    end
-
     extend self
   end
 end
