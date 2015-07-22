@@ -101,7 +101,7 @@ module StellarCoreCommander
       @unverified   = []
 
       if not @quorum.include? @name
-        @quorum << @name
+        @quorum = @quorum + [@name]
       end
 
       @server = Faraday.new(url: "http://#{hostname}:#{http_port}") do |conn|
