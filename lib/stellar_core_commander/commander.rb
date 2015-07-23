@@ -32,7 +32,7 @@ module StellarCoreCommander
         transactor:   transactor,
         working_dir:  working_dir,
         name:         name,
-        base_port:    39132 + @processes.map(&:required_ports).sum,
+        base_port:    12000 + @processes.map(&:required_ports).sum,
         identity:     Stellar::KeyPair.random,
         quorum:       quorum,
         threshold:    thresh,
