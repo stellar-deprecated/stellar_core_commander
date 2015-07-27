@@ -240,7 +240,7 @@ module StellarCoreCommander
 
     Contract None => String
     def history_put_commands
-      if has_special_nodes?
+      if has_special_peers?
         ""
       else
         if use_s3
@@ -297,7 +297,7 @@ module StellarCoreCommander
         #{@name}_PEER_PORT=#{peer_port}
         #{@name}_HTTP_PORT=#{http_port}
         #{@name}_PEER_SEED=#{identity.seed}
-        #{@name}_VALIDATION_SEED=#{identity.seed}
+        #{"#{@name}_VALIDATION_SEED=#{identity.seed}" if @validate}
 
         #{"MANUAL_CLOSE=true" if manual_close?}
 

@@ -59,12 +59,14 @@ module StellarCoreCommander
       base_port:         Num,
       identity:          Stellar::KeyPair,
       quorum:            ArrayOf[Symbol],
+      peers:             Maybe[ArrayOf[Symbol]],
       threshold:         Num,
       manual_close:      Maybe[Bool],
       await_sync:        Maybe[Bool],
       accelerate_time:   Maybe[Bool],
       catchup_complete:  Maybe[Bool],
       forcescp:          Maybe[Bool],
+      validate:          Maybe[Bool],
       host:              Maybe[String],
       atlas:             Maybe[String],
       atlas_interval:    Num,
@@ -82,12 +84,14 @@ module StellarCoreCommander
       @base_port         = params[:base_port]
       @identity          = params[:identity]
       @quorum            = params[:quorum]
+      @peers             = params[:peers] || params[:quorum]
       @threshold         = params[:threshold]
       @manual_close      = params[:manual_close] || false
       @await_sync        = params.fetch(:await_sync, true)
       @accelerate_time   = params[:accelerate_time] || false
       @catchup_complete  = params[:catchup_complete] || false
       @forcescp          = params.fetch(:forcescp, true)
+      @validate          = params.fetch(:validate, true)
       @host              = params[:host]
       @atlas             = params[:atlas]
       @atlas_interval    = params[:atlas_interval]
@@ -104,29 +108,30 @@ module StellarCoreCommander
         @quorum = @quorum + [@name]
       end
 
+      if not @peers.include? @name
+        @peers = @peers + [@name]
+      end
+
       @server = Faraday.new(url: "http://#{hostname}:#{http_port}") do |conn|
         conn.request :url_encoded
         conn.adapter Faraday.default_adapter
       end
     end
 
-    Contract None => ArrayOf[Symbol]
-    def special_quorum_nodes
-      @quorum.select {|q| SPECIAL_PEERS.has_key? q}
-    end
-
     Contract None => Bool
-    def has_special_nodes?
-      @quorum.any? {|q| SPECIAL_PEERS.has_key? q}
+    def has_special_peers?
+      @peers.any? {|q| SPECIAL_PEERS.has_key? q}
     end
 
-    Contract Symbol, Proc => ArrayOf[String]
-    def quorum_map_or_special_field(field)
-      specials = special_quorum_nodes
+    Contract ArrayOf[Symbol], Symbol, Bool, Proc => ArrayOf[String]
+    def node_map_or_special_field(nodes, field, include_self)
+      specials = nodes.select {|q| SPECIAL_PEERS.has_key? q}
       if specials.empty?
-        @quorum.map do |q|
-          yield q
-        end
+        (nodes.map do |q|
+          if q != @name or include_self
+            yield q
+          end
+        end).compact
       else
         specials.map {|q| SPECIAL_PEERS[q][field]}
       end
@@ -134,21 +139,21 @@ module StellarCoreCommander
 
     Contract None => ArrayOf[String]
     def quorum
-      quorum_map_or_special_field :key do |q|
+      node_map_or_special_field @quorum, :key, @validate do |q|
           @transactor.get_process(q).identity.address
       end
     end
 
     Contract None => ArrayOf[String]
     def peer_names
-      quorum_map_or_special_field :name do |q|
+      node_map_or_special_field @peers, :name, true do |q|
         q.to_s
       end
     end
 
     Contract None => ArrayOf[String]
     def peer_connections
-      quorum_map_or_special_field :dns do |q|
+      node_map_or_special_field @peers, :dns, false do |q|
         p = @transactor.get_process(q)
         "#{p.hostname}:#{p.peer_port}"
       end
