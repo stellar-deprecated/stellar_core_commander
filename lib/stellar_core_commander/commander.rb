@@ -64,7 +64,7 @@ module StellarCoreCommander
     Contract None => ArrayOf[Process]
     def start_all_processes
       stopped = @processes.select(&:stopped?)
-      
+
       stopped.each(&:prepare)
 
       stopped.each do |p|
@@ -81,7 +81,11 @@ module StellarCoreCommander
     def require_processes_in_sync
       @processes.each do |p|
         next unless p.await_sync?
-        raise "process #{p.name} lost sync" unless p.synced?
+        begin
+          p.wait_for_ready unless p.synced?
+        rescue Timeout::Error
+          raise "process #{p.name} lost sync"
+        end
       end
     end
 

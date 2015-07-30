@@ -36,19 +36,19 @@ module StellarCoreCommander
         :dns => "core-testnet1.stellar.org",
         :key => "GDKXE2OZMJIPOSLNA6N6F2BVCI3O777I2OOC4BV7VOYUEHYX7RTRYA7Y",
         :name => "core-testnet-001",
-        :get => "curl -sf https://s3-eu-west-1.amazonaws.com/history.stellar.org/prd/core-testnet/%s/{0} -o {1}"
+        :get => "wget -q https://s3-eu-west-1.amazonaws.com/history.stellar.org/prd/core-testnet/%s/{0} -O {1}"
       },
       :testnet2 => {
         :dns => "core-testnet2.stellar.org",
         :key => "GCUCJTIYXSOXKBSNFGNFWW5MUQ54HKRPGJUTQFJ5RQXZXNOLNXYDHRAP",
         :name => "core-testnet-002",
-        :get => "curl -sf https://s3-eu-west-1.amazonaws.com/history.stellar.org/prd/core-testnet/%s/{0} -o {1}"
+        :get => "wget -q https://s3-eu-west-1.amazonaws.com/history.stellar.org/prd/core-testnet/%s/{0} -O {1}"
       },
       :testnet3 => {
         :dns => "core-testnet3.stellar.org",
         :key => "GC2V2EFSXN6SQTWVYA5EPJPBWWIMSD2XQNKUOHGEKB535AQE2I6IXV2Z",
         :name => "core-testnet-003",
-        :get => "curl -sf https://s3-eu-west-1.amazonaws.com/history.stellar.org/prd/core-testnet/%s/{0} -o {1}"
+        :get => "wget -q https://s3-eu-west-1.amazonaws.com/history.stellar.org/prd/core-testnet/%s/{0} -O {1}"
       }
     }
 
@@ -528,7 +528,14 @@ module StellarCoreCommander
 
     Contract None => Num
     def sync_timeout
-      60.0 * 8
+      # Checkpoints are made every 64 ledgers = 320s on a normal network,
+      # or every 8 ledgers = 8s on an accelerated-time network; we give you
+      # 3 checkpoints to make it to a sync (~16min) before giving up. The
+      # accelerated-time variant tends to need more tries due to S3 not
+      # admitting writes instantaneously, so we do not use a tighter bound
+      # for that case, just use the same 16min value, despite commonly
+      # succeeding in 20s or less.
+      320.0 * 3
     end
 
     Contract String, ArrayOf[String] => Maybe[Bool]
