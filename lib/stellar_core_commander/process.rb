@@ -323,6 +323,14 @@ module StellarCoreCommander
       0
     end
 
+    Contract String => Num
+    def metrics_1m_rate(k)
+      m = metrics
+      m[k]["1_min_rate"]
+    rescue
+      0
+    end
+
     Contract None => Any
     def dump_metrics
       response = server.get("/metrics")
@@ -355,7 +363,7 @@ module StellarCoreCommander
       true
     end
 
-    Contract Num, Num, Num => Any
+    Contract Num, Num, Or[Symbol, Num] => Any
     def start_load_generation(accounts, txs, txrate)
       server.get("/generateload?accounts=#{accounts}&txs=#{txs}&txrate=#{txrate}")
     end
@@ -368,6 +376,11 @@ module StellarCoreCommander
     Contract None => Num
     def transactions_applied
       metrics_count "ledger.transaction.apply"
+    end
+
+    Contract None => Num
+    def transactions_per_second
+      metrics_1m_rate "ledger.transaction.apply"
     end
 
     Contract None => Any

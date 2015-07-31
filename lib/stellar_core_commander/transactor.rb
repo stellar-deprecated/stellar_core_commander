@@ -217,7 +217,7 @@ module StellarCoreCommander
       end
     end
 
-    Contract Num, Num, Num => Any
+    Contract Num, Num, Or[Symbol, Num] => Any
     def start_load_generation(accounts=10000000, txs=10000000, txrate=500)
       $stderr.puts "starting load generation: #{accounts} accounts, #{txs} txs, #{txrate} tx/s"
       @process.start_load_generation accounts, txs, txrate
@@ -228,14 +228,15 @@ module StellarCoreCommander
       @process.load_generation_complete
     end
 
-    Contract Num, Num, Num => Any
+    Contract Num, Num, Or[Symbol, Num] => Any
     def generate_load_and_await_completion(accounts, txs, txrate)
       runs = @process.load_generation_runs
       start_load_generation accounts, txs, txrate
       retry_until_true retries: accounts + txs do
         txs = @process.transactions_applied
         r = @process.load_generation_runs
-        $stderr.puts "loadgen runs: #{r}, ledger: #{ledger_num}, txs: #{txs}"
+        tps = @process.transactions_per_second
+        $stderr.puts "loadgen runs: #{r}, ledger: #{ledger_num}, txs: #{txs}, actual tx/s: #{tps}"
         r != runs
       end
     end
