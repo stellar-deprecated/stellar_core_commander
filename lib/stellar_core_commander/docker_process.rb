@@ -102,8 +102,11 @@ module StellarCoreCommander
     Contract None => Any
     def cleanup
       database.disconnect
+      dump_database
       dump_logs
       dump_cores
+      dump_scp_state
+      dump_info
       dump_metrics
       shutdown
       shutdown_state_container

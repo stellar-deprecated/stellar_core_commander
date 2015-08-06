@@ -67,8 +67,6 @@ def run
   transactor.run_recipe recipe
   transactor.close_ledger
 
-  output_results(commander.get_root_process transactor)
-
   if $opts[:wait]
     $stderr.puts "Waiting for INT signal..."
     Signal.trap("INT"){ exit }
@@ -117,10 +115,6 @@ def load_recipe
   end
 
   recipe
-end
-
-def output_results(process)
-  $stdout.puts process.dump_database
 end
 
 run
