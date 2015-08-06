@@ -309,6 +309,8 @@ module StellarCoreCommander
 
         METRICS_INTERVAL=#{atlas_interval}
 
+        #{"COMMANDS=[\"ll?level=debug\"]" if @debug}
+
         QUORUM_THRESHOLD=#{threshold}
 
         PREFERRED_PEERS=#{peer_connections}

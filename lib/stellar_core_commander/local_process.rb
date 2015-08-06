@@ -168,6 +168,7 @@ module StellarCoreCommander
         PREFERRED_PEERS=#{peer_connections}
 
         #{"MANUAL_CLOSE=true" if manual_close?}
+        #{"COMMANDS=[\"ll?level=debug\"]" if @debug}
 
         [QUORUM_SET]
         THRESHOLD=#{threshold}

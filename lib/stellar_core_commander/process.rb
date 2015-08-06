@@ -75,6 +75,7 @@ module StellarCoreCommander
       s3_history_region: String,
       database_url:      Maybe[String],
       keep_database:     Maybe[Bool],
+      debug:             Maybe[Bool],
     } => Any)
     def initialize(params)
       #config
@@ -100,6 +101,7 @@ module StellarCoreCommander
       @s3_history_prefix = params[:s3_history_prefix]
       @database_url      = params[:database_url]
       @keep_database     = params[:keep_database]
+      @debug             = params[:debug]
 
       # state
       @unverified   = []
