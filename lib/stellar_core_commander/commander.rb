@@ -84,7 +84,12 @@ module StellarCoreCommander
         begin
           p.wait_for_ready unless p.synced?
         rescue Timeout::Error
-          raise "process #{p.name} lost sync"
+          @processes.each do |p2|
+            p2.dump_scp_state
+            p2.dump_info
+            p2.dump_metrics
+            raise "process #{p.name} lost sync"
+          end
         end
       end
     end

@@ -75,6 +75,7 @@ module StellarCoreCommander
       s3_history_region: String,
       database_url:      Maybe[String],
       keep_database:     Maybe[Bool],
+      debug:             Maybe[Bool],
     } => Any)
     def initialize(params)
       #config
@@ -100,6 +101,7 @@ module StellarCoreCommander
       @s3_history_prefix = params[:s3_history_prefix]
       @database_url      = params[:database_url]
       @keep_database     = params[:keep_database]
+      @debug             = params[:debug]
 
       # state
       @unverified   = []
@@ -331,12 +333,29 @@ module StellarCoreCommander
       0
     end
 
-    Contract None => Any
-    def dump_metrics
-      response = server.get("/metrics")
-      File.open("#{working_dir}/stellar-metrics.json", 'w') {|f| f.write(response.body) }
+    Contract String => Any
+    def dump_server_query(s)
+      fname = "#{working_dir}/#{s}-#{Time.now.to_i}-#{rand 100000}.json"
+      $stderr.puts "dumping server query #{fname}"
+      response = server.get("/#{s}")
+      File.open(fname, 'w') {|f| f.write(response.body) }
     rescue
       nil
+    end
+
+    Contract None => Any
+    def dump_metrics
+      dump_server_query("metrics")
+    end
+
+    Contract None => Any
+    def dump_info
+      dump_server_query("info")
+    end
+
+    Contract None => Any
+    def dump_scp_state
+      dump_server_query("scp")
     end
 
     Contract None => Num
