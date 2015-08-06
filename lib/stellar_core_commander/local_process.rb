@@ -105,9 +105,10 @@ module StellarCoreCommander
 
     Contract None => Any
     def dump_database
-      Dir.chdir(@working_dir) do
-        `pg_dump #{database_name} --clean --no-owner --no-privileges`
-      end
+      fname = "#{working_dir}/database-#{Time.now.to_i}-#{rand 100000}.sql"
+      $stderr.puts "dumping database to #{fname}"
+      sql = `pg_dump #{database_name} --clean --no-owner --no-privileges`
+      File.open(fname, 'w') {|f| f.write(sql) }
     end
 
     Contract None => String
