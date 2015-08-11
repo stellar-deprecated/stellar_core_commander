@@ -246,15 +246,15 @@ module StellarCoreCommander
       @process.metrics
     end
 
-    Contract Symbol, ArrayOf[Symbol], Num, Hash => Process
-    def process(name, quorum=[name], thresh=quorum.length, options={})
+    Contract Symbol, ArrayOf[Symbol], Hash => Process
+    def process(name, quorum=[name], options={})
 
       if @manual_close and quorum.size != 1
         raise "Cannot use `process` with multi-node quorum, this recipe has previously declared  `use_manual_close`."
       end
 
       $stderr.puts "creating process #{name}"
-      p = @commander.make_process self, name, quorum, thresh, options
+      p = @commander.make_process self, name, quorum, options
       $stderr.puts "process #{name} is #{p.idname}"
       add_named name, p
     end

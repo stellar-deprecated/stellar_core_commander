@@ -162,7 +162,7 @@ module StellarCoreCommander
         HTTP_PORT=#{http_port}
         PUBLIC_HTTP_PORT=false
         PEER_SEED="#{@identity.seed}"
-        #{"VALIDATION_SEED=#{identity.seed}" if @validate}
+        #{"VALIDATION_SEED=\"#{identity.seed}\"" if @validate}
 
         ARTIFICIALLY_GENERATE_LOAD_FOR_TESTING=true
         #{"ARTIFICIALLY_ACCELERATE_TIME_FOR_TESTING=true" if @accelerate_time}
@@ -174,8 +174,10 @@ module StellarCoreCommander
         #{"MANUAL_CLOSE=true" if manual_close?}
         #{"COMMANDS=[\"ll?level=debug\"]" if @debug}
 
+        FAILURE_SAFETY=0
+        UNSAFE_QUORUM=true
+
         [QUORUM_SET]
-        THRESHOLD=#{threshold}
         VALIDATORS=#{quorum}
 
         #{history_sources}

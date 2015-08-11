@@ -6,10 +6,10 @@ raise "missing ENV['NEW_IMAGE']" unless new_image
 
 peers = [:oldnode1, :oldnode2, :newnode1, :newnode2]
 
-process :oldnode1, peers, 4, docker_core_image: old_image, docker_pull: true
-process :oldnode2, peers, 4, docker_core_image: old_image, docker_pull: true
-process :newnode1, peers, 4, docker_core_image: new_image, docker_pull: true
-process :newnode2, peers, 4, docker_core_image: new_image, docker_pull: true
+process :oldnode1, peers, docker_core_image: old_image, docker_pull: true
+process :oldnode2, peers, docker_core_image: old_image, docker_pull: true
+process :newnode1, peers, docker_core_image: new_image, docker_pull: true
+process :newnode2, peers, docker_core_image: new_image, docker_pull: true
 
 account :alice
 account :bob
