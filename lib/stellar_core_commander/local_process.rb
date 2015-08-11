@@ -162,7 +162,7 @@ module StellarCoreCommander
         HTTP_PORT=#{http_port}
         PUBLIC_HTTP_PORT=false
         PEER_SEED="#{@identity.seed}"
-        #{"VALIDATION_SEED=#{identity.seed}" if @validate}
+        #{"VALIDATION_SEED=\"#{identity.seed}\"" if @validate}
 
         ARTIFICIALLY_GENERATE_LOAD_FOR_TESTING=true
         #{"ARTIFICIALLY_ACCELERATE_TIME_FOR_TESTING=true" if @accelerate_time}
