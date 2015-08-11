@@ -24,7 +24,6 @@ module StellarCoreCommander
     attr_reader :identity
     attr_reader :server
     attr_accessor :unverified
-    attr_reader :threshold
     attr_reader :host
     attr_reader :atlas
     attr_reader :atlas_interval
@@ -60,7 +59,6 @@ module StellarCoreCommander
       identity:          Stellar::KeyPair,
       quorum:            ArrayOf[Symbol],
       peers:             Maybe[ArrayOf[Symbol]],
-      threshold:         Num,
       manual_close:      Maybe[Bool],
       await_sync:        Maybe[Bool],
       accelerate_time:   Maybe[Bool],
@@ -86,7 +84,6 @@ module StellarCoreCommander
       @identity          = params[:identity]
       @quorum            = params[:quorum]
       @peers             = params[:peers] || params[:quorum]
-      @threshold         = params[:threshold]
       @manual_close      = params[:manual_close] || false
       @await_sync        = params.fetch(:await_sync, true)
       @accelerate_time   = params[:accelerate_time] || false

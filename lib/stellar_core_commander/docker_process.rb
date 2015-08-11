@@ -315,7 +315,8 @@ module StellarCoreCommander
 
         #{"COMMANDS=[\"ll?level=debug\"]" if @debug}
 
-        QUORUM_THRESHOLD=#{threshold}
+        FAILURE_SAFETY=0
+        UNSAFE_QUORUM=true
 
         PREFERRED_PEERS=#{peer_connections}
         QUORUM_SET=#{quorum}

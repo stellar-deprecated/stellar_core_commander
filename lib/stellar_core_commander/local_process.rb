@@ -174,8 +174,10 @@ module StellarCoreCommander
         #{"MANUAL_CLOSE=true" if manual_close?}
         #{"COMMANDS=[\"ll?level=debug\"]" if @debug}
 
+        FAILURE_SAFETY=0
+        UNSAFE_QUORUM=true
+
         [QUORUM_SET]
-        THRESHOLD=#{threshold}
         VALIDATORS=#{quorum}
 
         #{history_sources}

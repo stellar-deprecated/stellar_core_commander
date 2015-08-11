@@ -1,6 +1,6 @@
-process :node1, [:node1, :node2, :node3], 2, host: '192.168.99.105'
-process :node2, [:node1, :node2, :node3], 2, host: '192.168.99.104'
-process :node3, [:node1, :node2, :node3], 2, host: '192.168.99.103'
+process :node1, [:node1, :node2, :node3], host: '192.168.99.105'
+process :node2, [:node1, :node2, :node3], host: '192.168.99.104'
+process :node3, [:node1, :node2, :node3], host: '192.168.99.103'
 
 account :alice
 account :bob
