@@ -319,7 +319,7 @@ module StellarCoreCommander
         UNSAFE_QUORUM=true
 
         PREFERRED_PEERS=#{peer_connections}
-        QUORUM_SET=#{quorum}
+        VALIDATORS=#{quorum}
 
         HISTORY_PEERS=#{peer_names}
       EOS
