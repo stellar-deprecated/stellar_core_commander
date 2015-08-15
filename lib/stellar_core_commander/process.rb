@@ -557,14 +557,20 @@ module StellarCoreCommander
 
     Contract None => Num
     def sync_timeout
-      # Checkpoints are made every 64 ledgers = 320s on a normal network,
-      # or every 8 ledgers = 8s on an accelerated-time network; we give you
-      # 3 checkpoints to make it to a sync (~16min) before giving up. The
-      # accelerated-time variant tends to need more tries due to S3 not
-      # admitting writes instantaneously, so we do not use a tighter bound
-      # for that case, just use the same 16min value, despite commonly
-      # succeeding in 20s or less.
-      320.0 * 3
+      if has_special_peers? and @catchup_complete
+        # catchup-complete can take quite a while on testnet; for now,
+        # give such tests an hour. May require a change in strategy later.
+        3600.0
+      else
+        # Checkpoints are made every 64 ledgers = 320s on a normal network,
+        # or every 8 ledgers = 8s on an accelerated-time network; we give you
+        # 3 checkpoints to make it to a sync (~16min) before giving up. The
+        # accelerated-time variant tends to need more tries due to S3 not
+        # admitting writes instantaneously, so we do not use a tighter bound
+        # for that case, just use the same 16min value, despite commonly
+        # succeeding in 20s or less.
+        320.0 * 3
+      end
     end
 
     Contract String, ArrayOf[String] => Maybe[Bool]
