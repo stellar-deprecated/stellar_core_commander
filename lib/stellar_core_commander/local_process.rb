@@ -115,7 +115,7 @@ module StellarCoreCommander
 
     Contract None => String
     def default_database_url
-      "postgres://localhost/#{idname}"
+      "postgres:///#{idname}"
     end
 
     def crash

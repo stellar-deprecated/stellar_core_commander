@@ -182,7 +182,7 @@ module StellarCoreCommander
       URI.parse(database_url)
     end
 
-    Contract None => String
+    Contract None => Maybe[String]
     def database_host
       database_uri.host
     end
@@ -214,10 +214,10 @@ module StellarCoreCommander
 
     Contract None => String
     def dsn
-      base = "postgresql://dbname=#{database_name} host=#{database_host} port=#{database_port}"
+      base = "postgresql://dbname=#{database_name} "
       base << " user=#{database_user}" if database_user.present?
       base << " password=#{database_password}" if database_password.present?
-      base << " host=#{database_host}" if database_host.present?
+      base << " host=#{database_host} port=#{database_port}" if database_host.present?
 
       base
     end
