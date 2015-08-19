@@ -236,7 +236,8 @@ module StellarCoreCommander
         txs = @process.transactions_applied
         r = @process.load_generation_runs
         tps = @process.transactions_per_second
-        $stderr.puts "loadgen runs: #{r}, ledger: #{ledger_num}, txs: #{txs}, actual tx/s: #{tps}"
+        ops = @process.operations_per_second
+        $stderr.puts "loadgen runs: #{r}, ledger: #{ledger_num}, txs: #{txs}, actual tx/s: #{tps} op/s: #{ops}"
         r != runs
       end
     end

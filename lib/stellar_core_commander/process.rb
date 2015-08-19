@@ -399,6 +399,11 @@ module StellarCoreCommander
       metrics_1m_rate "ledger.transaction.apply"
     end
 
+    Contract None => Num
+    def operations_per_second
+      metrics_1m_rate "transaction.op.apply"
+    end
+
     Contract None => Any
     def start_checkdb
       server.get("/checkdb")
