@@ -4,7 +4,6 @@ module StellarCoreCommander
     include Contracts
 
     attr_reader :pid
-    attr_reader :wait
 
     def initialize(params)
       raise "`host` param is unsupported on LocalProcess, please use `-p docker` for this recipe." if params[:host]
@@ -92,7 +91,7 @@ module StellarCoreCommander
         ::Process.kill "KILL", @pid
       end
 
-      @wait.value.success?
+      @wait_value == 0
     end
 
     Contract None => Any
@@ -116,7 +115,7 @@ module StellarCoreCommander
 
     Contract None => String
     def default_database_url
-      "postgres://localhost/#{idname}"
+      "postgres:///#{idname}"
     end
 
     def crash
@@ -126,32 +125,15 @@ module StellarCoreCommander
     private
     def launch_stellar_core
       Dir.chdir @working_dir do
-        sin, sout, serr, wait = Open3.popen3("./stellar-core")
-
-        # throwaway stdout, stderr (the logs will record any output)
-        write_to_file(sout, "#{@working_dir}/stdout.txt")
-        write_to_file(serr, "#{@working_dir}/stderr.txt")
-
-        @wait = wait
-        @pid = wait.pid
+        @pid = ::Process.spawn("./stellar-core",
+                               :out => "stdout.txt",
+                               :err => "stderr.txt")
+        @wait = Thread.new {
+          @wait_value = ::Process.wait(@pid);
+          $stderr.puts "stellar-core process exited: #{@wait_value}"
+        }
       end
-    end
-
-    def write_to_file(reader, path)
-      Thread.new do
-        out = open(path, 'w+')
-
-        begin
-          loop do
-            line = reader.gets
-            break if line.nil?
-            out.puts line
-            out.flush
-          end
-        ensure
-          out.close
-        end
-      end
+      @pid
     end
 
     Contract None => String
