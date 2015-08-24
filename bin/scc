@@ -56,6 +56,10 @@ def run
       's3 region to store temp history in (default: eu-west-1)',
       argument: true,
       default: "eu-west-1"
+		on 'dump-root-db',
+			'when true, dump to root processes sql database after recipe completion',
+			argument: false,
+			default: false
   end
 
   recipe    = load_recipe
@@ -66,6 +70,11 @@ def run
 
   transactor.run_recipe recipe
   transactor.close_ledger
+
+	if $opts[:"dump-root-db"]
+		file = commander.get_root_process(transactor).dump_database
+    $stdout.puts IO.read(file)
+	end
 
   if $opts[:wait]
     $stderr.puts "Waiting for INT signal..."

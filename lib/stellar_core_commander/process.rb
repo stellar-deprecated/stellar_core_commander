@@ -621,6 +621,12 @@ module StellarCoreCommander
       @launched = true
     end
 
+		# Dumps the database of the process to the working directory, returning the path to the file written to
+    Contract None => String
+    def dump_database
+      raise NotImplementedError, "implement in subclass"
+    end
+
     private
     Contract None => Any
     def launch_process

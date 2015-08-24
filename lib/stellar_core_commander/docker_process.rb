@@ -131,6 +131,7 @@ module StellarCoreCommander
       host_args = "-H tcp://#{docker_host}:#{docker_port}" if host
       sql = `docker #{host_args} exec #{state_container_name} pg_dump -U #{database_user} --clean --no-owner --no-privileges #{database_name}`
       File.open(fname, 'w') {|f| f.write(sql) }
+			fname
     end
 
     Contract None => String
