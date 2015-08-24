@@ -111,6 +111,7 @@ module StellarCoreCommander
       $stderr.puts "dumping database to #{fname}"
       sql = `pg_dump #{database_name} --clean --no-owner --no-privileges`
       File.open(fname, 'w') {|f| f.write(sql) }
+      fname
     end
 
     Contract None => String

@@ -139,7 +139,7 @@ module StellarCoreCommander
     Contract None => ArrayOf[String]
     def quorum
       node_map_or_special_field @quorum, :key, @validate do |q|
-          @transactor.get_process(q).identity.address
+        @transactor.get_process(q).identity.address
       end
     end
 
@@ -619,6 +619,12 @@ module StellarCoreCommander
       setup
       launch_process
       @launched = true
+    end
+
+    # Dumps the database of the process to the working directory, returning the path to the file written to
+    Contract None => String
+    def dump_database
+      raise NotImplementedError, "implement in subclass"
     end
 
     private
