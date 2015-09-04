@@ -160,6 +160,8 @@ module StellarCoreCommander
         FAILURE_SAFETY=0
         UNSAFE_QUORUM=true
 
+        NETWORK_PASSPHRASE="#{network_passphrase}"
+
         [QUORUM_SET]
         VALIDATORS=#{quorum}
 

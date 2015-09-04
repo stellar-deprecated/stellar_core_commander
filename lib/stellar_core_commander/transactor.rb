@@ -21,7 +21,10 @@ module StellarCoreCommander
       @operation_builder = OperationBuilder.new(self)
       @manual_close      = false
 
-      account :master, Stellar::KeyPair.from_raw_seed("allmylifemyhearthasbeensearching")
+      network_passphrase = @commander.process_options[:network_passphrase]
+      Stellar.on_network network_passphrase do
+        account :master, Stellar::KeyPair.master
+      end
     end
 
     def require_process_running
@@ -49,7 +52,10 @@ module StellarCoreCommander
     #
     def run_recipe(recipe_path)
       recipe_content = IO.read(recipe_path)
-      instance_eval recipe_content, recipe_path, 1
+      network_passphrase = @commander.process_options[:network_passphrase]
+      Stellar.on_network network_passphrase do
+        instance_eval recipe_content, recipe_path, 1
+      end
     rescue => e
       crash_recipe e
     end

@@ -1,6 +1,7 @@
 #!/usr/bin/env ruby
 
 require 'stellar_core_commander'
+require 'stellar-base'
 require 'slop'
 
 def run
@@ -60,6 +61,10 @@ def run
       'when true, dump to root processes sql database after recipe completion',
       argument: false,
       default: false
+    on 'network-passphrase',
+      'sets the network passphrase to configure on all running processes',
+      argument: true,
+      default: Stellar::Networks::TESTNET
   end
 
   recipe    = load_recipe
@@ -94,7 +99,8 @@ def make_commander
     atlas_interval: $opts[:"atlas-interval"].to_i,
     use_s3: $opts[:"use-s3"],
     s3_history_region: $opts[:"s3-history-region"],
-    s3_history_prefix: $opts[:"s3-history-prefix"]
+    s3_history_prefix: $opts[:"s3-history-prefix"],
+    network_passphrase: $opts[:"network-passphrase"],
   }
 
   destination = $opts[:"destination"]
