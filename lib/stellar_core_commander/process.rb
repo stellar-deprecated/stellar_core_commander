@@ -27,6 +27,7 @@ module StellarCoreCommander
     attr_reader :host
     attr_reader :atlas
     attr_reader :atlas_interval
+    attr_reader :network_passphrase
 
     DEFAULT_HOST = '127.0.0.1'
 
@@ -52,53 +53,55 @@ module StellarCoreCommander
     }
 
     Contract({
-      transactor:        Transactor,
-      working_dir:       String,
-      name:              Symbol,
-      base_port:         Num,
-      identity:          Stellar::KeyPair,
-      quorum:            ArrayOf[Symbol],
-      peers:             Maybe[ArrayOf[Symbol]],
-      manual_close:      Maybe[Bool],
-      await_sync:        Maybe[Bool],
-      accelerate_time:   Maybe[Bool],
-      catchup_complete:  Maybe[Bool],
-      forcescp:          Maybe[Bool],
-      validate:          Maybe[Bool],
-      host:              Maybe[String],
-      atlas:             Maybe[String],
-      atlas_interval:    Num,
-      use_s3:            Bool,
-      s3_history_prefix: String,
-      s3_history_region: String,
-      database_url:      Maybe[String],
-      keep_database:     Maybe[Bool],
-      debug:             Maybe[Bool],
+      transactor:          Transactor,
+      working_dir:         String,
+      name:                Symbol,
+      base_port:           Num,
+      identity:            Stellar::KeyPair,
+      quorum:              ArrayOf[Symbol],
+      peers:               Maybe[ArrayOf[Symbol]],
+      manual_close:        Maybe[Bool],
+      await_sync:          Maybe[Bool],
+      accelerate_time:     Maybe[Bool],
+      catchup_complete:    Maybe[Bool],
+      forcescp:            Maybe[Bool],
+      validate:            Maybe[Bool],
+      host:                Maybe[String],
+      atlas:               Maybe[String],
+      atlas_interval:      Num,
+      use_s3:              Bool,
+      s3_history_prefix:   String,
+      s3_history_region:   String,
+      database_url:        Maybe[String],
+      keep_database:       Maybe[Bool],
+      debug:               Maybe[Bool],
+      network_passphrase:  Maybe[String],
     } => Any)
     def initialize(params)
       #config
-      @transactor        = params[:transactor]
-      @working_dir       = params[:working_dir]
-      @name              = params[:name]
-      @base_port         = params[:base_port]
-      @identity          = params[:identity]
-      @quorum            = params[:quorum]
-      @peers             = params[:peers] || params[:quorum]
-      @manual_close      = params[:manual_close] || false
-      @await_sync        = params.fetch(:await_sync, true)
-      @accelerate_time   = params[:accelerate_time] || false
-      @catchup_complete  = params[:catchup_complete] || false
-      @forcescp          = params.fetch(:forcescp, true)
-      @validate          = params.fetch(:validate, true)
-      @host              = params[:host]
-      @atlas             = params[:atlas]
-      @atlas_interval    = params[:atlas_interval]
-      @use_s3            = params[:use_s3]
-      @s3_history_region = params[:s3_history_region]
-      @s3_history_prefix = params[:s3_history_prefix]
-      @database_url      = params[:database_url]
-      @keep_database     = params[:keep_database]
-      @debug             = params[:debug]
+      @transactor         = params[:transactor]
+      @working_dir        = params[:working_dir]
+      @name               = params[:name]
+      @base_port          = params[:base_port]
+      @identity           = params[:identity]
+      @quorum             = params[:quorum]
+      @peers              = params[:peers] || params[:quorum]
+      @manual_close       = params[:manual_close] || false
+      @await_sync         = params.fetch(:await_sync, true)
+      @accelerate_time    = params[:accelerate_time] || false
+      @catchup_complete   = params[:catchup_complete] || false
+      @forcescp           = params.fetch(:forcescp, true)
+      @validate           = params.fetch(:validate, true)
+      @host               = params[:host]
+      @atlas              = params[:atlas]
+      @atlas_interval     = params[:atlas_interval]
+      @use_s3             = params[:use_s3]
+      @s3_history_region  = params[:s3_history_region]
+      @s3_history_prefix  = params[:s3_history_prefix]
+      @database_url       = params[:database_url]
+      @keep_database      = params[:keep_database]
+      @debug              = params[:debug]
+      @network_passphrase = params[:network_passphrase] || Stellar::Networks::TESTNET
 
       # state
       @unverified   = []

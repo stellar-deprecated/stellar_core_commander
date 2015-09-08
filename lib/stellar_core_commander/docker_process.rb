@@ -323,6 +323,8 @@ module StellarCoreCommander
         VALIDATORS=#{quorum}
 
         HISTORY_PEERS=#{peer_names}
+
+        NETWORK_PASSPHRASE="#{network_passphrase}"
       EOS
       ) + history_get_command + history_put_commands
     end

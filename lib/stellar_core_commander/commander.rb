@@ -9,6 +9,8 @@ module StellarCoreCommander
   class Commander
     include Contracts
 
+    attr_reader :process_options
+
     #
     # Creates a new core commander
     #
