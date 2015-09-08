@@ -21,8 +21,7 @@ module StellarCoreCommander
       @operation_builder = OperationBuilder.new(self)
       @manual_close      = false
 
-      network_passphrase = @commander.process_options[:network_passphrase]
-      Stellar.on_network network_passphrase do
+      Stellar.on_network @commander.network_passphrase do
         account :master, Stellar::KeyPair.master
       end
     end
@@ -52,8 +51,7 @@ module StellarCoreCommander
     #
     def run_recipe(recipe_path)
       recipe_content = IO.read(recipe_path)
-      network_passphrase = @commander.process_options[:network_passphrase]
-      Stellar.on_network network_passphrase do
+      Stellar.on_network @commander.network_passphrase do
         instance_eval recipe_content, recipe_path, 1
       end
     rescue => e

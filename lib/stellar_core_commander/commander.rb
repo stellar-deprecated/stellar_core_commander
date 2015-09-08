@@ -114,5 +114,10 @@ module StellarCoreCommander
         FileUtils.rm_rf @destination if clean_up_destination
       end
     end
+
+    Contract None => String
+    def network_passphrase
+      @process_options[:network_passphrase] 
+    end
   end
 end
