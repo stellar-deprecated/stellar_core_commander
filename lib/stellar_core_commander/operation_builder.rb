@@ -66,7 +66,7 @@ module StellarCoreCommander
     end
 
     Contract Symbol, Symbol, Num => Any
-    def create_account(account, funder=:master, starting_balance=1000_0000000)
+    def create_account(account, funder=:master, starting_balance=1000)
       account = get_account account
       funder  = get_account funder
 
