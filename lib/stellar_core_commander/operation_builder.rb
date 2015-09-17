@@ -37,6 +37,8 @@ module StellarCoreCommander
       signer:         Maybe[Stellar::Signer],
     }
 
+    MAX_LIMIT= BigDecimal.new((2**63)-1) / Stellar::ONE
+
     Contract Transactor => Any
     def initialize(transactor)
       @transactor = transactor
@@ -80,7 +82,7 @@ module StellarCoreCommander
 
     Contract Symbol, Symbol, String => Any
     def trust(account, issuer, code)
-      change_trust account, issuer, code, (2**63)-1
+      change_trust account, issuer, code, MAX_LIMIT
     end
 
     Contract Symbol, Symbol, String, Num => Any
