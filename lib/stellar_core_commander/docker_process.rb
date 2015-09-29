@@ -301,8 +301,8 @@ module StellarCoreCommander
         #{@name}_POSTGRES_PORT=#{postgres_port}
         #{@name}_PEER_PORT=#{peer_port}
         #{@name}_HTTP_PORT=#{http_port}
-        #{@name}_PEER_SEED=#{identity.seed}
-        #{"#{@name}_VALIDATION_SEED=#{identity.seed}" if @validate}
+        #{@name}_NODE_SEED=#{identity.seed}
+        NODE_IS_VALIDATOR=#{@validate}
 
         #{"MANUAL_CLOSE=true" if manual_close?}
 
@@ -324,7 +324,7 @@ module StellarCoreCommander
 
         HISTORY_PEERS=#{peer_names}
 
-        NETWORK_PASSPHRASE="#{network_passphrase}"
+        NETWORK_PASSPHRASE=#{network_passphrase}
       EOS
       ) + history_get_command + history_put_commands
     end
