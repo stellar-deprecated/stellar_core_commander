@@ -21,10 +21,7 @@ module StellarCoreCommander
       @operation_builder = OperationBuilder.new(self)
       @manual_close      = false
 
-      network_passphrase = @commander.process_options[:network_passphrase]
-      Stellar.on_network network_passphrase do
-        account :master, Stellar::KeyPair.master
-      end
+      account :master, Stellar::KeyPair.master
     end
 
     def require_process_running
@@ -52,10 +49,7 @@ module StellarCoreCommander
     #
     def run_recipe(recipe_path)
       recipe_content = IO.read(recipe_path)
-      network_passphrase = @commander.process_options[:network_passphrase]
-      Stellar.on_network network_passphrase do
-        instance_eval recipe_content, recipe_path, 1
-      end
+      instance_eval recipe_content, recipe_path, 1
     rescue => e
       crash_recipe e
     end
@@ -392,9 +386,11 @@ module StellarCoreCommander
     def submit_transaction(envelope, &after_confirmation)
       require_process_running
       b64    = envelope.to_xdr(:base64)
-      @process.submit_transaction b64
 
       # submit to process
+      @process.submit_transaction b64
+
+      # register envelope for validation after ledger is closed
       @process.unverified << [envelope, after_confirmation]
     end
 

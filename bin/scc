@@ -67,14 +67,18 @@ def run
       default: Stellar::Networks::TESTNET
   end
 
+  Stellar::default_network = $opts[:"network-passphrase"]
+
   recipe    = load_recipe
   commander = make_commander
 
   #run recipe
   transactor = StellarCoreCommander::Transactor.new(commander)
 
+  #run the recipe
   transactor.run_recipe recipe
   transactor.close_ledger
+
 
   if $opts[:"dump-root-db"]
     file = commander.get_root_process(transactor).dump_database
