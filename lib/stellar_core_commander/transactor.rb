@@ -177,6 +177,7 @@ module StellarCoreCommander
         rescue MissingTransaction
           $stderr.puts "Failed to validate tx: #{Convert.to_hex envelope.tx.hash}"
           $stderr.puts "could not be found in txhistory table on process #{@process.name}"
+          exit 1
         rescue FailedTransaction
           $stderr.puts "Failed to validate tx: #{Convert.to_hex envelope.tx.hash}"
           $stderr.puts "failed result: #{result.to_xdr(:base64)}"
