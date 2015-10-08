@@ -14,6 +14,8 @@ process :newnode2, peers, docker_core_image: new_image, docker_pull: true
 account :alice
 account :bob
 
+base_balance=0
+
 on :oldnode2 do
   create_account :alice, :master
   create_account :bob, :master
@@ -21,17 +23,18 @@ on :oldnode2 do
     $stderr.puts "Awaiting account-creation"
     close_ledger
   end
+  base_balance = (balance :bob)
   $stderr.puts "oldnode2 bob balance: #{(balance :bob)}"
   $stderr.puts "oldnode2 alice balance: #{(balance :alice)}"
-  payment :master, :bob, [:native, 100 * Stellar::ONE]
+  payment :master, :bob, [:native, 1000]
   close_ledger
 end
 
 on :newnode1 do
   $stderr.puts "newnode1 bob balance: #{(balance :bob)}"
   $stderr.puts "newnode1 alice balance: #{(balance :alice)}"
-  raise if (balance :bob) != 1100 * Stellar::ONE
-  payment :master, :alice, [:native, 100 * Stellar::ONE]
+  raise if (balance :bob) != (base_balance + (1000 * Stellar::ONE))
+  payment :master, :alice, [:native, 1000]
   close_ledger
   check_integrity_against :oldnode1
   check_integrity_against :oldnode2
@@ -40,7 +43,7 @@ end
 on :oldnode1 do
   $stderr.puts "oldnode1 bob balance: #{(balance :bob)}"
   $stderr.puts "oldnode1 alice balance: #{(balance :alice)}"
-  raise if (balance :alice) != 1100 * Stellar::ONE
+  raise if (balance :alice) != (base_balance + (1000 * Stellar::ONE))
   check_integrity_against :newnode1
   check_integrity_against :newnode2
 end
