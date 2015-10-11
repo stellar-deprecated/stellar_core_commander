@@ -1,0 +1,53 @@
+#!/usr/bin/env ruby
+
+require 'stellar_core_commander'
+require 'stellar-base'
+require 'slop'
+
+def run
+  $opts = Slop.parse(ARGV, :help => true) do
+    banner 'Usage: hcc -r RECIPE'
+
+    on 'r', 'recipe',
+      'a recipe file',
+      argument: true
+    on 'H', 'host',
+      'sets the network passphrase to configure on all running processes',
+      argument: true,
+      default: "https://horizon-testnet.stellar.org" 
+    on 'network-passphrase',
+      'sets the network passphrase to configure on all running processes',
+      argument: true,
+      default: Stellar::Networks::TESTNET
+  end
+
+  Stellar::default_network = $opts[:"network-passphrase"]
+
+  recipe    = load_recipe
+  commander = make_commander
+
+  commander.run_recipe recipe
+end
+
+
+def make_commander
+  StellarCoreCommander::HorizonCommander.new $opts[:host]
+end
+
+def load_recipe
+  recipe = $opts[:recipe]
+
+  if recipe.blank?
+    $stderr.puts $opts
+    exit 1
+  end
+
+  unless File.exist?(recipe)
+    $stderr.puts "not found: #{recipe}"
+    exit 1
+  end
+
+  recipe
+end
+
+run

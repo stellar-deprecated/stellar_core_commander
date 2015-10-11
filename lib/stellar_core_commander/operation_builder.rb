@@ -39,7 +39,7 @@ module StellarCoreCommander
 
     MAX_LIMIT= BigDecimal.new((2**63)-1) / Stellar::ONE
 
-    Contract Transactor => Any
+    Contract Or[Transactor,HorizonCommander] => Any
     def initialize(transactor)
       @transactor = transactor
     end

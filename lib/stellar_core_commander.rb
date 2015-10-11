@@ -24,6 +24,9 @@ module StellarCoreCommander
 
   autoload :Convert
 
+  autoload :HorizonCommander
+  autoload :SequenceTracker
+
   module Concerns
     extend ActiveSupport::Autoload
 
