@@ -61,8 +61,8 @@ module StellarCoreCommander
     def setup
       write_config
       create_database unless @keep_database
-      initialize_history
       initialize_database
+      initialize_history
     end
 
     Contract None => Num
