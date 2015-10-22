@@ -11,11 +11,10 @@ module StellarCoreCommander
     Contract String => Any
     def initialize(endpoint)
       @endpoint = endpoint
-      @open = []
+      @open = {}
       @sequences = SequenceTracker.new(self)
       @conn = Faraday.new(:url => @endpoint) do |faraday|
         faraday.adapter :typhoeus
-        faraday.request :retry, max: 2
       end
 
       @operation_builder = OperationBuilder.new(self)
@@ -45,14 +44,14 @@ module StellarCoreCommander
       $stderr.puts "waiting for all open txns"
       @conn.parallel_manager.run
       
-      @open.each do |resp|
-        unless resp.success?
+      @open.each do |sequence, info|
+        unless info[:resp].success?
           require 'pry'; binding.pry
           raise "transaction failed"
         end
       end
 
-      @open = []
+      @open = {}
     end
 
 
@@ -107,8 +106,21 @@ module StellarCoreCommander
 
     Contract Stellar::TransactionEnvelope, Or[nil, Proc] => Any
     def submit_transaction(envelope, &after_confirmation)
+      sequence = envelope.tx.seq_num
       b64 = envelope.to_xdr(:base64)
-      @open << @conn.post("transactions", tx: b64)
+      resp = @conn.post("transactions", tx: b64)
+
+      resp.on_complete do |env|
+        next if env.success?
+        retries = @open[sequence][:retries] - 1
+        next if retries <= 0
+
+        $stderr.puts "retry: #{retries} left"
+        # requeue request
+        @open[sequence] = {resp: @conn.post("transactions", tx: b64), retries: retries}
+      end
+
+      @open[sequence] = {resp: resp, retries: 3}
     end
 
     Contract Exception => Any
