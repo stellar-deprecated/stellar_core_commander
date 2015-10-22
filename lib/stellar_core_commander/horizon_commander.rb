@@ -1,4 +1,5 @@
 require 'typhoeus'
+require 'typhoeus/adapters/faraday'
 
 module StellarCoreCommander
 
@@ -10,9 +11,12 @@ module StellarCoreCommander
     Contract String => Any
     def initialize(endpoint)
       @endpoint = endpoint
-      @hydra = Typhoeus::Hydra.hydra
       @open = []
       @sequences = SequenceTracker.new(self)
+      @conn = Faraday.new(:url => @endpoint) do |faraday|
+        faraday.adapter :typhoeus
+        faraday.request :retry, max: 2
+      end
 
       @operation_builder = OperationBuilder.new(self)
       account :master, Stellar::KeyPair.master
@@ -27,21 +31,27 @@ module StellarCoreCommander
     #
     def run_recipe(recipe_path)
       recipe_content = IO.read(recipe_path)
-      instance_eval recipe_content, recipe_path, 1
-      wait
+
+      @conn.in_parallel do
+        instance_eval recipe_content, recipe_path, 1
+        wait
+      end
+
     rescue => e
       crash_recipe e
     end
 
     def wait
       $stderr.puts "waiting for all open txns"
-      @hydra.run
+      @conn.parallel_manager.run
       
-      @open.each do |req|
-        raise "transaction failed" unless req.response.success?
+      @open.each do |resp|
+        unless resp.success?
+          require 'pry'; binding.pry
+          raise "transaction failed"
+        end
       end
 
-      @hydra = Typhoeus::Hydra.hydra
       @open = []
     end
 
@@ -86,7 +96,7 @@ module StellarCoreCommander
     Contract Stellar::KeyPair => Num
     def sequence_for(account)
       resp = Typhoeus.get("#{@endpoint}/accounts/#{account.address}")
-      raise "couldn't get sequence" unless resp.success?
+      raise "couldn't get sequence for #{account.address}" unless resp.success?
       body = ActiveSupport::JSON.decode resp.body
       body["sequence"]
     end
@@ -98,13 +108,7 @@ module StellarCoreCommander
     Contract Stellar::TransactionEnvelope, Or[nil, Proc] => Any
     def submit_transaction(envelope, &after_confirmation)
       b64 = envelope.to_xdr(:base64)
-      req = Typhoeus::Request.new(
-        "#{@endpoint}/transactions",
-        method: :post,
-        body: { tx: b64 },
-      )
-      @hydra.queue req
-      @open << req
+      @open << @conn.post("transactions", tx: b64)
     end
 
     Contract Exception => Any
