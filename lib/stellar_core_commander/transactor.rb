@@ -8,6 +8,8 @@ module StellarCoreCommander
   #
   class Transactor
     include Contracts
+    include Concerns::NamedObjects
+    include Concerns::TracksAccounts
 
     class FailedTransaction < StandardError ; end
     class MissingTransaction < StandardError ; end
@@ -17,7 +19,6 @@ module StellarCoreCommander
     Contract Commander => Any
     def initialize(commander)
       @commander         = commander
-      @named             = {}.with_indifferent_access
       @operation_builder = OperationBuilder.new(self)
       @manual_close      = false
 
@@ -28,7 +29,7 @@ module StellarCoreCommander
       if @process.nil?
         @process = @commander.get_root_process self
 
-        if not @named.has_key? @process.name
+        if get_named(@process.name).blank?
           add_named @process.name, @process
         end
       end
@@ -52,19 +53,6 @@ module StellarCoreCommander
       instance_eval recipe_content, recipe_path, 1
     rescue => e
       crash_recipe e
-    end
-
-
-    Contract Symbol, Stellar::KeyPair => Any
-    #
-    # Registered an account for this scenario.  Future calls may refer to
-    # the name provided.
-    #
-    # @param name [Symbol] the name to register the keypair at
-    # @param keypair=Stellar::KeyPair.random [Stellar::KeyPair] the keypair to use for this account
-    #
-    def account(name, keypair=Stellar::KeyPair.random)
-      add_named name, keypair
     end
 
     Contract Symbol => Any
@@ -199,15 +187,6 @@ module StellarCoreCommander
       @process.crash
     end
 
-    Contract Symbol => Stellar::KeyPair
-    def get_account(name)
-      require_process_running
-      @named[name].tap do |found|
-        unless found.is_a?(Stellar::KeyPair)
-          raise ArgumentError, "#{name.inspect} is not account"
-        end
-      end
-    end
 
     Contract Symbol => Process
     def get_process(name)
@@ -373,14 +352,6 @@ module StellarCoreCommander
     end
 
     private
-    Contract Symbol, Any => Any
-    def add_named(name, object)
-      if @named.has_key?(name)
-        raise ArgumentError, "#{name} is already registered"
-      end
-
-      @named[name] = object
-    end
 
     Contract Stellar::TransactionEnvelope, Or[nil, Proc] => Any
     def submit_transaction(envelope, &after_confirmation)

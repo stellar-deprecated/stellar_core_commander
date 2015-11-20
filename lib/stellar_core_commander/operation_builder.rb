@@ -8,8 +8,8 @@ module StellarCoreCommander
       :native,
     ]
     Amount = Or[
-      [String, Symbol, Num],
-      [:native, Num],
+      [String, Symbol, Or[Num,String]],
+      [:native, Or[Num,String]],
     ]
 
     OfferCurrencies = Or[
@@ -39,7 +39,7 @@ module StellarCoreCommander
 
     MAX_LIMIT= BigDecimal.new((2**63)-1) / Stellar::ONE
 
-    Contract Transactor => Any
+    Contract Or[Transactor,HorizonCommander] => Any
     def initialize(transactor)
       @transactor = transactor
     end
@@ -67,7 +67,7 @@ module StellarCoreCommander
       tx.to_envelope(from)
     end
 
-    Contract Symbol, Symbol, Num => Any
+    Contract Symbol, Symbol, Or[String,Num] => Any
     def create_account(account, funder=:master, starting_balance=1000)
       account = get_account account
       funder  = get_account funder

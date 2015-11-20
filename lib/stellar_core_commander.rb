@@ -23,4 +23,14 @@ module StellarCoreCommander
   autoload :OperationBuilder
 
   autoload :Convert
+
+  autoload :HorizonCommander
+  autoload :SequenceTracker
+
+  module Concerns
+    extend ActiveSupport::Autoload
+
+    autoload :NamedObjects
+    autoload :TracksAccounts
+  end
 end
