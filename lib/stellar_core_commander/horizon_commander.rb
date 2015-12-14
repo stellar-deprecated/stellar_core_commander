@@ -44,7 +44,7 @@ module StellarCoreCommander
     def wait
       $stderr.puts "waiting for all open txns"
       @conn.parallel_manager.run
-      
+
       @open.each do |resp|
         unless resp.success?
           require 'pry'; binding.pry
@@ -111,6 +111,12 @@ module StellarCoreCommander
       @open << @conn.post("transactions", tx: b64)
     end
 
+    Contract Symbol => Any
+    def create_via_friendbot(account)
+      account = get_account account
+      @open << @conn.get("friendbot", addr: account.address)
+    end
+
     Contract Exception => Any
     def crash_recipe(e)
       puts
@@ -126,4 +132,3 @@ module StellarCoreCommander
 
   end
 end
-
