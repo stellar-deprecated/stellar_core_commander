@@ -44,7 +44,22 @@ module StellarCoreCommander
       @transactor = transactor
     end
 
-    Contract Symbol, Symbol, Amount, Or[{}, {path: ArrayOf[Asset], with:Amount}] => Any
+    Memo = Or[
+      Integer,
+      String,
+      [:id, Integer],
+      [:text, String],
+      [:hash, String],
+      [:return, String],
+    ]
+
+    CommonOptions = {memo: Maybe[Memo]}
+    PaymentOptions = Or[
+      CommonOptions,
+      CommonOptions.merge({path: ArrayOf[Asset], with:Amount}),
+    ]
+
+    Contract Symbol, Symbol, Amount, PaymentOptions => Any
     def payment(from, to, amount, options={})
       from = get_account from
       to   = get_account to
@@ -52,6 +67,7 @@ module StellarCoreCommander
       attrs = {
         account:     from,
         destination: to,
+        memo:        options[:memo],
         sequence:    next_sequence(from),
         amount:      normalize_amount(amount),
       }
