@@ -438,7 +438,9 @@ module StellarCoreCommander
       body = ActiveSupport::JSON.decode(response.body)
 
       if body["status"] == "ERROR"
-        raise "transaction on #{idname} failed: #{body.inspect}"
+        xdr = Convert.from_base64(body["error"])
+        result = Stellar::TransactionResult.from_xdr(xdr)
+        raise "transaction on #{idname} failed: #{result.inspect}"
       end
 
     end
