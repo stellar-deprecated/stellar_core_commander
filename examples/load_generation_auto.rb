@@ -1,5 +1,5 @@
-process :node1, [:node1, :node2, :node3]
-process :node2, [:node1, :node2, :node3]
+process :node1, [:node1, :node2, :node3], await_sync: false
+process :node2, [:node1, :node2, :node3], await_sync: false
 process :node3, [:node1, :node2, :node3]
 
 on :node1 do

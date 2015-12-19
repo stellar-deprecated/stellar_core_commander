@@ -73,7 +73,7 @@ module StellarCoreCommander
 
         $stderr.puts "running #{p.idname} (dir:#{p.working_dir})"
         p.run
-        p.wait_for_ready if p.await_sync?
+        p.wait_for_ready
 
       end
     end

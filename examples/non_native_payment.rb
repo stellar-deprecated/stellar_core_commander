@@ -13,8 +13,8 @@ trust :andrew, :usd_gateway, "USD"
 
 close_ledger
 
-payment :usd_gateway, :scott,  ["USD", :usd_gateway, 1000 * Stellar::ONE]
+payment :usd_gateway, :scott,  ["USD", :usd_gateway, 1000]
 
 close_ledger
 
-payment :scott, :andrew, ["USD", :usd_gateway, 500 * Stellar::ONE]
+payment :scott, :andrew, ["USD", :usd_gateway, 500]

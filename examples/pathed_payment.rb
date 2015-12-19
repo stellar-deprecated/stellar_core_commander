@@ -19,14 +19,14 @@ trust :andrew, :eur_gateway, "EUR"
 
 close_ledger
 
-payment :usd_gateway, :scott,  ["USD", :usd_gateway, 1000 * Stellar::ONE]
-payment :usd_gateway, :andrew, ["USD", :usd_gateway, 200 * Stellar::ONE]
-payment :eur_gateway, :andrew, ["EUR", :eur_gateway, 200 * Stellar::ONE]
-payment :eur_gateway, :bartek, ["EUR", :eur_gateway, 1000 * Stellar::ONE]
+payment :usd_gateway, :scott,  ["USD", :usd_gateway, 1000]
+payment :usd_gateway, :andrew, ["USD", :usd_gateway, 200]
+payment :eur_gateway, :andrew, ["EUR", :eur_gateway, 200]
+payment :eur_gateway, :bartek, ["EUR", :eur_gateway, 1000]
 
 close_ledger
 
-offer :andrew, {buy:["USD", :usd_gateway], with:["EUR", :eur_gateway]}, 200 * Stellar::ONE, 1.0
+offer :andrew, {buy:["USD", :usd_gateway], with:["EUR", :eur_gateway]}, 200, 1.0
 
 close_ledger
 
