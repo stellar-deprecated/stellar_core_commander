@@ -149,25 +149,38 @@ module StellarCoreCommander
     #
     def close_ledger
       require_process_running
-      @process.close_ledger
-
-      @process.unverified.each do |eb|
-        begin
-          envelope, after_confirmation = *eb
-          result = validate_transaction envelope
-          after_confirmation.call(result) if after_confirmation
-        rescue MissingTransaction
-          $stderr.puts "Failed to validate tx: #{Convert.to_hex envelope.tx.hash}"
-          $stderr.puts "could not be found in txhistory table on process #{@process.name}"
-          exit 1
-        rescue FailedTransaction
-          $stderr.puts "Failed to validate tx: #{Convert.to_hex envelope.tx.hash}"
-          $stderr.puts "failed result: #{result.to_xdr(:base64)}"
-          exit 1
+      nretries = 3
+      loop do
+        residual = []
+        @process.close_ledger
+        @process.unverified.each do |eb|
+          begin
+            envelope, after_confirmation = *eb
+            result = validate_transaction envelope
+            after_confirmation.call(result) if after_confirmation
+          rescue MissingTransaction
+            $stderr.puts "Failed to validate tx: #{Convert.to_hex envelope.tx.hash}"
+            $stderr.puts "could not be found in txhistory table on process #{@process.name}"
+            residual << eb
+          rescue FailedTransaction
+            $stderr.puts "Failed to validate tx: #{Convert.to_hex envelope.tx.hash}"
+            $stderr.puts "failed result: #{result.to_xdr(:base64)}"
+            residual << eb
+          end
+        end
+        if residual.empty?
+          @process.unverified.clear
+          break
+        end
+        if nretries == 0
+          raise "Missing or failed txs after multiple close attempts"
+        else
+          $stderr.puts "retrying close"
+          nretries -= 1
+          @process.unverified = residual
+          residual = []
         end
       end
-
-      @process.unverified.clear
     end
 
     Contract None => Num
