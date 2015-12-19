@@ -11,9 +11,9 @@ on :node1 do
   create_account :alice, :master
   create_account :bob, :master
   close_ledger
-  payment :master, :bob, [:native, 100 * Stellar::ONE]
+  payment :master, :bob, [:native, 100]
   close_ledger
 end
 
-payment :master, :alice, [:native, 100 * Stellar::ONE]
+payment :master, :alice, [:native, 100]
 
