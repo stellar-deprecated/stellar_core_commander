@@ -229,8 +229,8 @@ module StellarCoreCommander
     def wait_for_ready
       Timeout.timeout(sync_timeout) do
         loop do
-          break if synced?
-          $stderr.puts "waiting until stellar-core #{idname} is synced (state: #{info_field 'state'}, quorum heard: #{scp_quorum_heard})"
+          break if synced? || (!await_sync? && !booting?)
+          $stderr.puts "waiting until stellar-core #{idname} is #{await_sync? ? 'synced' : 'ready'} (state: #{info_field 'state'}, quorum heard: #{scp_quorum_heard})"
           sleep 1
         end
       end
@@ -294,6 +294,12 @@ module StellarCoreCommander
     Contract None => Bool
     def synced?
       (info_field "state") == "Synced!"
+    end
+
+    Contract None => Bool
+    def booting?
+      s = (info_field "state")
+      return !s || s == "Booting"
     end
 
     Contract None => Num
