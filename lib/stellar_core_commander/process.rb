@@ -575,8 +575,8 @@ module StellarCoreCommander
     def sync_timeout
       if has_special_peers? and @catchup_complete
         # catchup-complete can take quite a while on testnet; for now,
-        # give such tests an hour. May require a change in strategy later.
-        3600.0
+        # give such tests 3 hours. May require a change in strategy later.
+        3600.0 * 3
       else
         # Checkpoints are made every 64 ledgers = 320s on a normal network,
         # or every 8 ledgers = 8s on an accelerated-time network; we give you
