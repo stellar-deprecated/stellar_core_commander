@@ -64,6 +64,7 @@ module StellarCoreCommander
       await_sync:          Maybe[Bool],
       accelerate_time:     Maybe[Bool],
       catchup_complete:    Maybe[Bool],
+      catchup_recent:      Maybe[Num],
       forcescp:            Maybe[Bool],
       validate:            Maybe[Bool],
       host:                Maybe[String],
@@ -90,6 +91,7 @@ module StellarCoreCommander
       @await_sync         = params.fetch(:await_sync, true)
       @accelerate_time    = params[:accelerate_time] || false
       @catchup_complete   = params[:catchup_complete] || false
+      @catchup_recent     = params[:catchup_recent] || false
       @forcescp           = params.fetch(:forcescp, true)
       @validate           = params.fetch(:validate, true)
       @host               = params[:host]
