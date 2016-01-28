@@ -1,3 +1,4 @@
+require 'bigdecimal'
 module StellarCoreCommander
 
   class OperationBuilder
@@ -36,6 +37,8 @@ module StellarCoreCommander
       home_domain:    Maybe[String],
       signer:         Maybe[Stellar::Signer],
     }
+
+    StellarBaseAsset = Or[[Symbol, String, Stellar::KeyPair], [:native]]
 
     MAX_LIMIT= BigDecimal.new((2**63)-1) / Stellar::ONE
 
@@ -134,19 +137,11 @@ module StellarCoreCommander
       allow_trust(account, trustor, code, false)
     end
 
-    Contract Symbol, OfferCurrencies, Num, Num => Any
+    Contract Symbol, OfferCurrencies, Or[String,Num], Or[String,Num] => Any
     def offer(account, currencies, amount, price)
       account = get_account account
 
-      if currencies.has_key?(:sell)
-        buying = make_asset currencies[:for]
-        selling = make_asset currencies[:sell]
-      else
-        buying = make_asset currencies[:buy]
-        selling = make_asset currencies[:with]
-        price = 1 / price
-        amount = (amount * price).floor
-      end
+      buying, selling, price, amount = extract_offer(currencies, price, amount)
 
       Stellar::Transaction.manage_offer({
         account:  account,
@@ -158,19 +153,11 @@ module StellarCoreCommander
       }).to_envelope(account)
     end
 
-    Contract Symbol, OfferCurrencies, Num, Num => Any
+    Contract Symbol, OfferCurrencies, Or[String,Num], Or[String,Num] => Any
     def passive_offer(account, currencies, amount, price)
       account = get_account account
 
-      if currencies.has_key?(:sell)
-        buying = make_asset currencies[:for]
-        selling = make_asset currencies[:sell]
-      else
-        buying = make_asset currencies[:buy]
-        selling = make_asset currencies[:with]
-        price = 1 / price
-        amount = (amount * price).floor
-      end
+      buying, selling, price, amount = extract_offer(currencies, price, amount)
 
       Stellar::Transaction.create_passive_offer({
         account:  account,
@@ -306,7 +293,7 @@ module StellarCoreCommander
     delegate :get_account, to: :@transactor
     delegate :next_sequence, to: :@transactor
 
-    Contract Asset => Or[[Symbol, String, Stellar::KeyPair], [:native]]
+    Contract Asset => StellarBaseAsset
     def make_asset(input)
       if input == :native
         return [:native]
@@ -338,5 +325,30 @@ module StellarCoreCommander
       amount
     end
 
+    Contract OfferCurrencies, Or[String,Num], Or[String,Num] => [StellarBaseAsset, StellarBaseAsset, Or[String,Num], Or[String,Num]]
+    def extract_offer(currencies, price, amount)
+      if currencies.has_key?(:sell)
+        buying = make_asset currencies[:for]
+        selling = make_asset currencies[:sell]
+      else
+        buying = make_asset currencies[:buy]
+        selling = make_asset currencies[:with]
+        price, amount = invert_offer_price_and_amount(price, amount)
+      end
+
+      [buying, selling, price, amount]
+    end
+
+    Contract Or[String,Num], Or[String,Num] => [String, String]
+    def invert_offer_price_and_amount(price, amount)
+      price = BigDecimal.new(price) if price.is_a? String
+      price = (1 / price)
+
+      amount = BigDecimal.new(amount) if amount.is_a? String
+      amount = (amount / price).floor
+
+
+      [price.to_s, amount.to_s]
+    end
   end
 end
