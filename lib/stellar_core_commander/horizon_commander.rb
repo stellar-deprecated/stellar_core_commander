@@ -30,15 +30,19 @@ module StellarCoreCommander
     # @param recipe_path [String] path to the recipe file
     #
     def run_recipe(recipe_path)
-      recipe_content = IO.read(recipe_path)
 
       @conn.in_parallel do
-        instance_eval recipe_content, recipe_path, 1
+        load_recipe recipe_path
         wait
       end
 
     rescue => e
       crash_recipe e
+    end
+
+    def load_recipe(path)
+      recipe_content = IO.read(path)
+      instance_eval recipe_content, path, 1
     end
 
     def wait
