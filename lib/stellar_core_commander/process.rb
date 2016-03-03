@@ -88,7 +88,7 @@ module StellarCoreCommander
       @quorum             = params[:quorum]
       @peers              = params[:peers] || params[:quorum]
       @manual_close       = params[:manual_close] || false
-      @await_sync         = params.fetch(:await_sync, true)
+      @await_sync         = @manual_close ? false : params.fetch(:await_sync, true)
       @accelerate_time    = params[:accelerate_time] || false
       @catchup_complete   = params[:catchup_complete] || false
       @catchup_recent     = params[:catchup_recent] || false
