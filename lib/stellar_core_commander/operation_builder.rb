@@ -288,6 +288,35 @@ module StellarCoreCommander
       tx.to_envelope(account)
     end
 
+
+    Contract Symbol, String, String => Any
+    def set_data(account, name, value)
+      account = get_account account
+
+      tx = Stellar::Transaction.manage_data({
+        account:  account,
+        sequence: next_sequence(account),
+        name:     name,
+        value:    value,
+      })
+
+      tx.to_envelope(account)
+    end
+
+
+    Contract Symbol, String => Any
+    def clear_data(account, name)
+      account = get_account account
+
+      tx = Stellar::Transaction.manage_data({
+        account:  account,
+        sequence: next_sequence(account),
+        name:     name,
+      })
+
+      tx.to_envelope(account)
+    end
+
     private
 
     delegate :get_account, to: :@transactor

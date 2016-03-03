@@ -142,6 +142,12 @@ module StellarCoreCommander
     # @see StellarCoreCommander::OperationBuilder#inflation
     recipe_step :inflation
 
+    # @see StellarCoreCommander::OperationBuilder#set_data
+    recipe_step :set_data
+
+    # @see StellarCoreCommander::OperationBuilder#clear_data
+    recipe_step :clear_data
+
     Contract None => Any
     #
     # Triggers a ledger close.  Any unvalidated transaction will
