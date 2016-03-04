@@ -65,9 +65,14 @@ module StellarCoreCommander
     #
     # @param name [Symbol] the method to be defined and delegated to @operation_builder
     def self.recipe_step(name)
-      define_method name do |*args|
+      define_method name do |*args, &block|
         require_process_running
         envelope = @operation_builder.send(name, *args)
+
+        if block.present?
+          block.call envelope
+        end
+
         submit_transaction envelope
       end
     end
@@ -75,9 +80,13 @@ module StellarCoreCommander
 
     #
     # @see StellarCoreCommander::OperationBuilder#payment
-    def payment(*args)
+    def payment(*args, &block)
       require_process_running
       envelope = @operation_builder.payment(*args)
+
+      if block.present?
+        block.call envelope
+      end
 
       submit_transaction envelope do |result|
         payment_result = result.result.results!.first.tr!.value
@@ -141,6 +150,12 @@ module StellarCoreCommander
 
     # @see StellarCoreCommander::OperationBuilder#inflation
     recipe_step :inflation
+
+    # @see StellarCoreCommander::OperationBuilder#set_data
+    recipe_step :set_data
+
+    # @see StellarCoreCommander::OperationBuilder#clear_data
+    recipe_step :clear_data
 
     Contract None => Any
     #
