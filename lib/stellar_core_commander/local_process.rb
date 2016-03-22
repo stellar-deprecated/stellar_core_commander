@@ -109,7 +109,7 @@ module StellarCoreCommander
     def dump_database
       fname = "#{working_dir}/database-#{Time.now.to_i}-#{rand 100000}.sql"
       $stderr.puts "dumping database to #{fname}"
-      sql = `pg_dump #{database_name} --clean --no-owner --no-privileges`
+      sql = `pg_dump #{database_name} --clean --if-exists --no-owner --no-acl --inserts`
       File.open(fname, 'w') {|f| f.write(sql) }
       fname
     end
