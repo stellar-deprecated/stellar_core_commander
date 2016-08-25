@@ -102,7 +102,7 @@ module StellarCoreCommander
       resp = Typhoeus.get("#{@endpoint}/accounts/#{account.address}")
       raise "couldn't get sequence for #{account.address}" unless resp.success?
       body = ActiveSupport::JSON.decode resp.body
-      body["sequence"]
+      body["sequence"].to_i
     end
 
 

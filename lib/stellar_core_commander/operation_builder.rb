@@ -376,8 +376,7 @@ module StellarCoreCommander
       amount = BigDecimal.new(amount) if amount.is_a? String
       amount = (amount / price).floor
 
-
-      [price.to_s, amount.to_s]
+      [price.to_s("F"), amount.to_s]
     end
   end
 end
