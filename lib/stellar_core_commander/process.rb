@@ -544,7 +544,7 @@ module StellarCoreCommander
     Contract Process => Any
     def check_ledger_sequence_is_prefix_of(other)
       q = "SELECT ledgerseq, ledgerhash FROM ledgerheaders ORDER BY ledgerseq"
-      our_headers = other.database.fetch(q).all
+      our_headers = database.fetch(q).all
       other_headers = other.database.fetch(q).all
       our_hash = {}
       other_hash = {}
