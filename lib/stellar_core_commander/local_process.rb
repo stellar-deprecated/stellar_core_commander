@@ -151,7 +151,7 @@ module StellarCoreCommander
         DESIRED_MAX_TX_PER_LEDGER=10000
         #{"ARTIFICIALLY_ACCELERATE_TIME_FOR_TESTING=true" if @accelerate_time}
         #{"CATCHUP_COMPLETE=true" if @catchup_complete}
-        #{"CATCHUP_RECENT=" + @catchup_recent if @catchup_recent}
+        #{"CATCHUP_RECENT=" + @catchup_recent.to_s if @catchup_recent}
 
         DATABASE="#{dsn}"
         PREFERRED_PEERS=#{peer_connections}
