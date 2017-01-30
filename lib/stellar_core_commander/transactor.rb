@@ -352,12 +352,12 @@ module StellarCoreCommander
     end
 
     Contract Or[Symbol, Process] => Any
-    def check_ledger_sequence_is_prefix_of(other)
+    def check_ledger_sequence_matches(other)
       raise "no process!" unless @process
       if other.is_a?(Symbol)
         other = get_process(other)
       end
-      @process.check_ledger_sequence_is_prefix_of(other)
+      @process.check_ledger_sequence_matches(other)
     end
 
     Contract None => Bool
@@ -376,7 +376,7 @@ module StellarCoreCommander
       check_no_error_metrics
       check_database_against_ledger_buckets
       check_equal_ledger_objects [other]
-      check_ledger_sequence_is_prefix_of other
+      check_ledger_sequence_matches other
     end
 
     private
