@@ -1,3 +1,5 @@
+require 'set'
+
 module StellarCoreCommander
 
   class UnexpectedDifference < StandardError
@@ -560,17 +562,27 @@ module StellarCoreCommander
     end
 
     Contract Process => Any
-    def check_ledger_sequence_is_prefix_of(other)
+    def check_ledger_sequence_matches(other)
       q = "SELECT ledgerseq, ledgerhash FROM ledgerheaders ORDER BY ledgerseq"
       our_headers = database.fetch(q).all
       other_headers = other.database.fetch(q).all
+      our_ledger_seq_numbers = our_headers.map.with_index { |x| x[:ledgerseq] }
+      other_ledger_seq_numbers = other_headers.map { |x| x[:ledgerseq] }
+      common_ledger_seq_numbers = our_ledger_seq_numbers.to_set & other_ledger_seq_numbers
       our_hash = {}
+      our_headers.each do |row|
+        if common_ledger_seq_numbers.include?(row[:ledgerseq])
+            our_hash[row[:ledgerseq]] = row[:ledgerhash]
+        end
+      end
       other_hash = {}
       other_headers.each do |row|
-        other_hash[row[:ledgerseq]] = row[:ledgerhash]
+        if common_ledger_seq_numbers.include?(row[:ledgerseq])
+            other_hash[row[:ledgerseq]] = row[:ledgerhash]
+        end
       end
-      our_headers.each do |row|
-        check_equal "ledger hashes", other_hash[row[:ledgerseq]], row[:ledgerhash]
+      common_ledger_seq_numbers.each do |ledger_seq_numbers|
+        check_equal "ledger hashes", other_hash[ledger_seq_numbers], our_hash[ledger_seq_numbers]
       end
     end
 

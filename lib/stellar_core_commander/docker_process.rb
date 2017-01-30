@@ -72,7 +72,7 @@ module StellarCoreCommander
     Contract None => Any
     def launch_process
       launch_state_container
-      launch_stellar_core
+      launch_stellar_core true
       launch_heka_container if atlas
     end
 
@@ -100,17 +100,42 @@ module StellarCoreCommander
     end
 
     Contract None => Any
-    def cleanup
-      database.disconnect
-      dump_database
+    def cleanup_core
       dump_logs
       dump_cores
       dump_scp_state
       dump_info
       dump_metrics
       shutdown
+    end
+
+    Contract None => Any
+    def cleanup
+      database.disconnect
+      dump_database
+      cleanup_core
       shutdown_state_container
       shutdown_heka_container if atlas
+    end
+
+    Contract None => Any
+    def stop
+      cleanup_core
+    end
+
+    Contract({
+      docker_core_image:  String,
+      forcescp:           Maybe[Bool]
+    } => Any)
+    def upgrade(params)
+      stop
+
+      @docker_core_image = params[:docker_core_image]
+      @forcescp = params.fetch(:forcescp, @forcescp)
+      $stderr.puts "upgrading docker-core-image to #{docker_core_image}"
+      launch_stellar_core false
+      @await_sync = true
+      wait_for_ready
     end
 
     Contract None => Any
@@ -274,17 +299,24 @@ module StellarCoreCommander
     end
 
     private
-    def launch_stellar_core
-      $stderr.puts "launching stellar-core container #{container_name}"
-      docker (%W(run
+    def launch_stellar_core fresh
+      $stderr.puts "launching stellar-core container #{container_name} as #{docker_core_image}"
+      args = %W(run
                            --name #{container_name}
                            --net host
                            --volumes-from #{state_container_name}
                ) + aws_credentials_volume + shared_history_volume + %W(
                            --env-file stellar-core.env
                            -d #{docker_core_image}
-                           /start #{@name} fresh #{"forcescp" if @forcescp}
-               ))
+                           /start #{@name}
+               )
+      if fresh
+        args += ["fresh"]
+      end
+      if @forcescp
+        args += ["forcescp"]
+      end
+      docker args
       raise "Could not create stellar-core container" unless $?.success?
     end
 
@@ -320,6 +352,7 @@ module StellarCoreCommander
 
         FAILURE_SAFETY=0
         UNSAFE_QUORUM=true
+        THRESHOLD_PERCENT=51
 
         PREFERRED_PEERS=#{peer_connections}
         VALIDATORS=#{quorum}
