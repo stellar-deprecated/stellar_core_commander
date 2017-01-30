@@ -49,6 +49,24 @@ module StellarCoreCommander
         :key => "GC2V2EFSXN6SQTWVYA5EPJPBWWIMSD2XQNKUOHGEKB535AQE2I6IXV2Z",
         :name => "core_testnet_003",
         :get => "wget -q https://s3-eu-west-1.amazonaws.com/history.stellar.org/prd/core-testnet/%s/{0} -O {1}"
+      },
+      :pubnet1 => {
+        :dns => "core-live4.stellar.org",
+        :key => "GCGB2S2KGYARPVIA37HYZXVRM2YZUEXA6S33ZU5BUDC6THSB62LZSTYH",
+        :name => "core_live_001",
+        :get => "curl -sf http://history.stellar.org/prd/core-live/%s/{0} -o {1}"
+      },
+      :pubnet2 => {
+        :dns => "core-live5.stellar.org",
+        :key => "GCM6QMP3DLRPTAZW2UZPCPX2LF3SXWXKPMP3GKFZBDSF3QZGV2G5QSTK",
+        :name => "core_live_002",
+        :get => "curl -sf http://history.stellar.org/prd/core-live/%s/{0} -o {1}"
+      },
+      :pubnet3 => {
+        :dns => "core-live6.stellar.org",
+        :key => "GABMKJM6I25XI4K7U6XWMULOUQIQ27BCTMLS6BYYSOWKTBUXVRJSXHYQ",
+        :name => "core_live_003",
+        :get => "curl -sf http://history.stellar.org/prd/core-live/%s/{0} -o {1}"
       }
     }
 
