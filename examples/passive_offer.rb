@@ -21,4 +21,4 @@ payment :eur_gateway, :scott, ["EUR", :eur_gateway, 1000]
 close_ledger
 
 passive_offer :scott, {sell:["USD", :usd_gateway], for:["EUR", :eur_gateway]}, 500, 1.0
-passive_offer :scott, {buy:["USD", :usd_gateway], with:["EUR", :eur_gateway]},  500, 1.0
+passive_offer :scott, {buy:["USD", :usd_gateway], with:["EUR", :eur_gateway]}, 500, 1.0

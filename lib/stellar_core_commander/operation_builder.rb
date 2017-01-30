@@ -370,10 +370,10 @@ module StellarCoreCommander
 
     Contract Or[String,Num], Or[String,Num] => [String, String]
     def invert_offer_price_and_amount(price, amount)
-      price = BigDecimal.new(price) if price.is_a? String
+      price = BigDecimal.new(price, 7)
       price = (1 / price)
 
-      amount = BigDecimal.new(amount) if amount.is_a? String
+      amount = BigDecimal.new(amount, 7)
       amount = (amount / price).floor
 
       [price.to_s("F"), amount.to_s]
