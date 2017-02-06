@@ -41,22 +41,22 @@ module StellarCoreCommander
     Contract None => Any
     def launch_state_container
       $stderr.puts "launching state container #{state_container_name} from image #{docker_state_image}"
-      docker %W(run --name #{state_container_name} -p #{postgres_port}:5432 --env-file stellar-core.env -d #{docker_state_image})
-      raise "Could not create state container" unless $?.success?
+      res = docker %W(run --name #{state_container_name} -p #{postgres_port}:5432 --env-file stellar-core.env -d #{docker_state_image})
+      raise "Could not create state container" unless res.success
     end
 
     Contract None => Any
     def shutdown_state_container
       return true unless state_container_running?
-      docker %W(rm -f -v #{state_container_name})
-      raise "Could not drop db: #{database_name}" unless $?.success?
+      res = docker %W(rm -f -v #{state_container_name})
+      raise "Could not drop db: #{database_name}" unless res.success
     end
 
     Contract None => Any
     def shutdown_heka_container
       return true unless heka_container_running?
-      docker %W(rm -f -v #{heka_container_name})
-      raise "Could not stop heka container: #{heka_container_name}" unless $?.success?
+      res = docker %W(rm -f -v #{heka_container_name})
+      raise "Could not stop heka container: #{heka_container_name}" unless res.success
     end
 
     Contract None => Any
@@ -316,8 +316,8 @@ module StellarCoreCommander
       if @forcescp
         args += ["forcescp"]
       end
-      docker args
-      raise "Could not create stellar-core container" unless $?.success?
+      res = docker args
+      raise "Could not create stellar-core container" unless res.success
     end
 
     Contract None => String
@@ -391,8 +391,8 @@ module StellarCoreCommander
     end
 
     def container_running?(name)
-      docker ['inspect', '-f', '{{.Name}} running: {{.State.Running}}', name]
-      $?.success?
+      res = docker ['inspect', '-f', '{{.Name}} running: {{.State.Running}}', name]
+      res.success and res.output.include? 'true'
     end
   end
 end

@@ -18,33 +18,33 @@ module StellarCoreCommander
 
     Contract None => Any
     def forcescp
-      run_cmd "./stellar-core", ["--forcescp"]
-      raise "Could not set --forcescp" unless $?.success?
+      res = run_cmd "./stellar-core", ["--forcescp"]
+      raise "Could not set --forcescp" unless res.success
     end
 
     Contract None => Any
     def initialize_history
       Dir.mkdir(history_dir) unless File.exists?(history_dir)
-      run_cmd "./stellar-core", ["--newhist", @name.to_s]
-      raise "Could not initialize history" unless $?.success?
+      res = run_cmd "./stellar-core", ["--newhist", @name.to_s]
+      raise "Could not initialize history" unless res.success
     end
 
     Contract None => Any
     def initialize_database
-      run_cmd "./stellar-core", ["--newdb"]
-      raise "Could not initialize db" unless $?.success?
+      res = run_cmd "./stellar-core", ["--newdb"]
+      raise "Could not initialize db" unless res.success
     end
 
     Contract None => Any
     def create_database
-      run_cmd "createdb", [database_name]
-      raise "Could not create db: #{database_name}" unless $?.success?
+      res = run_cmd "createdb", [database_name]
+      raise "Could not create db: #{database_name}" unless res.success
     end
 
     Contract None => Any
     def drop_database
-      run_cmd "dropdb", [database_name]
-      raise "Could not drop db: #{database_name}" unless $?.success?
+      res = run_cmd "dropdb", [database_name]
+      raise "Could not drop db: #{database_name}" unless res.success
     end
 
     Contract None => Any

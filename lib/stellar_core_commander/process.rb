@@ -2,6 +2,19 @@ require 'set'
 
 module StellarCoreCommander
 
+  class CmdResult
+    include Contracts
+
+    attr_reader :success
+    attr_reader :output
+
+    Contract Bool, Maybe[String] => Any
+    def initialize(success, output)
+      @success = success
+      @output = output
+    end
+  end
+
   class UnexpectedDifference < StandardError
     def initialize(kind, x, y)
       @kind = kind
@@ -252,6 +265,7 @@ module StellarCoreCommander
       Timeout.timeout(sync_timeout) do
         loop do
           break if synced? || (!await_sync? && !booting?)
+          raise Process::Crash, "process #{name} has crashed while waiting for being #{await_sync? ? 'synced' : 'ready'}" if crashed?
           $stderr.puts "waiting until stellar-core #{idname} is #{await_sync? ? 'synced' : 'ready'} (state: #{info_field 'state'}, quorum heard: #{scp_quorum_heard})"
           sleep 1
         end
@@ -273,6 +287,7 @@ module StellarCoreCommander
         server.get("manualclose") if manual_close?
 
         loop do
+          raise Process::Crash, "process #{name} has crashed while waiting for ledger close" if crashed?
           current_ledger = latest_ledger
 
           case
@@ -621,7 +636,7 @@ module StellarCoreCommander
       end
     end
 
-    Contract String, ArrayOf[String] => Maybe[Bool]
+    Contract String, ArrayOf[String] => CmdResult
     def run_cmd(cmd, args)
       args += [{
           out: ["stellar-core.log", "a"],
@@ -629,7 +644,12 @@ module StellarCoreCommander
         }]
 
       Dir.chdir working_dir do
-        system(cmd, *args)
+        stdin, stdout, stderr, wait_thr = Open3.popen3(cmd, *args)
+        out = stdout.gets(nil)
+        stdout.close
+        stderr.close
+        exit_code = wait_thr.value
+        CmdResult.new(exit_code == 0, out)
       end
     end
 
