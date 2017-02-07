@@ -140,6 +140,7 @@ module StellarCoreCommander
 
       # state
       @unverified   = []
+      @sequences    = Hash.new {|hash, account| hash[account] = (account_row account)[:seqnum]}
 
       if not @quorum.include? @name
         @quorum = @quorum + [@name]
@@ -301,6 +302,7 @@ module StellarCoreCommander
           end
         end
       end
+      @sequences.clear
       $stderr.puts "#{idname} closed #{latest_ledger}"
 
       true
@@ -497,7 +499,7 @@ module StellarCoreCommander
 
     Contract Stellar::KeyPair => Num
     def sequence_for(account)
-      (account_row account)[:seqnum]
+      @sequences[account]
     end
 
     Contract Stellar::KeyPair => Num
