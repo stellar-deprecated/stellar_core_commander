@@ -42,21 +42,21 @@ module StellarCoreCommander
     def launch_state_container
       $stderr.puts "launching state container #{state_container_name} from image #{docker_state_image}"
       res = docker %W(run --name #{state_container_name} -p #{postgres_port}:5432 --env-file stellar-core.env -d #{docker_state_image})
-      raise "Could not create state container" unless res.success
+      raise "Could not create state container: " + res.stderr.to_s unless res.success
     end
 
     Contract None => Any
     def shutdown_state_container
       return true unless state_container_running?
       res = docker %W(rm -f -v #{state_container_name})
-      raise "Could not drop db: #{database_name}" unless res.success
+      raise "Could not drop db: #{database_name}: " + res.stderr.to_s unless res.success
     end
 
     Contract None => Any
     def shutdown_heka_container
       return true unless heka_container_running?
       res = docker %W(rm -f -v #{heka_container_name})
-      raise "Could not stop heka container: #{heka_container_name}" unless res.success
+      raise "Could not stop heka container: #{heka_container_name}: " + res.stderr.to_s unless res.success
     end
 
     Contract None => Any
@@ -317,7 +317,7 @@ module StellarCoreCommander
         args += ["forcescp"]
       end
       res = docker args
-      raise "Could not create stellar-core container" unless res.success
+      raise "Could not create stellar-core container: " + res.stderr.to_s unless res.success
     end
 
     Contract None => String
@@ -392,7 +392,7 @@ module StellarCoreCommander
 
     def container_running?(name)
       res = docker ['inspect', '-f', '{{.Name}} running: {{.State.Running}}', name]
-      res.success and res.output.include? 'true'
+      res.success and res.stdout.include? 'true'
     end
   end
 end

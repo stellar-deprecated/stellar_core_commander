@@ -6,12 +6,14 @@ module StellarCoreCommander
     include Contracts
 
     attr_reader :success
-    attr_reader :output
+    attr_reader :stdout
+    attr_reader :stderr
 
-    Contract Bool, Maybe[String] => Any
-    def initialize(success, output)
+    Contract Bool, Maybe[String], Maybe[String] => Any
+    def initialize(success, stdout, stderr)
       @success = success
-      @output = output
+      @stdout = stdout
+      @stderr = stderr
     end
   end
 
@@ -648,10 +650,11 @@ module StellarCoreCommander
       Dir.chdir working_dir do
         stdin, stdout, stderr, wait_thr = Open3.popen3(cmd, *args)
         out = stdout.gets(nil)
+        err = stderr.gets(nil)
         stdout.close
         stderr.close
         exit_code = wait_thr.value
-        CmdResult.new(exit_code == 0, out)
+        CmdResult.new(exit_code == 0, out, err)
       end
     end
 
