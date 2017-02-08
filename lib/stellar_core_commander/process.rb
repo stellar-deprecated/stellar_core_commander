@@ -2,21 +2,6 @@ require 'set'
 
 module StellarCoreCommander
 
-  class CmdResult
-    include Contracts
-
-    attr_reader :success
-    attr_reader :stdout
-    attr_reader :stderr
-
-    Contract Bool, Maybe[String], Maybe[String] => Any
-    def initialize(success, stdout, stderr)
-      @success = success
-      @stdout = stdout
-      @stderr = stderr
-    end
-  end
-
   class UnexpectedDifference < StandardError
     def initialize(kind, x, y)
       @kind = kind
@@ -117,6 +102,7 @@ module StellarCoreCommander
       #config
       @transactor         = params[:transactor]
       @working_dir        = params[:working_dir]
+      @cmd                = Cmd.new(@working_dir)
       @name               = params[:name]
       @base_port          = params[:base_port]
       @identity           = params[:identity]
@@ -640,24 +626,6 @@ module StellarCoreCommander
       end
     end
 
-    Contract String, ArrayOf[String] => CmdResult
-    def run_cmd(cmd, args)
-      args += [{
-          out: ["stellar-core.log", "a"],
-          err: ["stellar-core.log", "a"],
-        }]
-
-      Dir.chdir working_dir do
-        stdin, stdout, stderr, wait_thr = Open3.popen3(cmd, *args)
-        out = stdout.gets(nil)
-        err = stderr.gets(nil)
-        stdout.close
-        stderr.close
-        exit_code = wait_thr.value
-        CmdResult.new(exit_code == 0, out, err)
-      end
-    end
-
     Contract None => Bool
     def stopped?
       !running?
@@ -705,5 +673,19 @@ module StellarCoreCommander
     def setup
       raise NotImplementedError, "implement in subclass"
     end
+
+    Contract CmdResult => Any
+    def capture_output res
+        fname = "#{@working_dir}/stellar-core.out.logs"
+        File.open(fname, 'a') do |f|
+            f.write(res.stdout.to_s)
+        end
+        fname = "#{@working_dir}/stellar-core.err.logs"
+        File.open(fname, 'a') do |f|
+            f.write(res.stderr.to_s)
+        end
+        res
+    end
+
   end
 end
