@@ -16,10 +16,14 @@ module StellarCoreCommander
       docker_pull: Bool
     } => Any)
     def initialize(params)
-      @docker_state_image = params[:docker_state_image]
-      @docker_core_image  = params[:docker_core_image]
       @docker_pull  = params[:docker_pull]
       super
+
+      @heka_container = Container.new(@cmd, docker_args, "stellar/heka", heka_container_name)
+      @state_container = Container.new(@cmd, docker_args, params[:docker_state_image], state_container_name)
+      @stellar_core_container = Container.new(@cmd, docker_args, params[:docker_core_image], container_name) do
+        dump_data
+      end
     end
 
     Contract None => Num
@@ -29,34 +33,29 @@ module StellarCoreCommander
 
     Contract None => Any
     def launch_heka_container
-      $stderr.puts "launching heka container #{heka_container_name}"
-      docker %W(run
-        --name #{heka_container_name}
-        --net container:#{container_name}
-        --volumes-from #{container_name}
-        -d stellar/heka
-      )
+      $stderr.puts "launching heka container #{heka_container_name} from image #{@heka_container.image}"
+      capture_output(@heka_container.launch(%W(--net container:#{container_name} --volumes-from #{container_name} -d), []))
     end
 
     Contract None => Any
     def launch_state_container
-      $stderr.puts "launching state container #{state_container_name} from image #{docker_state_image}"
-      res = docker %W(run --name #{state_container_name} -p #{postgres_port}:5432 --env-file stellar-core.env -d #{docker_state_image})
-      raise "Could not create state container" unless res.success
+      $stderr.puts "launching state container #{state_container_name} from image #{@state_container.image}"
+      capture_output(@state_container.launch(%W(-p #{postgres_port}:5432 --env-file stellar-core.env), []))
     end
 
     Contract None => Any
     def shutdown_state_container
-      return true unless state_container_running?
-      res = docker %W(rm -f -v #{state_container_name})
-      raise "Could not drop db: #{database_name}" unless res.success
+      capture_output(@state_container.shutdown)
     end
 
     Contract None => Any
     def shutdown_heka_container
-      return true unless heka_container_running?
-      res = docker %W(rm -f -v #{heka_container_name})
-      raise "Could not stop heka container: #{heka_container_name}" unless res.success
+      capture_output(@heka_container.shutdown)
+    end
+
+    Contract None => Any
+    def shutdown_core_container
+      capture_output(@stellar_core_container.shutdown)
     end
 
     Contract None => Any
@@ -78,49 +77,40 @@ module StellarCoreCommander
 
     Contract None => Bool
     def running?
-      container_running? container_name
+      @stellar_core_container.running?
     end
 
     Contract None => Bool
     def heka_container_running?
-      container_running? heka_container_name
+      @heka_core_container.running?
     end
 
     Contract None => Bool
     def state_container_running?
-      container_running? state_container_name
+      @state_container.running?
     end
 
     Contract None => Any
-    def shutdown
-      return true unless running?
-      docker %W(stop #{container_name})
-      docker %W(exec #{container_name} rm -rf /history)
-      docker %W(rm -f #{container_name})
-    end
-
-    Contract None => Any
-    def cleanup_core
+    def dump_data
       dump_logs
       dump_cores
       dump_scp_state
       dump_info
       dump_metrics
-      shutdown
+      dump_database
     end
 
     Contract None => Any
     def cleanup
       database.disconnect
-      dump_database
-      cleanup_core
+      shutdown_core_container
       shutdown_state_container
       shutdown_heka_container if atlas
     end
 
     Contract None => Any
     def stop
-      cleanup_core
+      shutdown_core_container
     end
 
     Contract({
@@ -130,7 +120,7 @@ module StellarCoreCommander
     def upgrade(params)
       stop
 
-      @docker_core_image = params[:docker_core_image]
+      @stellar_core_container.image = params[:docker_core_image]
       @forcescp = params.fetch(:forcescp, @forcescp)
       $stderr.puts "upgrading docker-core-image to #{docker_core_image}"
       launch_stellar_core false
@@ -140,22 +130,20 @@ module StellarCoreCommander
 
     Contract None => Any
     def dump_logs
-      docker ["logs", container_name]
+      capture_output(@stellar_core_container.logs)
     end
 
     Contract None => Any
     def dump_cores
-      docker %W(run --volumes-from #{container_name} --rm -e MODE=local #{docker_core_image} /utils/core_file_processor.py)
-      docker %W(cp #{container_name}:/cores .)
+      capture_output(@stellar_core_container.dump_cores)
     end
 
     Contract None => Any
     def dump_database
       fname = "#{working_dir}/database-#{Time.now.to_i}-#{rand 100000}.sql"
       $stderr.puts "dumping database to #{fname}"
-      host_args = "-H tcp://#{docker_host}:#{docker_port}" if host
-      sql = `docker #{host_args} exec #{state_container_name} pg_dump -U #{database_user} --clean --no-owner --no-privileges #{database_name}`
-      File.open(fname, 'w') {|f| f.write(sql) }
+      res = @state_container.exec %W(pg_dump -U #{database_user} --clean --no-owner --no-privileges #{database_name})
+      File.open(fname, 'w') {|f| f.write(res.stdout) }
       fname
     end
 
@@ -289,35 +277,31 @@ module StellarCoreCommander
     def prepare
       $stderr.puts "preparing #{idname} (dir:#{working_dir})"
       return unless docker_pull?
-      docker %W(pull #{docker_state_image})
-      docker %W(pull #{docker_core_image})
-      docker %W(pull stellar/heka)
+      capture_output(@state_container.pull)
+      capture_output(@stellar_core_container.pull)
+      capture_output(@heka_container.pull)
     end
 
     def crash
-      docker %W(exec #{container_name} pkill -ABRT stellar-core)
+      capture_output(@stellar_core_container.exec %W(pkill -ABRT stellar-core))
     end
 
     private
     def launch_stellar_core fresh
-      $stderr.puts "launching stellar-core container #{container_name} as #{docker_core_image}"
-      args = %W(run
-                           --name #{container_name}
-                           --net host
-                           --volumes-from #{state_container_name}
-               ) + aws_credentials_volume + shared_history_volume + %W(
-                           --env-file stellar-core.env
-                           -d #{docker_core_image}
-                           /start #{@name}
-               )
+      $stderr.puts "launching stellar-core container #{container_name} from image #{@stellar_core_container.image}"
+      args = %W(--net host --volumes-from #{state_container_name})
+      args += aws_credentials_volume
+      args += shared_history_volume
+      args += %W(--env-file stellar-core.env)
+      command = %W(/start #{@name})
       if fresh
-        args += ["fresh"]
+        command += ["fresh"]
       end
       if @forcescp
-        args += ["forcescp"]
+        command += ["forcescp"]
       end
-      res = docker args
-      raise "Could not create stellar-core container" unless res.success
+      capture_output(@stellar_core_container.launch(args, command))
+      @stellar_core_container
     end
 
     Contract None => String
@@ -384,15 +368,6 @@ module StellarCoreCommander
       else
         []
       end
-    end
-
-    def docker(args)
-      run_cmd "docker", docker_args + args
-    end
-
-    def container_running?(name)
-      res = docker ['inspect', '-f', '{{.Name}} running: {{.State.Running}}', name]
-      res.success and res.output.include? 'true'
     end
   end
 end

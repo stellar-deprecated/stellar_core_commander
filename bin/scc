@@ -65,6 +65,10 @@ def run
       'sets the network passphrase to configure on all running processes',
       argument: true,
       default: Stellar::Networks::TESTNET
+    on 'base-port',
+      'all processes created by scc will use ports starting from base-port',
+      argument: true,
+      default: 11625
   end
 
   Stellar::default_network = $opts[:"network-passphrase"]
@@ -104,7 +108,7 @@ def make_commander
     use_s3: $opts[:"use-s3"],
     s3_history_region: $opts[:"s3-history-region"],
     s3_history_prefix: $opts[:"s3-history-prefix"],
-    network_passphrase: $opts[:"network-passphrase"],
+    network_passphrase: $opts[:"network-passphrase"]
   }
 
   destination = $opts[:"destination"]
@@ -115,7 +119,7 @@ def make_commander
     clean_up_destination = true
   end
 
-  StellarCoreCommander::Commander.new($opts[:"process"], destination, opts).tap do |c|
+  StellarCoreCommander::Commander.new($opts[:"process"], $opts[:"base-port"].to_i, destination, opts).tap do |c|
     c.cleanup_at_exit!(clean_up_destination)
   end
 end

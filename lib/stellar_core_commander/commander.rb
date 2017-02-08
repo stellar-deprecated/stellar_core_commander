@@ -14,9 +14,10 @@ module StellarCoreCommander
     #
     # Creates a new core commander
     #
-    Contract Or["local", "docker"], String, Hash => Any
-    def initialize(process_type, destination, process_options={})
+    Contract Or["local", "docker"], Numeric, String, Hash => Any
+    def initialize(process_type, base_port, destination, process_options={})
       @process_type = process_type
+      @base_port = base_port
       @destination = destination
       @process_options = process_options
       @processes = []
@@ -34,7 +35,7 @@ module StellarCoreCommander
         transactor:   transactor,
         working_dir:  working_dir,
         name:         name,
-        base_port:    11625 + @processes.map(&:required_ports).sum,
+        base_port:    @base_port + @processes.map(&:required_ports).sum,
         identity:     Stellar::KeyPair.random,
         quorum:       quorum,
         manual_close: transactor.manual_close

@@ -15,8 +15,11 @@ module StellarCoreCommander
 
   autoload :Commander
 
+  autoload :Cmd
+  autoload :CmdResult
   autoload :Process
   autoload :LocalProcess
+  autoload :Container
   autoload :DockerProcess
 
   autoload :Transactor
