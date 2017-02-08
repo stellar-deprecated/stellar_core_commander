@@ -21,7 +21,9 @@ module StellarCoreCommander
 
       @heka_container = Container.new(@cmd, docker_args, "stellar/heka", heka_container_name)
       @state_container = Container.new(@cmd, docker_args, params[:docker_state_image], state_container_name)
-      @stellar_core_container = Container.new(@cmd, docker_args, params[:docker_core_image], container_name)
+      @stellar_core_container = Container.new(@cmd, docker_args, params[:docker_core_image], container_name) do
+        dump_data
+      end
     end
 
     Contract None => Num
@@ -52,7 +54,7 @@ module StellarCoreCommander
     end
 
     Contract None => Any
-    def shutdown
+    def shutdown_core_container
       capture_output(@stellar_core_container.shutdown)
     end
 
@@ -89,27 +91,26 @@ module StellarCoreCommander
     end
 
     Contract None => Any
-    def cleanup_core
+    def dump_data
       dump_logs
       dump_cores
       dump_scp_state
       dump_info
       dump_metrics
-      shutdown
+      dump_database
     end
 
     Contract None => Any
     def cleanup
       database.disconnect
-      dump_database
-      cleanup_core
+      shutdown_core_container
       shutdown_state_container
       shutdown_heka_container if atlas
     end
 
     Contract None => Any
     def stop
-      cleanup_core
+      shutdown_core_container
     end
 
     Contract({

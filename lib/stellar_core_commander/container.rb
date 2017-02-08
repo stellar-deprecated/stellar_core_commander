@@ -9,12 +9,17 @@ module StellarCoreCommander
 
     attr_accessor :image
 
-    Contract Cmd, ArrayOf[String], String, String => Any
-    def initialize(cmd, args, image, name)
+    Contract Cmd, ArrayOf[String], String, String, Maybe[Func[None => Any]] => Any
+    def initialize(cmd, args, image, name, &at_shutdown)
       @cmd = cmd
       @args = args
       @image = image
       @name = name
+      @at_shutdown = at_shutdown
+
+      at_exit do
+        shutdown
+      end
     end
 
     Contract ArrayOf[String], ArrayOf[String] => Any
@@ -60,7 +65,12 @@ module StellarCoreCommander
 
     Contract None => Any
     def shutdown
+      $stderr.puts "removing container #{@name} (image #{@image})"
       return CmdResult.new(true) unless exists?
+
+      if @at_shutdown.is_a? Proc and exists?
+        @at_shutdown.call
+      end
       res = docker %W(rm -f -v #{@name})
       raise "Could not force remove container: #{@name}: " + res.stderr.to_s unless res.success
       res
