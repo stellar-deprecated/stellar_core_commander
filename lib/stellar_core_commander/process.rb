@@ -280,10 +280,8 @@ module StellarCoreCommander
           current_ledger = latest_ledger
 
           case
-          when current_ledger == next_ledger
+          when current_ledger >= next_ledger
             break
-          when current_ledger > next_ledger
-            raise "#{idname} jumped two ledgers, from #{prev_ledger} to #{current_ledger}"
           else
             $stderr.puts "#{idname} waiting for ledger #{next_ledger} (current: #{current_ledger}, ballots prepared: #{scp_ballots_prepared})"
             sleep 0.5
