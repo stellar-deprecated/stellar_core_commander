@@ -20,7 +20,9 @@ module StellarCoreCommander
       super
 
       @heka_container = Container.new(@cmd, docker_args, "stellar/heka", heka_container_name)
-      @state_container = Container.new(@cmd, docker_args, params[:docker_state_image], state_container_name)
+      @state_container = Container.new(@cmd, docker_args, params[:docker_state_image], state_container_name) do
+        dump_database
+      end
       @stellar_core_container = Container.new(@cmd, docker_args, params[:docker_core_image], container_name) do
         dump_data
       end
@@ -97,7 +99,6 @@ module StellarCoreCommander
       dump_scp_state
       dump_info
       dump_metrics
-      dump_database
     end
 
     Contract None => Any
