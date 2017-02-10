@@ -22,48 +22,38 @@ module StellarCoreCommander
       end
     end
 
-    Contract ArrayOf[String], ArrayOf[String] => Any
+    Contract ArrayOf[String], ArrayOf[String] => CmdResult
     def launch(arguments, command)
-      res = docker %W(run -d --name #{@name}) + arguments + [@image] + command
-      raise "Could not create #{@name}: #{res.stderr.to_s}" unless res.success
-      res
+      command(@cmd.method(:run_and_capture), %W(run -d --name #{@name}) + arguments + [@image] + command)
     end
 
-    Contract None => Any
+    Contract None => CmdResult
     def stop
-      command %W(stop #{@name})
+      command(@cmd.method(:run_and_capture), %W(stop #{@name}))
     end
 
-    Contract ArrayOf[String] => Any
+    Contract ArrayOf[String] => CmdResult
     def exec(arguments)
-      command %W(exec #{@name}) + arguments
+      command(@cmd.method(:run_and_capture), %W(exec #{@name}) + arguments)
     end
 
-    Contract None => Any
+    Contract None => CmdResult
     def logs
-      command %W(logs #{@name})
+      command(@cmd.method(:run_and_redirect), %W(logs #{@name}))
     end
 
-    Contract None => Any
+    Contract None => CmdResult
     def pull
-      command %W(pull #{@image})
+      command(@cmd.method(:run_and_capture), %W(pull #{@image}))
     end
 
-    Contract None => Any
+    Contract None => CmdResult
     def dump_cores
-      res = command %W(run --volumes-from #{@name} --rm -e MODE=local #{@image} /utils/core_file_processor.py)
-      command %W(cp #{@name}:/cores .)
-      res
+      command(@cmd.method(:run), %W(run --volumes-from #{@name} --rm -e MODE=local #{@image} /utils/core_file_processor.py))
+      command(@cmd.method(:run), %W(cp #{@name}:/cores .))
     end
 
-    Contract ArrayOf[String] => Any
-    def command(arguments)
-      res = docker arguments
-      raise "Could not execute '#{arguments.join(" ")}' on #{@name}: #{res.stderr.to_s}" unless res.success
-      res
-    end
-
-    Contract None => Any
+    Contract None => CmdResult
     def shutdown
       $stderr.puts "removing container #{@name} (image #{@image})"
       return CmdResult.new(true) unless exists?
@@ -71,25 +61,33 @@ module StellarCoreCommander
       if @at_shutdown.is_a? Proc and exists?
         @at_shutdown.call
       end
-      res = docker %W(rm -f -v #{@name})
-      raise "Could not force remove container: #{@name}: " + res.stderr.to_s unless res.success
-      res
+      command(@cmd.method(:run_and_capture), %W(rm -f -v #{@name}))
     end
 
     Contract None => Bool
     def exists?
-      res = docker ['inspect', '-f', '{{.Name}}', @name]
+      res = command(@cmd.method(:run_and_capture), ['inspect', '-f', '{{.Name}}', @name], false)
       res.success
     end
 
     Contract None => Bool
     def running?
-      res = docker ['inspect', '-f', '{{.Name}} running: {{.State.Running}}', @name]
+      res = command(@cmd.method(:run_and_capture), ['inspect', '-f', '{{.Name}} running: {{.State.Running}}', @name], false)
       res.success and res.stdout.include? 'running: true'
     end
 
-    def docker(args)
-      @cmd.run_cmd "docker", @args + args
+    Contract Method, ArrayOf[String], Maybe[Bool] => CmdResult
+    def command(run_method, arguments, mustSucceed = true)
+      res = docker(run_method, arguments)
+      if mustSucceed
+        raise "Could not execute '#{arguments.join(" ")}' on #{@name}: #{res.stderr.to_s}" unless res.success
+      end
+      res
+    end
+
+    Contract Method, ArrayOf[String] => CmdResult
+    def docker(run_method, args)
+      run_method.call("docker", @args + args)
     end
   end
 end

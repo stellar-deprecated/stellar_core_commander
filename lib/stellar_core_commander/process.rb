@@ -674,11 +674,11 @@ module StellarCoreCommander
 
     Contract CmdResult => Any
     def capture_output res
-        fname = "#{@working_dir}/stellar-core.out.logs"
+        fname = "#{@working_dir}/stellar-core.out.log"
         File.open(fname, 'a') do |f|
             f.write(res.stdout.to_s)
         end
-        fname = "#{@working_dir}/stellar-core.err.logs"
+        fname = "#{@working_dir}/stellar-core.err.log"
         File.open(fname, 'a') do |f|
             f.write(res.stderr.to_s)
         end

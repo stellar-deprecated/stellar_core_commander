@@ -131,7 +131,7 @@ module StellarCoreCommander
 
     Contract None => Any
     def dump_logs
-      capture_output(@stellar_core_container.logs)
+      @stellar_core_container.logs
     end
 
     Contract None => Any
@@ -144,7 +144,7 @@ module StellarCoreCommander
       fname = "#{working_dir}/database-#{Time.now.to_i}-#{rand 100000}.sql"
       $stderr.puts "dumping database to #{fname}"
       res = @state_container.exec %W(pg_dump -U #{database_user} --clean --no-owner --no-privileges #{database_name})
-      File.open(fname, 'w') {|f| f.write(res.stdout) }
+      File.open(fname, 'w') {|f| f.write(res.stdout.to_s) }
       fname
     end
 
