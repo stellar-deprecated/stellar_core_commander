@@ -16,10 +16,6 @@ module StellarCoreCommander
       @image = image
       @name = name
       @at_shutdown = at_shutdown
-
-      at_exit do
-        shutdown
-      end
     end
 
     Contract ArrayOf[String], ArrayOf[String] => CmdResult
