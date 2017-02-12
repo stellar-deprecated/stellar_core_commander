@@ -80,8 +80,11 @@ def run
   transactor = StellarCoreCommander::Transactor.new(commander)
 
   #run the recipe
+  $stdout.puts "running recipe"
   transactor.run_recipe recipe
+  $stdout.puts "recipe finished, closing ledger"
   transactor.close_ledger
+  $stdout.puts "ledger closed"
 
 
   if $opts[:"dump-root-db"]
