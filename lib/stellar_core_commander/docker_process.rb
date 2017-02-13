@@ -36,28 +36,28 @@ module StellarCoreCommander
     Contract None => Any
     def launch_heka_container
       $stderr.puts "launching heka container #{heka_container_name} from image #{@heka_container.image}"
-      capture_output(@heka_container.launch(%W(--net container:#{container_name} --volumes-from #{container_name} -d), []))
+      @heka_container.launch(%W(--net container:#{container_name} --volumes-from #{container_name} -d), [])
     end
 
     Contract None => Any
     def launch_state_container
       $stderr.puts "launching state container #{state_container_name} from image #{@state_container.image}"
-      capture_output(@state_container.launch(%W(-p #{postgres_port}:5432 --env-file stellar-core.env), []))
+      @state_container.launch(%W(-p #{postgres_port}:5432 --env-file stellar-core.env), [])
     end
 
     Contract None => Any
     def shutdown_state_container
-      capture_output(@state_container.shutdown)
+      @state_container.shutdown
     end
 
     Contract None => Any
     def shutdown_heka_container
-      capture_output(@heka_container.shutdown)
+      @heka_container.shutdown
     end
 
     Contract None => Any
     def shutdown_core_container
-      capture_output(@stellar_core_container.shutdown)
+      @stellar_core_container.shutdown
     end
 
     Contract None => Any
@@ -140,7 +140,7 @@ module StellarCoreCommander
 
     Contract None => Any
     def dump_cores
-      capture_output(@stellar_core_container.dump_cores)
+      @stellar_core_container.dump_cores
     end
 
     Contract None => Any
@@ -148,7 +148,7 @@ module StellarCoreCommander
       fname = "#{working_dir}/database-#{Time.now.to_i}-#{rand 100000}.sql"
       $stderr.puts "dumping database to #{fname}"
       res = @state_container.exec %W(pg_dump -U #{database_user} --clean --no-owner --no-privileges #{database_name})
-      File.open(fname, 'w') {|f| f.write(res.stdout.to_s) }
+      File.open(fname, 'w') {|f| f.write(res.out.to_s) }
       fname
     end
 
@@ -282,13 +282,13 @@ module StellarCoreCommander
     def prepare
       $stderr.puts "preparing #{idname} (dir:#{working_dir})"
       return unless docker_pull?
-      capture_output(@state_container.pull)
-      capture_output(@stellar_core_container.pull)
-      capture_output(@heka_container.pull)
+      @state_container.pull
+      @stellar_core_container.pull
+      @heka_container.pull
     end
 
     def crash
-      capture_output(@stellar_core_container.exec %W(pkill -ABRT stellar-core))
+      @stellar_core_container.exec %W(pkill -ABRT stellar-core)
     end
 
     private
@@ -305,7 +305,7 @@ module StellarCoreCommander
       if @forcescp
         command += ["forcescp"]
       end
-      capture_output(@stellar_core_container.launch(args, command))
+      @stellar_core_container.launch(args, command)
       @stellar_core_container
     end
 

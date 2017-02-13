@@ -3,14 +3,12 @@ module StellarCoreCommander
     include Contracts
 
     attr_reader :success
-    attr_reader :stdout
-    attr_reader :stderr
+    attr_reader :out
 
-    Contract Bool, Maybe[String], Maybe[String] => Any
-    def initialize(success, stdout = None, stderr = None)
+    Contract Bool, Maybe[String] => Any
+    def initialize(success, out = None)
       @success = success
-      @stdout = stdout
-      @stderr = stderr
+      @out = out
     end
   end
 end

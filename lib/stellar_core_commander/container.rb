@@ -20,12 +20,12 @@ module StellarCoreCommander
 
     Contract ArrayOf[String], ArrayOf[String] => CmdResult
     def launch(arguments, command)
-      command(@cmd.method(:run_and_capture), %W(run -d --name #{@name}) + arguments + [@image] + command)
+      command(@cmd.method(:run_and_redirect), %W(run -d --name #{@name}) + arguments + [@image] + command)
     end
 
     Contract None => CmdResult
     def stop
-      command(@cmd.method(:run_and_capture), %W(stop #{@name}))
+      command(@cmd.method(:run_and_redirect), %W(stop #{@name}))
     end
 
     Contract ArrayOf[String] => CmdResult
@@ -40,7 +40,7 @@ module StellarCoreCommander
 
     Contract None => CmdResult
     def pull
-      command(@cmd.method(:run_and_capture), %W(pull #{@image}))
+      command(@cmd.method(:run_and_redirect), %W(pull #{@image}))
     end
 
     Contract None => CmdResult
@@ -57,26 +57,26 @@ module StellarCoreCommander
       if @at_shutdown.is_a? Proc and exists?
         @at_shutdown.call
       end
-      command(@cmd.method(:run_and_capture), %W(rm -f -v #{@name}))
+      command(@cmd.method(:run_and_redirect), %W(rm -f -v #{@name}))
     end
 
     Contract None => Bool
     def exists?
-      res = command(@cmd.method(:run_and_capture), ['inspect', '-f', '{{.Name}}', @name], false)
+      res = command(@cmd.method(:run_and_redirect), ['inspect', '-f', '{{.Name}}', @name], false)
       res.success
     end
 
     Contract None => Bool
     def running?
       res = command(@cmd.method(:run_and_capture), ['inspect', '-f', '{{.Name}} running: {{.State.Running}}', @name], false)
-      res.success and res.stdout.include? 'running: true'
+      res.success and res.out.include? 'running: true'
     end
 
     Contract Method, ArrayOf[String], Maybe[Bool] => CmdResult
     def command(run_method, arguments, mustSucceed = true)
       res = docker(run_method, arguments)
       if mustSucceed
-        raise "Could not execute '#{arguments.join(" ")}' on #{@name}: #{res.stderr.to_s}" unless res.success
+        raise "Could not execute '#{arguments.join(" ")}' on #{@name}" unless res.success
       end
       res
     end

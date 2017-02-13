@@ -10,13 +10,9 @@ module StellarCoreCommander
     Contract String, ArrayOf[String] => CmdResult
     def run_and_capture(cmd, args)
       Dir.chdir @working_dir do
-        stdin, stdout, stderr, wait_thr = Open3.popen3(cmd, *args)
-        out = stdout.gets(nil)
-        err = stderr.gets(nil)
-        stdout.close
-        stderr.close
-        exit_code = wait_thr.value
-        CmdResult.new(exit_code == 0, out, err)
+        stringArgs = args.map{|x| "'#{x}'"}.join(" ")
+        out = `#{cmd} #{stringArgs}`
+        CmdResult.new($?.exitstatus == 0, out)
       end
     end
 
@@ -30,7 +26,7 @@ module StellarCoreCommander
       Dir.chdir @working_dir do
         system(cmd, *args)
       end
-      CmdResult.new($?.exitstatus == 0, nil, nil)
+      CmdResult.new($?.exitstatus == 0, nil)
     end
 
     Contract String, ArrayOf[String] => CmdResult
@@ -38,7 +34,7 @@ module StellarCoreCommander
       Dir.chdir @working_dir do
         system(cmd, *args)
       end
-      CmdResult.new($?.exitstatus == 0, nil, nil)
+      CmdResult.new($?.exitstatus == 0, nil)
     end
 
   end

@@ -671,19 +671,5 @@ module StellarCoreCommander
     def setup
       raise NotImplementedError, "implement in subclass"
     end
-
-    Contract CmdResult => Any
-    def capture_output res
-        fname = "#{@working_dir}/stellar-core.out.log"
-        File.open(fname, 'a') do |f|
-            f.write(res.stdout.to_s)
-        end
-        fname = "#{@working_dir}/stellar-core.err.log"
-        File.open(fname, 'a') do |f|
-            f.write(res.stderr.to_s)
-        end
-        res
-    end
-
   end
 end

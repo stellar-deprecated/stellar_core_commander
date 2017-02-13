@@ -19,33 +19,33 @@ module StellarCoreCommander
 
     Contract None => Any
     def forcescp
-      res = capture_output(@cmd.run_and_capture "./stellar-core", ["--forcescp"])
-      raise "Could not set --forcescp: " + res.stderr.to_s unless res.success
+      res = @cmd.run_and_redirect "./stellar-core", ["--forcescp"]
+      raise "Could not set --forcescp" unless res.success
     end
 
     Contract None => Any
     def initialize_history
       Dir.mkdir(history_dir) unless File.exists?(history_dir)
-      res = capture_output(@cmd.run_and_capture "./stellar-core", ["--newhist", @name.to_s])
-      raise "Could not initialize history: " + res.stderr.to_s unless res.success
+      res = @cmd.run_and_redirect "./stellar-core", ["--newhist", @name.to_s]
+      raise "Could not initialize history" unless res.success
     end
 
     Contract None => Any
     def initialize_database
-      res = capture_output(@cmd.run_and_capture "./stellar-core", ["--newdb"])
-      raise "Could not initialize db: " + res.stderr.to_s unless res.success
+      res = @cmd.run_and_redirect "./stellar-core", ["--newdb"]
+      raise "Could not initialize db" unless res.success
     end
 
     Contract None => Any
     def create_database
-      res = capture_output(@cmd.run_and_capture "createdb", [database_name])
-      raise "Could not create db: #{database_name}: " + res.stderr.to_s unless res.success
+      res = @cmd.run_and_redirect "createdb", [database_name]
+      raise "Could not create db: #{database_name}" unless res.success
     end
 
     Contract None => Any
     def drop_database
-      res = capture_output(@cmd.run_and_capture "dropdb", [database_name])
-      raise "Could not drop db: #{database_name}: " + res.stderr.to_s unless res.success
+      res = @cmd.run_and_redirect "dropdb", [database_name]
+      raise "Could not drop db: #{database_name}" unless res.success
     end
 
     Contract None => Any
