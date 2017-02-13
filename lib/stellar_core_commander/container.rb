@@ -55,9 +55,12 @@ module StellarCoreCommander
       return CmdResult.new(true) unless exists?
 
       if @at_shutdown.is_a? Proc and exists?
+        $stderr.puts "executing at shutdown call"
         @at_shutdown.call
+        $stderr.puts "executed at shutdown call"
       end
       command(@cmd.method(:run_and_redirect), %W(rm -f -v #{@name}))
+      $stderr.puts "container removed"
     end
 
     Contract None => Bool
