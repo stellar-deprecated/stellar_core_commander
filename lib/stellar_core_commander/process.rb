@@ -256,6 +256,7 @@ module StellarCoreCommander
           break if synced? || (!await_sync? && !booting?)
           raise Process::Crash, "process #{name} has crashed while waiting for being #{await_sync? ? 'synced' : 'ready'}" if crashed?
           $stderr.puts "waiting until stellar-core #{idname} is #{await_sync? ? 'synced' : 'ready'} (state: #{info_field 'state'}, quorum heard: #{scp_quorum_heard})"
+          $stderr.flush
           sleep 1
         end
       end
@@ -284,12 +285,14 @@ module StellarCoreCommander
             break
           else
             $stderr.puts "#{idname} waiting for ledger #{next_ledger} (current: #{current_ledger}, ballots prepared: #{scp_ballots_prepared})"
+            $stderr.flush
             sleep 0.5
           end
         end
       end
       @sequences.clear
       $stderr.puts "#{idname} closed #{latest_ledger}"
+      $stderr.flush
 
       true
     end
@@ -368,6 +371,7 @@ module StellarCoreCommander
     def dump_server_query(s)
       fname = "#{working_dir}/#{s}-#{Time.now.to_i}-#{rand 100000}.json"
       $stderr.puts "dumping server query #{fname}"
+      $stderr.flush
       response = server.get("/#{s}")
       File.open(fname, 'w') {|f| f.write(response.body) }
     rescue

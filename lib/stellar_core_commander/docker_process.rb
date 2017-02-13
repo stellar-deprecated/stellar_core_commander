@@ -36,12 +36,14 @@ module StellarCoreCommander
     Contract None => Any
     def launch_heka_container
       $stderr.puts "launching heka container #{heka_container_name} from image #{@heka_container.image}"
+      $stderr.flush
       @heka_container.launch(%W(--net container:#{container_name} --volumes-from #{container_name} -d), [])
     end
 
     Contract None => Any
     def launch_state_container
       $stderr.puts "launching state container #{state_container_name} from image #{@state_container.image}"
+      $stderr.flush
       @state_container.launch(%W(-p #{postgres_port}:5432 --env-file stellar-core.env), [])
     end
 
@@ -128,6 +130,7 @@ module StellarCoreCommander
       @stellar_core_container.image = params[:docker_core_image]
       @forcescp = params.fetch(:forcescp, @forcescp)
       $stderr.puts "upgrading docker-core-image to #{docker_core_image}"
+      $stderr.flush
       launch_stellar_core false
       @await_sync = true
       wait_for_ready
@@ -147,6 +150,7 @@ module StellarCoreCommander
     def dump_database
       fname = "#{working_dir}/database-#{Time.now.to_i}-#{rand 100000}.sql"
       $stderr.puts "dumping database to #{fname}"
+      $stderr.flush
       res = @state_container.exec %W(pg_dump -U #{database_user} --clean --no-owner --no-privileges #{database_name})
       File.open(fname, 'w') {|f| f.write(res.out.to_s) }
       fname
@@ -211,6 +215,7 @@ module StellarCoreCommander
       else
         if host and (@quorum.size > 1)
           $stderr.puts "WARNING: multi-peer with remote docker host, but no s3; history will not be shared"
+          $stderr.flush
         end
         false
       end
@@ -281,6 +286,7 @@ module StellarCoreCommander
 
     def prepare
       $stderr.puts "preparing #{idname} (dir:#{working_dir})"
+      $stderr.flush
       return unless docker_pull?
       @state_container.pull
       @stellar_core_container.pull
@@ -294,6 +300,7 @@ module StellarCoreCommander
     private
     def launch_stellar_core fresh
       $stderr.puts "launching stellar-core container #{container_name} from image #{@stellar_core_container.image}"
+      $stderr.flush
       args = %W(--net host --volumes-from #{state_container_name})
       args += aws_credentials_volume
       args += shared_history_volume

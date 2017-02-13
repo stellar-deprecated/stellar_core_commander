@@ -52,15 +52,20 @@ module StellarCoreCommander
     Contract None => CmdResult
     def shutdown
       $stderr.puts "removing container #{@name} (image #{@image})"
+      $stderr.flush
       return CmdResult.new(true) unless exists?
 
       if @at_shutdown.is_a? Proc and exists?
         $stderr.puts "executing at shutdown call"
+        $stderr.flush
         @at_shutdown.call
         $stderr.puts "executed at shutdown call"
+        $stderr.flush
       end
-      command(@cmd.method(:run_and_redirect), %W(rm -f -v #{@name}))
+      res = command(@cmd.method(:run_and_redirect), %W(rm -f -v #{@name}))
       $stderr.puts "container removed"
+      $stderr.flush
+      return res
     end
 
     Contract None => Bool

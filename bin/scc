@@ -81,10 +81,13 @@ def run
 
   #run the recipe
   $stdout.puts "running recipe"
+  $stdout.flush
   transactor.run_recipe recipe
   $stdout.puts "recipe finished, closing ledger"
+  $stdout.flush
   transactor.close_ledger
   $stdout.puts "ledger closed"
+  $stdout.flush
 
 
   if $opts[:"dump-root-db"]

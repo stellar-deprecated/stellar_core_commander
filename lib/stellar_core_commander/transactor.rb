@@ -176,10 +176,12 @@ module StellarCoreCommander
           rescue MissingTransaction
             $stderr.puts "Failed to validate tx: #{Convert.to_hex envelope.tx.hash}"
             $stderr.puts "could not be found in txhistory table on process #{@process.name}"
+            $stderr.flush
             residual << eb
           rescue FailedTransaction
             $stderr.puts "Failed to validate tx: #{Convert.to_hex envelope.tx.hash}"
             $stderr.puts "failed result: #{result.to_xdr(:base64)}"
+            $stderr.flush
             residual << eb
           end
         end
@@ -191,6 +193,7 @@ module StellarCoreCommander
           raise "Missing or failed txs after multiple close attempts"
         else
           $stderr.puts "retrying close"
+          $stderr.flush
           nretries -= 1
           @process.unverified = residual
           residual = []
@@ -228,6 +231,7 @@ module StellarCoreCommander
     Contract Num, Num, Or[Symbol, Num] => Any
     def start_load_generation(accounts=10000000, txs=10000000, txrate=500)
       $stderr.puts "starting load generation: #{accounts} accounts, #{txs} txs, #{txrate} tx/s"
+      $stderr.flush
       @process.start_load_generation accounts, txs, txrate
     end
 
@@ -246,6 +250,7 @@ module StellarCoreCommander
         tps = @process.transactions_per_second
         ops = @process.operations_per_second
         $stderr.puts "loadgen runs: #{r}, ledger: #{ledger_num}, txs: #{txs}, actual tx/s: #{tps} op/s: #{ops}"
+        $stderr.flush
         r != runs
       end
     end
@@ -263,8 +268,10 @@ module StellarCoreCommander
       end
 
       $stderr.puts "creating process #{name}"
+      $stderr.flush
       p = @commander.make_process self, name, quorum, options
       $stderr.puts "process #{name} is #{p.idname}"
+      $stderr.flush
       add_named name, p
     end
 
@@ -274,6 +281,7 @@ module StellarCoreCommander
       tmp = @process
       p = get_process process_name
       $stderr.puts "executing steps on #{p.idname}"
+      $stderr.flush
       @process = p
       yield
     ensure
@@ -290,6 +298,7 @@ module StellarCoreCommander
         end
         retries -= 1
         $stderr.puts "sleeping #{timeout} secs, #{retries} retries left"
+        $stderr.flush
         sleep timeout
       end
       raise "Ran out of retries while waiting for success"
@@ -331,6 +340,7 @@ module StellarCoreCommander
     Contract None => Any
     def use_manual_close()
       $stderr.puts "using manual_close mode"
+      $stderr.flush
       @manual_close = true
     end
 
@@ -367,6 +377,7 @@ module StellarCoreCommander
       retry_until_true do
         r = @process.checkdb_runs
         $stderr.puts "checkdb runs: #{r}, checked: #{@process.objects_checked}"
+        $stderr.flush
         r != runs
       end
     end

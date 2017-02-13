@@ -73,6 +73,7 @@ module StellarCoreCommander
         next if p.running?
 
         $stderr.puts "running #{p.idname} (dir:#{p.working_dir})"
+        $stderr.flush
         p.run
         p.wait_for_ready
 
@@ -111,6 +112,7 @@ module StellarCoreCommander
     def cleanup_at_exit!(clean_up_destination)
       at_exit do
         $stderr.puts "cleaning up #{@processes.length} processes"
+        $stderr.flush
         cleanup
         FileUtils.rm_rf @destination if clean_up_destination
       end
