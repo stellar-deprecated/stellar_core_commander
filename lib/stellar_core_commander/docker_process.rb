@@ -77,10 +77,6 @@ module StellarCoreCommander
       launch_state_container
       launch_stellar_core true
       launch_heka_container if atlas
-
-      at_exit do
-        cleanup
-      end
     end
 
     Contract None => Bool
