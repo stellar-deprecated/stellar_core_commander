@@ -230,8 +230,10 @@ module StellarCoreCommander
 
     Contract Symbol, Stellar::KeyPair, Num => Any
     def add_signer(account, key, weight)
+      sk = Stellar::SignerKey.new :signer_key_type_ed25519, key.raw_public_key
+
       set_options account, signer: Stellar::Signer.new({
-        pub_key: key.public_key,
+        key:    sk,
         weight: weight
       })
     end
