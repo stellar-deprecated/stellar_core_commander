@@ -61,7 +61,13 @@ module StellarCoreCommander
       rescue Exception => e
         $stderr.puts "Error during at_shutdown call: #{e.class.name}): #{e.message}"
       ensure
-        return command(@cmd.method(:run_and_redirect), %W(rm -f -v #{@name}))
+        retries = 5
+        loop do
+          res = command(@cmd.method(:run_and_redirect), %W(rm -f -v #{@name}), false)
+          return res if res.success or retries == 0
+          retries -= 1
+          sleep 3
+        end
       end
     end
 
