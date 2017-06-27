@@ -64,6 +64,7 @@ module StellarCoreCommander
         retries = 5
         loop do
           res = command(@cmd.method(:run_and_redirect), %W(rm -f -v #{@name}), false)
+          return CmdResult.new(true) unless exists?
           return res if res.success or retries == 0
           retries -= 1
           sleep 3
