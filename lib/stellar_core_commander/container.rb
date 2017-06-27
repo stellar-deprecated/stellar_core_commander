@@ -54,10 +54,21 @@ module StellarCoreCommander
       $stderr.puts "removing container #{@name} (image #{@image})"
       return CmdResult.new(true) unless exists?
 
-      if @at_shutdown.is_a? Proc and exists?
-        @at_shutdown.call
+      begin
+        if @at_shutdown.is_a? Proc and exists?
+          @at_shutdown.call
+        end
+      rescue Exception => e
+        $stderr.puts "Error during at_shutdown call: #{e.class.name}): #{e.message}"
+      ensure
+        retries = 5
+        loop do
+          res = command(@cmd.method(:run_and_redirect), %W(rm -f -v #{@name}), false)
+          return res if res.success or retries == 0
+          retries -= 1
+          sleep 3
+        end
       end
-      command(@cmd.method(:run_and_redirect), %W(rm -f -v #{@name}))
     end
 
     Contract None => Bool
