@@ -418,9 +418,24 @@ module StellarCoreCommander
       server.get("/generateload?accounts=#{accounts}&txs=#{txs}&txrate=#{txrate}")
     end
 
+    Contract Num => Any
+    def prepare_benchmark(accounts)
+      server.get("/benchmark?preparebenchmark=#{accounts}")
+    end
+
+    Contract Num, Num, Num => Any
+    def start_benchmark(txrate, duration, accounts)
+      server.get("/benchmark?txrate=#{txrate}&duration=#{duration}&accounts=#{accounts}")
+    end
+
     Contract None => Num
     def load_generation_runs
       metrics_count "loadgen.run.complete"
+    end
+
+    Contract None => Num
+    def benchmark_runs
+      metrics_count "benchmark.run.complete"
     end
 
     Contract None => Num
