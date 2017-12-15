@@ -82,6 +82,11 @@ module StellarCoreCommander
       false
     end
 
+    Contract Bool => Any
+    def shutdown_stellar_core(graceful=true)
+      shutdown graceful
+    end
+
     Contract Bool => Bool
     def shutdown(graceful=true)
       return true if !running?
@@ -124,7 +129,7 @@ module StellarCoreCommander
       `kill -ABRT #{@pid}`
     end
 
-    private
+    Contract None => Any
     def launch_stellar_core
       Dir.chdir @working_dir do
         @pid = ::Process.spawn("./stellar-core",
@@ -132,7 +137,7 @@ module StellarCoreCommander
                                :err => "stderr.txt")
         @wait = Thread.new {
           @wait_value = ::Process.wait(@pid);
-          $stderr.puts "stellar-core process exited: #{@wait_value}"
+          $stderr.puts "stellar-core process exited: #{@wait_value} (#{idname})"
         }
       end
       @pid

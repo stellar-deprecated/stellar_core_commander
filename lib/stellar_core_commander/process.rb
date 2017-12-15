@@ -686,5 +686,20 @@ module StellarCoreCommander
     def setup
       raise NotImplementedError, "implement in subclass"
     end
+
+    Contract Bool => Any
+    def shutdown_stellar_core(graceful=true)
+      raise NotImplementedError, "implement in subclass"
+    end
+
+    Contract None => Any
+    def launch_stellar_core
+      raise NotImplementedError, "implement in subclass"
+    end
+
+    Contract None => Any
+    def forcescp
+      raise NotImplementedError, "implement in subclass"
+    end
   end
 end
