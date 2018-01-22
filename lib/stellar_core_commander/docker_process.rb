@@ -113,6 +113,11 @@ module StellarCoreCommander
       shutdown_heka_container if atlas
     end
 
+    Contract Bool => Any
+    def shutdown_stellar_core(graceful)
+      shutdown_core_container
+    end
+
     Contract None => Any
     def stop
       shutdown_core_container
@@ -291,6 +296,11 @@ module StellarCoreCommander
       @stellar_core_container.exec %W(pkill -ABRT stellar-core)
     end
 
+    Contract None => Any
+    def launch_stellar_core
+      launch_stellar_core false
+    end
+
     private
     def launch_stellar_core fresh
       $stderr.puts "launching stellar-core container #{container_name} from image #{@stellar_core_container.image}"
@@ -372,6 +382,11 @@ module StellarCoreCommander
       else
         []
       end
+    end
+
+    Contract None => Any
+    def forcescp
+      @forcescp = true
     end
   end
 end

@@ -231,6 +231,18 @@ module StellarCoreCommander
       @process.start_load_generation accounts, txs, txrate
     end
 
+    Contract Num => Any
+    def prepare_benchmark(accounts=1000000)
+      $stderr.puts "preparing benchmark: #{accounts} accounts"
+      @process.prepare_benchmark accounts
+    end
+
+    Contract Num, Num, Num => Any
+    def start_benchmark(txrate=1000, duration=100, accounts=10000)
+      $stderr.puts "starting benchmark: #{txrate} tx/s, #{duration} s, #{accounts} accounts"
+      @process.start_benchmark txrate, duration, accounts
+    end
+
     Contract None => Bool
     def load_generation_complete
       @process.load_generation_complete
@@ -246,6 +258,20 @@ module StellarCoreCommander
         tps = @process.transactions_per_second
         ops = @process.operations_per_second
         $stderr.puts "loadgen runs: #{r}, ledger: #{ledger_num}, txs: #{txs}, actual tx/s: #{tps} op/s: #{ops}"
+        r != runs
+      end
+    end
+
+    Contract Num, Num, Num => Any
+    def benchmark_and_await_completion(txrate, duration, accounts)
+      runs = @process.benchmark_runs
+      start_benchmark txrate, duration, accounts
+      retry_until_true retries: duration / 2 + 1, timeout: 2 do
+        txs = @process.transactions_applied
+        r = @process.benchmark_runs
+        tps = @process.transactions_per_second
+        ops = @process.operations_per_second
+        $stderr.puts "benchmark runs: #{r}, ledger: #{ledger_num}, txs: #{txs}, actual tx/s: #{tps} op/s: #{ops}"
         r != runs
       end
     end
