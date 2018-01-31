@@ -1,4 +1,6 @@
 require 'set'
+require 'socket'
+require 'timeout'
 
 module StellarCoreCommander
 
@@ -644,6 +646,34 @@ module StellarCoreCommander
       launched? && stopped?
     end
 
+    Contract Num => Bool
+    def port_open?(port)
+      begin
+        Timeout::timeout(1) do
+          begin
+            s = TCPSocket.new(hostname, port)
+            s.close
+            return true
+          rescue Errno::ECONNREFUSED, Errno::EHOSTUNREACH
+            return false
+          end
+        end
+      rescue Timeout::Error
+      end
+    
+      return false
+    end
+
+    Contract None => Bool
+    def http_port_open?
+      port_open? http_port
+    end
+
+    Contract None => Bool
+    def peer_port_open?
+      port_open? peer_port
+    end
+
     Contract None => Any
     def prepare
       # noop by default, implement in subclass to customize behavior
@@ -658,6 +688,8 @@ module StellarCoreCommander
       setup
       launch_process
       @launched = true
+
+      wait_for_http
       set_max_tx
     end
 
@@ -676,6 +708,16 @@ module StellarCoreCommander
     Contract None => Any
     def setup
       raise NotImplementedError, "implement in subclass"
+    end
+
+    Contract None => Any
+    def wait_for_http
+      5.times do 
+        return if http_port_open?
+        sleep 1.0
+      end
+
+      raise "http port remained closed after 5 attempts"
     end
   end
 end
