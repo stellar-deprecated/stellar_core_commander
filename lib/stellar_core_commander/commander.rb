@@ -21,6 +21,11 @@ module StellarCoreCommander
       @destination = destination
       @process_options = process_options
       @processes = []
+
+      if File.exist? @destination
+        $stderr.puts "scc is not capable of running with an existing destination directory.  Please rename or remove #{@destination} and try again"
+        exit 1
+      end
     end
 
     Contract Transactor, Symbol, ArrayOf[Symbol], Hash => Process
