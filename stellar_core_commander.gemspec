@@ -22,7 +22,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency "faraday", "~> 0.9.1"
   spec.add_dependency "faraday_middleware", "~> 0.9.1"
   spec.add_dependency "pg", "~> 0.18.1"
-  spec.add_dependency "sequel", "~> 4.21.0"
+  spec.add_dependency "sequel", "~> 5.5.0"
   spec.add_dependency "activesupport", ">= 4.0.0"
   spec.add_dependency "contracts", "~> 0.9"
   spec.add_dependency "typhoeus", "~> 0.8.0"
