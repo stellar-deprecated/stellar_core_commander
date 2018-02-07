@@ -298,13 +298,8 @@ module StellarCoreCommander
     end
 
     Contract None => Any
-    def set_max_tx
-      server.get('/upgrades?mode=set&upgradetime=1970-01-01T00:00:00Z&maxtxsize=10000')
-    end
-
-    Contract None => Any
-    def set_protocol_version
-      server.get('/upgrades?mode=set&upgradetime=1970-01-01T00:00:00Z&protocolversion=9')
+    def set_upgrades
+      server.get('/upgrades?mode=set&upgradetime=1970-01-01T00:00:00Z&maxtxsize=10000&protocolversion=9')
     end
 
     Contract Num, Symbol => Any
@@ -698,8 +693,7 @@ module StellarCoreCommander
       @launched = true
 
       wait_for_http
-      set_max_tx
-      set_protocol_version
+      set_upgrades
     end
 
     # Dumps the database of the process to the working directory, returning the path to the file written to
