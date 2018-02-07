@@ -261,6 +261,7 @@ module StellarCoreCommander
           sleep 1
         end
       end
+      $stderr.puts "Wait is over! stellar-core #{idname} is #{await_sync? ? 'synced' : 'ready'} (state: #{info_field 'state'}, quorum heard: #{scp_quorum_heard})"
     end
 
     Contract None => Bool
@@ -651,8 +652,10 @@ module StellarCoreCommander
       begin
         Timeout::timeout(1) do
           begin
+            $stderr.puts "#{idname} waiting for #{hostname}: #{port}"
             s = TCPSocket.new(hostname, port)
             s.close
+            $stderr.puts "#{idname} ready on #{hostname}: #{port}"
             return true
           rescue Errno::ECONNREFUSED, Errno::EHOSTUNREACH
             return false
@@ -712,7 +715,7 @@ module StellarCoreCommander
 
     Contract None => Any
     def wait_for_http
-      5.times do 
+      5.times do
         return if http_port_open?
         sleep 1.0
       end
