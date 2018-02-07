@@ -119,6 +119,7 @@ def make_commander
     clean_up_destination = false
   else
     destination = Dir.mktmpdir("scc")
+    FileUtils.rmdir destination
     clean_up_destination = true
   end
 
