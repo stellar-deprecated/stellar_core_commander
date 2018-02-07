@@ -23,7 +23,7 @@ module StellarCoreCommander
       @processes = []
 
       if File.exist? @destination
-        $stderr.puts "scc is not capable of using an existing destination directory.  Please rename or remove #{@destination} amd try again"
+        $stderr.puts "scc is not capable of running with an existing destination directory.  Please rename or remove #{@destination} and try again"
         exit 1
       end
     end
