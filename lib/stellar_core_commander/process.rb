@@ -286,7 +286,7 @@ module StellarCoreCommander
           when current_ledger >= next_ledger
             break
           else
-            $stderr.puts "#{idname} waiting for ledger #{next_ledger} (current: #{current_ledger}, ballots prepared: #{scp_ballots_prepared})"
+            $stderr.puts "#{idname} waiting for ledger #{next_ledger} (current: #{current_ledger}, nominations: #{scp_value_nominating})"
             sleep 0.5
           end
         end
@@ -398,8 +398,8 @@ module StellarCoreCommander
     end
 
     Contract None => Num
-    def scp_ballots_prepared
-      metrics_count "scp.ballot.prepare"
+    def scp_value_nominating
+      metrics_count "scp.value.nominating"
     end
 
     Contract None => Num
