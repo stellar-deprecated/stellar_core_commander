@@ -257,11 +257,11 @@ module StellarCoreCommander
         loop do
           break if synced? || (!await_sync? && !booting?)
           raise Process::Crash, "process #{name} has crashed while waiting for being #{await_sync? ? 'synced' : 'ready'}" if crashed?
-          $stderr.puts "waiting until stellar-core #{idname} is #{await_sync? ? 'synced' : 'ready'} (state: #{info_field 'state'}, quorum heard: #{scp_quorum_heard})"
+          $stderr.puts "waiting until stellar-core #{idname} is #{await_sync? ? 'synced' : 'ready'} (state: #{info_field 'state'}, SCP quorum: #{scp_quorum_num}, Status: #{info_status})"
           sleep 1
         end
       end
-      $stderr.puts "Wait is over! stellar-core #{idname} is #{await_sync? ? 'synced' : 'ready'} (state: #{info_field 'state'}, quorum heard: #{scp_quorum_heard})"
+      $stderr.puts "Wait is over! stellar-core #{idname} is #{await_sync? ? 'synced' : 'ready'} (state: #{info_field 'state'}, SCP quorum: #{scp_quorum_num}, Status: #{info_status})"
     end
 
     Contract None => Bool
@@ -286,7 +286,7 @@ module StellarCoreCommander
           when current_ledger >= next_ledger
             break
           else
-            $stderr.puts "#{idname} waiting for ledger #{next_ledger} (current: #{current_ledger}, nominations: #{scp_value_nominating})"
+            $stderr.puts "#{idname} waiting for ledger #{next_ledger} (current: #{current_ledger}, SCP quorum: #{scp_quorum_num}, Status: #{info_status})"
             sleep 0.5
           end
         end
@@ -340,6 +340,30 @@ module StellarCoreCommander
       (info_field "ledger")["num"]
     rescue
       0
+    end
+
+    Contract None => Any
+    def scp_quorum_info
+      (info_field "quorum")
+    rescue
+      false
+    end
+
+    Contract None => String
+    def info_status
+      s = info_field "status"
+      v = "#{s}"
+      return v == "" ? "[]" : v
+    rescue
+      "[]"
+    end
+
+    Contract None => Num
+    def scp_quorum_num
+      q = scp_quorum_info
+      q.keys[0].to_i
+    rescue
+      2
     end
 
     Contract None => Bool
