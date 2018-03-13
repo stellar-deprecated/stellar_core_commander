@@ -644,6 +644,11 @@ module StellarCoreCommander
         # catchup-complete can take quite a while on testnet or pubnet; for now,
         # give such tests 36 hours. May require a change in strategy later.
         3600.0 * 36
+      elsif has_special_peers?
+        # testnet and pubnet have relatively more complex history
+        # we give ourself:
+        # 3 checkpoints + 5 minutes to apply buckets  + 0.1 second per ledger replayed
+        (5.0 * 64 * 3) + ( 5 * 60 ) + (@catchup_recent ? (0.1 * @catchup_recent): 0)
       else
         # Checkpoints are made every 64 ledgers = 320s on a normal network,
         # or every 8 ledgers = 8s on an accelerated-time network; we give you
