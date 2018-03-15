@@ -98,6 +98,7 @@ module StellarCoreCommander
       database_url:        Maybe[String],
       keep_database:       Maybe[Bool],
       debug:               Maybe[Bool],
+      wait_timeout:        Maybe[Num],
       network_passphrase:  Maybe[String],
     } => Any)
     def initialize(params)
@@ -126,6 +127,7 @@ module StellarCoreCommander
       @database_url       = params[:database_url]
       @keep_database      = params[:keep_database]
       @debug              = params[:debug]
+      @wait_timeout       = params[:wait_timeout] || 10
       @network_passphrase = params[:network_passphrase] || Stellar::Networks::TESTNET
 
       # state
@@ -744,12 +746,12 @@ module StellarCoreCommander
 
     Contract None => Any
     def wait_for_http
-      5.times do
+      @wait_timeout.times do
         return if http_port_open?
         sleep 1.0
       end
 
-      raise "http port remained closed after 5 attempts"
+      raise "http port remained closed after #{@wait_timeout} attempts"
     end
   end
 end
