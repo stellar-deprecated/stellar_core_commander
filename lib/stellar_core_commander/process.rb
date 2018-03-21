@@ -1,6 +1,7 @@
 require 'set'
 require 'socket'
 require 'timeout'
+require 'csv'
 
 module StellarCoreCommander
 
@@ -73,6 +74,23 @@ module StellarCoreCommander
         :get => "curl -sf http://history.stellar.org/prd/core-live/%s/{0} -o {1}"
       }
     }
+
+    METRICS_HEADER = [
+    'Type',
+    'Accounts',
+    'Expected Txs',
+    'Applied Txs',
+    'Tx Rate',
+    'Load Step Rate',
+    'Load Step Mean',
+    'Nominate Mean',
+    'Nominate Max',
+    'Prepare Mean',
+    'Prepare Max',
+    'Close Rate',
+    'Close Mean',
+    'Close Max',
+    ]
 
     Contract({
       transactor:          Transactor,
@@ -382,6 +400,13 @@ module StellarCoreCommander
       {}
     end
 
+    Contract None => Any
+    def clear_metrics
+      server.get("/clearmetrics")
+    rescue
+      nil
+    end
+
     Contract String => Num
     def metrics_count(k)
       m = metrics
@@ -411,6 +436,33 @@ module StellarCoreCommander
     Contract None => Any
     def dump_metrics
       dump_server_query("metrics")
+    end
+
+    Contract String, Symbol, Num, Num, Or[Symbol, Num] => Any
+    def record_scp_data(fname, txtype, accounts, txs, txrate)
+      m = metrics
+      fname = "#{working_dir}/#{fname}"
+
+      run_data = [txtype, accounts, txs, transactions_applied, txrate]
+      run_data.push(m["loadgen.step.submit"]["mean_rate"])
+      run_data.push(m["loadgen.step.submit"]["mean"])
+      run_data.push(m["scp.timing.nominated"]["mean"])
+      run_data.push(m["scp.timing.nominated"]["max"])
+      run_data.push(m["scp.timing.externalized"]["mean"])
+      run_data.push(m["scp.timing.externalized"]["max"])
+      run_data.push(m["ledger.ledger.close"]["mean_rate"])
+      run_data.push(m["ledger.ledger.close"]["mean"])
+      run_data.push(max = m["ledger.ledger.close"]["max"])
+
+      write_csv fname, METRICS_HEADER unless File.file?(fname)
+      write_csv fname, run_data
+    end
+
+    Contract String, Array => Any
+    def write_csv(fname, data)
+      CSV.open(fname, 'a', {:col_sep => "\t"}) do |csv|
+         csv << data
+      end
     end
 
     Contract None => Any
@@ -447,9 +499,9 @@ module StellarCoreCommander
       true
     end
 
-    Contract Num, Num, Or[Symbol, Num] => Any
-    def start_load_generation(accounts, txs, txrate)
-      server.get("/generateload?accounts=#{accounts}&txs=#{txs}&txrate=#{txrate}")
+    Contract Symbol, Num, Num, Or[Symbol, Num], Num => Any
+    def start_load_generation(mode, accounts, txs, txrate, batchsize)
+      server.get("/generateload?mode=#{mode}&accounts=#{accounts}&txs=#{txs}&txrate=#{txrate}&batchsize=#{batchsize}")
     end
 
     Contract None => Num
