@@ -339,6 +339,11 @@ module StellarCoreCommander
       @commander.check_no_process_error_metrics
     end
 
+    Contract None => Bool
+    def check_no_invariant_metrics
+      @process.check_no_invariant_metrics
+    end
+
     Contract ArrayOf[Or[Symbol, Process]] => Bool
     def check_equal_ledger_objects(processes)
       raise "no process!" unless @process
@@ -360,21 +365,10 @@ module StellarCoreCommander
       @process.check_ledger_sequence_matches(other)
     end
 
-    Contract None => Bool
-    def check_database_against_ledger_buckets
-      runs = @process.checkdb_runs
-      @process.start_checkdb
-      retry_until_true do
-        r = @process.checkdb_runs
-        $stderr.puts "checkdb runs: #{r}, checked: #{@process.objects_checked}"
-        r != runs
-      end
-    end
-
     Contract Or[Symbol, Process] => Any
     def check_integrity_against(other)
       check_no_error_metrics
-      check_database_against_ledger_buckets
+      check_no_invariant_metrics
       check_equal_ledger_objects [other]
       check_ledger_sequence_matches other
     end
