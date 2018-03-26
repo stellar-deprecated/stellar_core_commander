@@ -59,7 +59,7 @@ module StellarCoreCommander
     end
 
     Contract None => Any
-    def setup
+    def setup!
       write_config
       create_database unless @keep_database
       initialize_database

@@ -133,6 +133,7 @@ module StellarCoreCommander
       # state
       @unverified   = []
       @sequences    = Hash.new {|hash, account| hash[account] = (account_row account)[:seqnum]}
+      @is_setup     = false
 
       if not @quorum.include? @name
         @quorum = @quorum + [@name]
@@ -727,6 +728,14 @@ module StellarCoreCommander
       set_upgrades
     end
 
+    Contract None => Any
+    def setup
+      if not @is_setup
+        setup!
+        @is_setup = true
+      end
+    end
+
     # Dumps the database of the process to the working directory, returning the path to the file written to
     Contract None => String
     def dump_database
@@ -740,7 +749,7 @@ module StellarCoreCommander
     end
 
     Contract None => Any
-    def setup
+    def setup!
       raise NotImplementedError, "implement in subclass"
     end
 
