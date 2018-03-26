@@ -73,6 +73,7 @@ module StellarCoreCommander
       stopped = @processes.select(&:stopped?)
 
       stopped.each(&:prepare)
+      stopped.each(&:setup)
 
       stopped.each do |p|
         next if p.running?
