@@ -75,23 +75,6 @@ module StellarCoreCommander
       }
     }
 
-    METRICS_HEADER = [
-    'Type',
-    'Accounts',
-    'Expected Txs',
-    'Applied Txs',
-    'Tx Rate',
-    'Load Step Rate',
-    'Load Step Mean',
-    'Nominate Mean',
-    'Nominate Max',
-    'Prepare Mean',
-    'Prepare Max',
-    'Close Rate',
-    'Close Mean',
-    'Close Max',
-    ]
-
     Contract({
       transactor:          Transactor,
       working_dir:         String,
@@ -438,12 +421,31 @@ module StellarCoreCommander
       dump_server_query("metrics")
     end
 
+    METRICS_HEADER = [
+    'Time',
+    'Type',
+    'Accounts',
+    'Expected Txs',
+    'Applied Txs',
+    'Tx Rate',
+    'Load Step Rate',
+    'Load Step Mean',
+    'Nominate Mean',
+    'Nominate Max',
+    'Prepare Mean',
+    'Prepare Max',
+    'Close Rate',
+    'Close Mean',
+    'Close Max',
+    ]
+
     Contract String, Symbol, Num, Num, Or[Symbol, Num] => Any
-    def record_scp_data(fname, txtype, accounts, txs, txrate)
+    def record_performance_metrics(fname, txtype, accounts, txs, txrate)
       m = metrics
       fname = "#{working_dir}/#{fname}"
+      timestamp = Time.now.strftime('%Y-%m-%d_%H:%M:%S.%L')
 
-      run_data = [txtype, accounts, txs, transactions_applied, txrate]
+      run_data = [timestamp, txtype, accounts, txs, transactions_applied, txrate]
       run_data.push(m["loadgen.step.submit"]["mean_rate"])
       run_data.push(m["loadgen.step.submit"]["mean"])
       run_data.push(m["scp.timing.nominated"]["mean"])

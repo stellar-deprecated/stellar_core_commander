@@ -263,8 +263,8 @@ module StellarCoreCommander
     end
 
     Contract String, Symbol, Num, Num, Or[Symbol, Num] => Any
-    def record_scp_data(fname, txtype, accounts, txs, txrate)
-        @process.record_scp_data fname, txtype, accounts, txs, txrate
+    def record_performance_metrics(fname, txtype, accounts, txs, txrate)
+        @process.record_performance_metrics fname, txtype, accounts, txs, txrate
     end
 
     Contract Symbol, ArrayOf[Symbol], Hash => Process
