@@ -68,19 +68,26 @@ module StellarCoreCommander
     Contract None => Any
     def setup!
       write_config
-    end
-
-    Contract None => Any
-    def launch_process
 
       launch_state_container
       wait_for_port postgres_port
       launch_stellar_core true
       launch_heka_container if atlas
 
+      while running?
+        $stderr.puts "waiting for #{state_container_name} to complete setup"
+        sleep 1
+      end
+      @stellar_core_container.shutdown
+
       at_exit do
         cleanup
       end
+    end
+
+    Contract None => Any
+    def launch_process
+      launch_stellar_core false
     end
 
     Contract None => Bool
@@ -303,7 +310,7 @@ module StellarCoreCommander
       args += %W(--env-file stellar-core.env)
       command = %W(/start #{@name})
       if fresh
-        command += ["fresh"]
+        command += ["fresh", "skipstart"]
       end
       if @forcescp
         command += ["forcescp"]
