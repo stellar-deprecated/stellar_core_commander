@@ -428,33 +428,55 @@ module StellarCoreCommander
     'Expected Txs',
     'Applied Txs',
     'Tx Rate',
+    'Batchsize',
     'Load Step Rate',
     'Load Step Mean',
     'Nominate Mean',
+    'Nominate Min',
     'Nominate Max',
+    'Nominate StdDev',
+    'Nominate Median',
+    'Nominate 75th',
+    'Nominate 99th',
     'Prepare Mean',
+    'Prepare Min',
     'Prepare Max',
-    'Close Rate',
+    'Prepare StdDev',
+    'Prepare Median',
+    'Prepare 75th',
+    'Prepare 99th',
     'Close Mean',
+    'Close Min',
     'Close Max',
+    'Close StdDev',
+    'Close Median',
+    'Close 75th',
+    'Close 99th',
+    'Close Rate',
     ]
 
-    Contract String, Symbol, Num, Num, Or[Symbol, Num] => Any
-    def record_performance_metrics(fname, txtype, accounts, txs, txrate)
+    Contract String, Symbol, Num, Num, Or[Symbol, Num], Num => Any
+    def record_performance_metrics(fname, txtype, accounts, txs, txrate, batchsize)
       m = metrics
       fname = "#{working_dir}/#{fname}"
       timestamp = Time.now.strftime('%Y-%m-%d_%H:%M:%S.%L')
 
-      run_data = [timestamp, txtype, accounts, txs, transactions_applied, txrate]
+      run_data = [timestamp, txtype, accounts, txs, transactions_applied, txrate, batchsize]
       run_data.push(m["loadgen.step.submit"]["mean_rate"])
       run_data.push(m["loadgen.step.submit"]["mean"])
-      run_data.push(m["scp.timing.nominated"]["mean"])
-      run_data.push(m["scp.timing.nominated"]["max"])
-      run_data.push(m["scp.timing.externalized"]["mean"])
-      run_data.push(m["scp.timing.externalized"]["max"])
+
+      metric_fields = ["scp.timing.nominated", "scp.timing.externalized", "ledger.ledger.close"]
+      metric_fields.each { |field|
+        run_data.push(m[field]["mean"])
+        run_data.push(m[field]["min"])
+        run_data.push(m[field]["max"])
+        run_data.push(m[field]["stddev"])
+        run_data.push(m[field]["median"])
+        run_data.push(m[field]["75%"])
+        run_data.push(m[field]["99%"])
+      }
+
       run_data.push(m["ledger.ledger.close"]["mean_rate"])
-      run_data.push(m["ledger.ledger.close"]["mean"])
-      run_data.push(max = m["ledger.ledger.close"]["max"])
 
       write_csv fname, METRICS_HEADER unless File.file?(fname)
       write_csv fname, run_data
