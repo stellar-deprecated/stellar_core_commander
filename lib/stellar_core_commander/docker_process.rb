@@ -72,7 +72,9 @@ module StellarCoreCommander
 
     Contract None => Any
     def launch_process
+
       launch_state_container
+      wait_for_port postgres_port
       launch_stellar_core true
       launch_heka_container if atlas
 
@@ -294,9 +296,10 @@ module StellarCoreCommander
     private
     def launch_stellar_core fresh
       $stderr.puts "launching stellar-core container #{container_name} from image #{@stellar_core_container.image}"
-      args = %W(--net host --volumes-from #{state_container_name})
+      args = %W(--volumes-from #{state_container_name})
       args += aws_credentials_volume
       args += shared_history_volume
+      args += %W(-p #{http_port}:11625 -p #{peer_port}:11626)
       args += %W(--env-file stellar-core.env)
       command = %W(/start #{@name})
       if fresh
@@ -305,6 +308,7 @@ module StellarCoreCommander
       if @forcescp
         command += ["forcescp"]
       end
+
       @stellar_core_container.launch(args, command)
       @stellar_core_container
     end
@@ -314,6 +318,7 @@ module StellarCoreCommander
       (
       <<-EOS.strip_heredoc
         POSTGRES_PASSWORD=#{database_password}
+        POSTGRES_DB=#{database_name}
 
         ENVIRONMENT=scc
         CLUSTER_NAME=#{recipe_name}

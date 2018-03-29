@@ -81,7 +81,8 @@ module StellarCoreCommander
     Contract None => Bool
     def running?
       res = command(@cmd.method(:run_and_capture), ['inspect', '-f', '{{.Name}} running: {{.State.Running}}', @name], false)
-      res.success and res.out.include? 'running: true'
+
+      res.success && res.out.include? 'running: true'
     end
 
     Contract Method, ArrayOf[String], Maybe[Bool] => CmdResult

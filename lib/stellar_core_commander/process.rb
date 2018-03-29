@@ -316,11 +316,15 @@ module StellarCoreCommander
 
     Contract None => Hash
     def info
+      info!
+    rescue
+      {}
+    end
+
+    def info!
       response = server.get("/info")
       body = ActiveSupport::JSON.decode(response.body)
       body["info"]
-    rescue
-      {}
     end
 
     Contract String => Any
@@ -759,12 +763,23 @@ module StellarCoreCommander
 
     Contract None => Any
     def wait_for_http
+      wait_for_port http_port
+
       @wait_timeout.times do
-        return if http_port_open?
+        return if info! rescue sleep 1.0
+      end
+
+      raise "failed to get a successful info response after #{@wait_timeout} attempts"
+    end
+
+    Contract Num => Any
+    def wait_for_port (port)
+      @wait_timeout.times do
+        return if port_open?(port)
         sleep 1.0
       end
 
-      raise "http port remained closed after #{@wait_timeout} attempts"
+      raise "port #{port} remained closed after #{@wait_timeout} attempts"
     end
   end
 end
