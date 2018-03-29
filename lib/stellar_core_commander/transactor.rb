@@ -225,10 +225,10 @@ module StellarCoreCommander
       end
     end
 
-    Contract Num, Num, Or[Symbol, Num] => Any
-    def start_load_generation(accounts=10000000, txs=10000000, txrate=500)
-      $stderr.puts "starting load generation: #{accounts} accounts, #{txs} txs, #{txrate} tx/s"
-      @process.start_load_generation accounts, txs, txrate
+    Contract Symbol, Num, Num, Or[Symbol, Num], Num => Any
+    def start_load_generation(mode='create', accounts=10000000, txs=10000000, txrate=500, batchsize=100)
+      $stderr.puts "starting load generation: #{mode} mode, #{accounts} accounts, #{txs} txs, #{txrate} tx/s, #{batchsize} batchsize"
+      @process.start_load_generation mode, accounts, txs, txrate, batchsize
     end
 
     Contract None => Bool
@@ -236,16 +236,18 @@ module StellarCoreCommander
       @process.load_generation_complete
     end
 
-    Contract Num, Num, Or[Symbol, Num] => Any
-    def generate_load_and_await_completion(accounts, txs, txrate)
+    Contract Symbol, Num, Num, Or[Symbol, Num], Num => Any
+    def generate_load_and_await_completion(mode, accounts, txs, txrate, batchsize)
       runs = @process.load_generation_runs
-      start_load_generation accounts, txs, txrate
-      retry_until_true retries: accounts + txs do
+      start_load_generation mode, accounts, txs, txrate, batchsize
+      num_retries = if mode == :create then accounts else txs end
+
+      retry_until_true retries: num_retries do
         txs = @process.transactions_applied
         r = @process.load_generation_runs
         tps = @process.transactions_per_second
         ops = @process.operations_per_second
-        $stderr.puts "loadgen runs: #{r}, ledger: #{ledger_num}, txs: #{txs}, actual tx/s: #{tps} op/s: #{ops}"
+        $stderr.puts "loadgen runs: #{r}, ledger: #{ledger_num}, accounts: #{accounts}, txs: #{txs}, actual tx/s: #{tps} op/s: #{ops}"
         r != runs
       end
     end
@@ -253,6 +255,16 @@ module StellarCoreCommander
     Contract None => Hash
     def metrics
       @process.metrics
+    end
+
+    Contract None => Any
+    def clear_metrics
+      @process.clear_metrics
+    end
+
+    Contract String, Symbol, Num, Num, Or[Symbol, Num], Num => Any
+    def record_performance_metrics(fname, txtype, accounts, txs, txrate, batchsize)
+        @process.record_performance_metrics fname, txtype, accounts, txs, txrate, batchsize
     end
 
     Contract Symbol, ArrayOf[Symbol], Hash => Process
