@@ -302,7 +302,7 @@ module StellarCoreCommander
 
     Contract None => Any
     def set_upgrades
-      server.get('/upgrades?mode=set&upgradetime=1970-01-01T00:00:00Z&maxtxsize=10000&protocolversion=9')
+      server.get('/upgrades?mode=set&upgradetime=1970-01-01T00:00:00Z&maxtxsize=10000&protocolversion=10')
     end
 
     Contract Num, Symbol => Any
