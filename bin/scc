@@ -4,6 +4,11 @@ require 'stellar_core_commander'
 require 'stellar-base'
 require 'slop'
 
+begin
+  require 'pry'
+rescue LoadError ; # no-op
+end
+
 def run
   $opts = Slop.parse(ARGV, :help => true) do
     banner 'Usage: scc -r RECIPE'

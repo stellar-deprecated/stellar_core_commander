@@ -33,7 +33,7 @@ module StellarCoreCommander
           add_named @process.name, @process
         end
       end
-
+      
       @commander.start_all_processes
       @commander.require_processes_in_sync
     end
