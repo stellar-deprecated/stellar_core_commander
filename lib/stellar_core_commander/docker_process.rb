@@ -299,7 +299,7 @@ module StellarCoreCommander
       args = %W(--volumes-from #{state_container_name})
       args += aws_credentials_volume
       args += shared_history_volume
-      args += %W(-p #{http_port}:11625 -p #{peer_port}:11626)
+      args += %W(-p #{http_port}:#{http_port} -p #{peer_port}:#{peer_port})
       args += %W(--env-file stellar-core.env)
       command = %W(/start #{@name})
       if fresh
