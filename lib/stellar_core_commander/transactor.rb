@@ -157,6 +157,9 @@ module StellarCoreCommander
     # @see StellarCoreCommander::OperationBuilder#clear_data
     recipe_step :clear_data
 
+    # @see StellarCoreCommander::OperationBuilder#bump_sequence
+    recipe_step :bump_sequence
+
     Contract None => Any
     #
     # Triggers a ledger close.  Any unvalidated transaction will
