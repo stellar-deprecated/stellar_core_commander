@@ -13,7 +13,8 @@ module StellarCoreCommander
     Contract({
       docker_state_image: String,
       docker_core_image:  String,
-      docker_pull: Bool
+      docker_pull: Bool,
+      setup_timeout: Maybe[Num]
     } => Any)
     def initialize(params)
       @docker_pull  = params[:docker_pull]
@@ -26,6 +27,8 @@ module StellarCoreCommander
       @stellar_core_container = Container.new(@cmd, docker_args, params[:docker_core_image], container_name) do
         dump_data
       end
+
+      @setup_timeout = params[:setup_timeout] || 300
     end
 
     Contract None => Num
@@ -74,15 +77,18 @@ module StellarCoreCommander
       launch_stellar_core true
       launch_heka_container if atlas
 
-      while running?
-        $stderr.puts "waiting for #{state_container_name} to complete setup"
-        sleep 1
-      end
-      @stellar_core_container.shutdown
-
       at_exit do
         cleanup
       end
+
+      counter = @setup_timeout
+      while running?
+        $stderr.puts "waiting for #{state_container_name} to complete setup"
+        counter -= 1
+        raise "setup did not complete before timeout of #{@setup_timeout}" if counter == 0
+        sleep 1.0
+      end
+      @stellar_core_container.shutdown
     end
 
     Contract None => Any
