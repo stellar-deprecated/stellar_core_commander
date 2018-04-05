@@ -353,6 +353,8 @@ module StellarCoreCommander
         HISTORY_PEERS=#{peer_names}
 
         NETWORK_PASSPHRASE=#{network_passphrase}
+
+        INVARIANT_CHECKS=#{invariants.to_s}
       EOS
       ) + history_get_command + history_put_commands
     end

@@ -456,6 +456,28 @@ module StellarCoreCommander
       true
     end
 
+    Contract None => ArrayOf[String]
+    def invariants
+      ["AccountSubEntriesCountIsValid",
+       "BucketListIsConsistentWithDatabase",
+       "ConservationOfLumens",
+       "LedgerEntryIsValid",
+       "MinimumAccountBalance"]
+    end
+
+    Contract None => Bool
+    def check_no_invariant_metrics
+      m = metrics
+      inv_str = "invariant.does-not-hold.count"
+      for inv in invariants
+        c = m["#{inv_str}.#{inv}"]["count"] rescue 0
+        if c != 0
+          raise "Invariant #{inv} failed #{c} times"
+        end
+      end
+      true
+    end
+
     Contract Num, Num, Or[Symbol, Num] => Any
     def start_load_generation(accounts, txs, txrate)
       server.get("/generateload?accounts=#{accounts}&txs=#{txs}&txrate=#{txrate}")
@@ -479,21 +501,6 @@ module StellarCoreCommander
     Contract None => Num
     def operations_per_second
       metrics_1m_rate "transaction.op.apply"
-    end
-
-    Contract None => Any
-    def start_checkdb
-      server.get("/checkdb")
-    end
-
-    Contract None => Num
-    def checkdb_runs
-      metrics_count "bucket.checkdb.execute"
-    end
-
-    Contract None => Num
-    def objects_checked
-      metrics_count "bucket.checkdb.object-compare"
     end
 
     Contract None => Num
