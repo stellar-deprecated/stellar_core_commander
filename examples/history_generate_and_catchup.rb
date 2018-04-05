@@ -5,7 +5,6 @@ on :node1 do
     ledger_num > 100
   end
   check_no_error_metrics
-  check_no_invariant_metrics
 end
 
 process :node2_minimal, [:node1], forcescp: false, accelerate_time: true

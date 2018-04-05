@@ -442,6 +442,15 @@ module StellarCoreCommander
       metrics_count "scp.quorum.heard"
     end
 
+    Contract None => ArrayOf[String]
+    def invariants
+      ["AccountSubEntriesCountIsValid",
+       "BucketListIsConsistentWithDatabase",
+       "ConservationOfLumens",
+       "LedgerEntryIsValid",
+       "MinimumAccountBalance"]
+    end
+
     Contract None => Bool
     def check_no_error_metrics
       m = metrics
@@ -453,21 +462,7 @@ module StellarCoreCommander
           raise "nonzero metrics count for #{metric}: #{c}"
         end
       end
-      true
-    end
 
-    Contract None => ArrayOf[String]
-    def invariants
-      ["AccountSubEntriesCountIsValid",
-       "BucketListIsConsistentWithDatabase",
-       "ConservationOfLumens",
-       "LedgerEntryIsValid",
-       "MinimumAccountBalance"]
-    end
-
-    Contract None => Bool
-    def check_no_invariant_metrics
-      m = metrics
       inv_str = "invariant.does-not-hold.count"
       for inv in invariants
         c = m["#{inv_str}.#{inv}"]["count"] rescue 0
