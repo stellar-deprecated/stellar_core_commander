@@ -298,9 +298,12 @@ module StellarCoreCommander
       raise "Ran out of retries while waiting for success"
     end
 
-    Contract Stellar::KeyPair => Num
+    Contract Or[Symbol, Stellar::KeyPair] => Num
     def next_sequence(account)
       require_process_running
+      if account.is_a? Symbol
+        account = get_account(account)
+      end
       base_sequence  = @process.sequence_for(account)
       inflight_count = @process.unverified.select{|e| e.first.tx.source_account == account.public_key}.length
 
