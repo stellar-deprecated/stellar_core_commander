@@ -364,6 +364,8 @@ module StellarCoreCommander
         PREFERRED_PEERS=#{peer_connections}
         VALIDATORS=#{quorum}
 
+        TARGET_PEER_CONNECTION=32
+
         HISTORY_PEERS=#{peer_names}
 
         NETWORK_PASSPHRASE=#{network_passphrase}
