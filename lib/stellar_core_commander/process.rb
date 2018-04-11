@@ -438,6 +438,8 @@ module StellarCoreCommander
     'Applied Txs',
     'Tx Rate',
     'Batchsize',
+    'Txs/Ledger Mean',
+    'Txs/Ledger StdDev',
     'Load Step Rate',
     'Load Step Mean',
     'Nominate Mean',
@@ -471,6 +473,8 @@ module StellarCoreCommander
       timestamp = Time.now.strftime('%Y-%m-%d_%H:%M:%S.%L')
 
       run_data = [timestamp, txtype, accounts, txs, transactions_applied, txrate, batchsize]
+      run_data.push(m["ledger.transaction.count"]["mean"])
+      run_data.push(m["ledger.transaction.count"]["stddev"])
       run_data.push(m["loadgen.step.submit"]["mean_rate"])
       run_data.push(m["loadgen.step.submit"]["mean"])
 
