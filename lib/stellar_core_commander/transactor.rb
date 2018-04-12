@@ -226,7 +226,7 @@ module StellarCoreCommander
     end
 
     Contract Symbol, Num, Num, Or[Symbol, Num], Num => Any
-    def start_load_generation(mode='create', accounts=10000000, txs=10000000, txrate=500, batchsize=100)
+    def start_load_generation(mode=:create, accounts=10000000, txs=10000000, txrate=500, batchsize=100)
       $stderr.puts "starting load generation: #{mode} mode, #{accounts} accounts, #{txs} txs, #{txrate} tx/s, #{batchsize} batchsize"
       @process.start_load_generation mode, accounts, txs, txrate, batchsize
     end
@@ -264,7 +264,7 @@ module StellarCoreCommander
 
     Contract String, Symbol, Num, Num, Or[Symbol, Num], Num => Any
     def record_performance_metrics(fname, txtype, accounts, txs, txrate, batchsize)
-        @process.record_performance_metrics fname, txtype, accounts, txs, txrate, batchsize
+      @commander.record_performance_metrics fname, txtype, accounts, txs, txrate, batchsize
     end
 
     Contract Symbol, ArrayOf[Symbol], Hash => Process
