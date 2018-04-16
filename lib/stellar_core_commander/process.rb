@@ -475,8 +475,14 @@ module StellarCoreCommander
       run_data = [timestamp, txtype, accounts, txs, transactions_applied, txrate, batchsize]
       run_data.push(m["ledger.transaction.count"]["mean"])
       run_data.push(m["ledger.transaction.count"]["stddev"])
-      run_data.push(m["loadgen.step.submit"]["mean_rate"])
-      run_data.push(m["loadgen.step.submit"]["mean"])
+
+      if m.key?("loadgen.step.submit")
+        run_data.push(m["loadgen.step.submit"]["mean_rate"])
+        run_data.push(m["loadgen.step.submit"]["mean"])
+      else
+        run_data.push("NA")
+        run_data.push("NA")
+      end
 
       metric_fields = ["scp.timing.nominated", "scp.timing.externalized", "ledger.ledger.close"]
       metric_fields.each { |field|
