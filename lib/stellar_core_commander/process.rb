@@ -391,6 +391,13 @@ module StellarCoreCommander
       {}
     end
 
+    Contract None => Any
+    def clear_metrics
+      server.get("/clearmetrics")
+    rescue
+      nil
+    end
+
     Contract String => Num
     def metrics_count(k)
       m = metrics
@@ -473,9 +480,9 @@ module StellarCoreCommander
       true
     end
 
-    Contract Num, Num, Or[Symbol, Num] => Any
-    def start_load_generation(accounts, txs, txrate)
-      server.get("/generateload?accounts=#{accounts}&txs=#{txs}&txrate=#{txrate}")
+    Contract Symbol, Num, Num, Num, Or[Symbol, Num], Num => Any
+    def start_load_generation(mode, accounts, offset, txs, txrate, batchsize)
+      server.get("/generateload?mode=#{mode}&accounts=#{accounts}&offset=#{offset}&txs=#{txs}&txrate=#{txrate}&batchsize=#{batchsize}")
     end
 
     Contract None => Num
