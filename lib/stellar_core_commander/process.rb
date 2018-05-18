@@ -502,13 +502,17 @@ module StellarCoreCommander
       run_data.push(m["ledger.ledger.close"]["mean_rate"])
 
       write_csv fname, METRICS_HEADER unless File.file?(fname)
-      write_csv fname, run_data
+      if METRICS_HEADER.length == run_data.length
+        write_csv fname, run_data
+      else
+        $stderr.puts "#{@name}: METRICS_HEADER and run_data have different number of columns."
+      end
     end
 
     Contract String, Array => Any
     def write_csv(fname, data)
       CSV.open(fname, 'a', {:col_sep => "\t"}) do |csv|
-         csv << data
+        csv << data
       end
     end
 
