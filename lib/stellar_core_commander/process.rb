@@ -302,7 +302,7 @@ module StellarCoreCommander
 
     Contract None => Any
     def set_upgrades
-      response = server.get('/upgrades?mode=set&upgradetime=1970-01-01T00:00:00Z&maxtxsize=10000&protocolversion=10')
+      response = server.get('/upgrades?mode=set&upgradetime=1970-01-01T00:00:00Z&maxtxsize=10000&protocolversion=9')
       response = response.body.downcase
       if response.include? "exception"
         $stderr.puts "Did not submit upgrades: #{response}"
