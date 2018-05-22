@@ -505,7 +505,7 @@ module StellarCoreCommander
       if METRICS_HEADER.length == run_data.length
         write_csv fname, run_data
       else
-        $stderr.puts "#{@name}: METRICS_HEADER and run_data have different number of columns."
+        raise "#{@name}: METRICS_HEADER and run_data have different number of columns."
       end
     end
 
