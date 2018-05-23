@@ -100,6 +100,7 @@ module StellarCoreCommander
       debug:               Maybe[Bool],
       wait_timeout:        Maybe[Num],
       network_passphrase:  Maybe[String],
+      protocol_version:    Maybe[Or[Num, String]],
     } => Any)
     def initialize(params)
       #config
@@ -129,6 +130,7 @@ module StellarCoreCommander
       @debug              = params[:debug]
       @wait_timeout       = params[:wait_timeout] || 10
       @network_passphrase = params[:network_passphrase] || Stellar::Networks::TESTNET
+      @protocol_version   = params[:protocol_version] || "latest"
 
       # state
       @unverified   = []
@@ -300,9 +302,17 @@ module StellarCoreCommander
       true
     end
 
-    Contract None => Any
-    def set_upgrades
-      response = server.get('/upgrades?mode=set&upgradetime=1970-01-01T00:00:00Z&maxtxsize=10000&protocolversion=9')
+    Contract Or[Num, String] => Any
+    def set_upgrades(protocolversion="latest")
+
+      if protocolversion == "latest"
+        version = info.fetch("protocol_version", -1)
+      else
+        version = protocolversion
+      end
+      raise "Unable to retrieve protocol version. Try again later or pass version manually." if version == -1
+
+      response = server.get("/upgrades?mode=set&upgradetime=1970-01-01T00:00:00Z&maxtxsize=10000&protocolversion=#{version}")
       response = response.body.downcase
       if response.include? "exception"
         $stderr.puts "Did not submit upgrades: #{response}"
@@ -735,7 +745,7 @@ module StellarCoreCommander
       @launched = true
 
       wait_for_http
-      set_upgrades
+      set_upgrades @protocol_version
     end
 
     Contract None => Any
