@@ -339,6 +339,11 @@ module StellarCoreCommander
       @commander.check_no_process_error_metrics
     end
 
+    Contract Or[Num, String] => Any
+    def set_upgrades(protocolversion)
+      @process.set_upgrades protocolversion
+    end
+
     Contract ArrayOf[Or[Symbol, Process]] => Bool
     def check_equal_ledger_objects(processes)
       raise "no process!" unless @process
