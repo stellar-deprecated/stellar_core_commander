@@ -86,6 +86,13 @@ module StellarCoreCommander
       end
     end
 
+    Contract String, Symbol, Num, Num, Or[Symbol, Num], Num => Any
+    def record_performance_metrics(fname, txtype, accounts, txs, txrate, batchsize)
+      @processes.each do |p|
+        p.record_performance_metrics "#{p.name}_#{fname}", txtype, accounts, txs, txrate, batchsize
+      end
+    end
+
     Contract None => ArrayOf[Process]
     def require_processes_in_sync
       @processes.each do |p|

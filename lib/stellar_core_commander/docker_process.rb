@@ -45,7 +45,8 @@ module StellarCoreCommander
     Contract None => Any
     def launch_state_container
       $stderr.puts "launching state container #{state_container_name} from image #{@state_container.image}"
-      @state_container.launch(%W(-p #{postgres_port}:5432 --env-file stellar-core.env), [])
+      @state_container.launch(%W(-p #{postgres_port}:5432 --env-file stellar-core.env),
+       %W(postgres --fsync=off --full_page_writes=off --shared_buffers=512MB --work_mem=32MB))
     end
 
     Contract None => Any
@@ -123,6 +124,7 @@ module StellarCoreCommander
     Contract None => Any
     def cleanup
       database.disconnect
+      dump_system_stats
       shutdown_core_container
       shutdown_state_container
       shutdown_heka_container if atlas
@@ -151,6 +153,23 @@ module StellarCoreCommander
     Contract None => Any
     def dump_logs
       @stellar_core_container.logs
+    end
+
+    Contract None => Any
+    def dump_system_stats
+      fname = "#{working_dir}/../proc-stats-#{Time.now.to_i}-#{rand 100000}.txt"
+      uptime = IO.read("/proc/uptime").split[0]
+      idletime = IO.read("/proc/uptime").split[1]
+
+      meminfo = IO.read("/proc/meminfo")
+      netstat = IO.read("/proc/net/dev")
+      stat = IO.read("/proc/stat")
+
+      File.open(fname, 'w') {|f| f.write("Uptime: #{uptime} \nIdle time: #{idletime} \n
+        Mem Info: #{meminfo}\n Net stat: #{netstat}\n Other stats: #{stat}")}
+    rescue
+      $stderr.puts "Unable to dump stats from /proc directory. Dump stats is currently supported on Linux only. Skipping this step..."
+      nil
     end
 
     Contract None => Any
@@ -362,6 +381,8 @@ module StellarCoreCommander
 
         PREFERRED_PEERS=#{peer_connections}
         VALIDATORS=#{quorum}
+
+        TARGET_PEER_CONNECTION=32
 
         HISTORY_PEERS=#{peer_names}
 
