@@ -11,7 +11,7 @@ module StellarCoreCommander
 
       super
       @stellar_core_bin = params[:stellar_core_bin]
-      @database_url     = params[:database].try(:strip)
+      @database_url     = params[:database_url].try(:strip)
       @cmd              = Cmd.new(working_dir)
 
       setup_working_dir
@@ -61,7 +61,7 @@ module StellarCoreCommander
     Contract None => Any
     def setup!
       write_config
-      create_database unless @keep_database
+      create_database unless @keep_database or is_sqlite
       initialize_database
       initialize_history
     end
@@ -98,12 +98,12 @@ module StellarCoreCommander
     Contract None => Any
     def cleanup
       database.disconnect
-      dump_database
+      dump_database unless is_sqlite
       dump_scp_state
       dump_info
       dump_metrics
       shutdown
-      drop_database unless @keep_database
+      drop_database unless @keep_database or is_sqlite
     end
 
     Contract None => Any
