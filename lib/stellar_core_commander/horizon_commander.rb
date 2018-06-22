@@ -14,12 +14,26 @@ module StellarCoreCommander
       @open = []
       @sequences = SequenceTracker.new(self)
       @conn = Faraday.new(:url => @endpoint) do |faraday|
+        faraday.use FaradayMiddleware::FollowRedirects
         faraday.adapter :typhoeus
         faraday.request :retry, max: 2
       end
 
       @transaction_builder = TransactionBuilder.new(self)
       account :master, Stellar::KeyPair.master
+    end
+
+    Contract None => Any
+    def start_shell()
+
+      @conn.in_parallel do
+        require 'pry'
+        Pry.start(self, quiet: true, prompt: Pry::SIMPLE_PROMPT)
+        wait
+      end
+
+    rescue => e
+      crash_recipe e
     end
 
 
