@@ -18,7 +18,7 @@ module StellarCoreCommander
         faraday.request :retry, max: 2
       end
 
-      @operation_builder = OperationBuilder.new(self)
+      @transaction_builder = TransactionBuilder.new(self)
       account :master, Stellar::KeyPair.master
     end
 
@@ -65,7 +65,7 @@ module StellarCoreCommander
     def self.recipe_steps(names)
       names.each do |name|
         define_method name do |*args|
-          envelope = @operation_builder.send(name, *args)
+          envelope = @transaction_builder.send(name, *args)
           submit_transaction envelope
         end
       end

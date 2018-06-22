@@ -22,7 +22,8 @@ module StellarCoreCommander
   autoload :DockerProcess
 
   autoload :Transactor
-  autoload :OperationBuilder
+  autoload :TransactionBuilder
+  autoload :TransactionMultiBuilder
 
   autoload :Convert
 

@@ -1,7 +1,7 @@
 require 'bigdecimal'
 module StellarCoreCommander
 
-  class OperationBuilder
+  class TransactionBuilder
     include Contracts
 
     Asset = Or[
@@ -37,6 +37,8 @@ module StellarCoreCommander
       home_domain:    Maybe[String],
       signer:         Maybe[Stellar::Signer],
     }
+
+    SignerSpec = Or[Stellar::KeyPair]
 
     StellarBaseAsset = Or[[Symbol, String, Stellar::KeyPair], [:native]]
 
@@ -228,7 +230,7 @@ module StellarCoreCommander
       set_flags account, [:auth_required_flag]
     end
 
-    Contract Symbol, Stellar::KeyPair, Num => Any
+    Contract Symbol, SignerSpec, Num => Any
     def add_signer(account, key, weight)
       sk = Stellar::SignerKey.new :signer_key_type_ed25519, key.raw_public_key
 
@@ -238,7 +240,7 @@ module StellarCoreCommander
       })
     end
 
-    Contract Symbol, Stellar::KeyPair => Any
+    Contract Symbol, SignerSpec => Any
     def remove_signer(account, key)
       add_signer account, key, 0
     end
