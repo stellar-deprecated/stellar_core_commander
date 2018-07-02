@@ -702,15 +702,28 @@ module StellarCoreCommander
       raise UnexpectedDifference.new(kind, x, y) if x != y
     end
 
+    Contract String, ArrayOf[Any], ArrayOf[Any] => nil
+    def check_equal_by_column(kind, x, y)
+      x.zip(y).each do |rowx, rowy|
+        rowx.each do |key, val|
+            raise UnexpectedDifference.new(key, x, y) if (rowy.has_key?(key) and val != rowy[key])
+        end
+        rowy.each do |key, val|
+            raise UnexpectedDifference.new(key, x, y) if (rowx.has_key?(key) and val != rowx[key])
+        end
+      end
+      return
+    end
+
     Contract Process => nil
     def check_equal_ledger_objects(other)
       check_equal "account count", account_count, other.account_count
       check_equal "trustline count", trustline_count, other.trustline_count
       check_equal "offer count", offer_count, other.offer_count
 
-      check_equal "ten accounts", ten_accounts, other.ten_accounts
-      check_equal "ten trustlines", ten_trustlines, other.ten_trustlines
-      check_equal "ten offers", ten_offers, other.ten_offers
+      check_equal_by_column "ten accounts", ten_accounts, other.ten_accounts
+      check_equal_by_column "ten trustlines", ten_trustlines, other.ten_trustlines
+      check_equal_by_column "ten offers", ten_offers, other.ten_offers
     end
 
     Contract Process => Any
