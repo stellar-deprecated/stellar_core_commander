@@ -120,6 +120,7 @@ module StellarCoreCommander
 
     def cleanup
       @processes.each(&:cleanup)
+      @processes = []
     end
 
     def cleanup_at_exit!(clean_up_destination)

@@ -215,6 +215,11 @@ module StellarCoreCommander
       @process.crash
     end
 
+    Contract None => Any
+    def cleanup_all
+      @commander.cleanup
+      @process = nil
+    end
 
     Contract Symbol => Process
     def get_process(name)
