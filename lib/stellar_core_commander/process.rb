@@ -255,6 +255,13 @@ module StellarCoreCommander
       v
     end
 
+    Contract None => Num
+    def get_current_protocol_version
+      (info_field "ledger")["version"]
+    rescue
+      -1
+    end
+
     Contract None => String
     def database_port
       database_uri.port || "5432"
