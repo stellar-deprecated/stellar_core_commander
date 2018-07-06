@@ -3,6 +3,7 @@
 require 'stellar_core_commander'
 require 'stellar-base'
 require 'slop'
+require 'tmpdir'
 
 begin
   require 'pry'
