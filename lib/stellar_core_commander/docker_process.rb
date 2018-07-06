@@ -266,24 +266,34 @@ module StellarCoreCommander
       cmds = Set.new
       localget = "cp /history/%s/{0} {1}"
       s3get = "aws s3 --region #{@s3_history_region} cp #{@s3_history_prefix}/%s/{0} {1}"
-      @quorum.each do |q|
-        if q == @name
-          next
-        end
-        if SPECIAL_PEERS.has_key? q
-          cmds.add SPECIAL_PEERS[q][:get]
-        elsif use_s3
-          cmds.add s3get
-        else
-          cmds.add localget
-        end
-      end
 
-      if cmds.size == 0
-        if use_s3
-          cmds.add s3get
-        else
-          cmds.add localget
+      if @initial_catchup
+        @history_peers.each do |q|
+          if not SPECIAL_PEERS.has_key? q
+            raise "invalid history peer #{q}"
+          end
+          cmds.add SPECIAL_PEERS[q][:get]
+        end
+      else
+        @quorum.each do |q|
+          if q == @name
+            next
+          end
+          if SPECIAL_PEERS.has_key? q
+            cmds.add SPECIAL_PEERS[q][:get]
+          elsif use_s3
+            cmds.add s3get
+          else
+            cmds.add localget
+          end
+        end
+
+        if cmds.size == 0
+          if use_s3
+            cmds.add s3get
+          else
+            cmds.add localget
+          end
         end
       end
 
@@ -297,7 +307,9 @@ module StellarCoreCommander
 
     Contract None => String
     def history_put_commands
-      if has_special_peers?
+      if @initial_catchup
+        ""
+      elsif has_special_peers?
         ""
       else
         if use_s3
@@ -339,6 +351,10 @@ module StellarCoreCommander
       end
       if @forcescp
         command += ["forcescp"]
+      end
+      # must be added last, as this is requirement of stellar/stellar-core docker image
+      if fresh and @initial_catchup
+        command += ["catchupat", "current"]
       end
 
       @stellar_core_container.launch(args, command)
@@ -384,7 +400,7 @@ module StellarCoreCommander
 
         TARGET_PEER_CONNECTION=32
 
-        HISTORY_PEERS=#{peer_names}
+        HISTORY_PEERS=#{history_peer_names}
 
         NETWORK_PASSPHRASE=#{network_passphrase}
 

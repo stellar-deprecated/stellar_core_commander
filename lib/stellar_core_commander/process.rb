@@ -83,11 +83,13 @@ module StellarCoreCommander
       identity:            Stellar::KeyPair,
       quorum:              ArrayOf[Symbol],
       peers:               Maybe[ArrayOf[Symbol]],
+      history_peers:       Maybe[ArrayOf[Symbol]],
       manual_close:        Maybe[Bool],
       await_sync:          Maybe[Bool],
       accelerate_time:     Maybe[Bool],
       catchup_complete:    Maybe[Bool],
       catchup_recent:      Maybe[Num],
+      initial_catchup:     Maybe[Bool],
       forcescp:            Maybe[Bool],
       validate:            Maybe[Bool],
       host:                Maybe[String],
@@ -102,6 +104,7 @@ module StellarCoreCommander
       wait_timeout:        Maybe[Num],
       network_passphrase:  Maybe[String],
       protocol_version:    Maybe[Or[Num, String]],
+      delay_upgrade:       Maybe[Bool],
     } => Any)
     def initialize(params)
       #config
@@ -112,12 +115,14 @@ module StellarCoreCommander
       @base_port          = params[:base_port]
       @identity           = params[:identity]
       @quorum             = params[:quorum]
-      @peers              = params[:peers] || params[:quorum]
+      @peers              = params[:peers] || @quorum
+      @history_peers      = params[:history_peers] || @peers
       @manual_close       = params[:manual_close] || false
       @await_sync         = @manual_close ? false : params.fetch(:await_sync, true)
       @accelerate_time    = params[:accelerate_time] || false
       @catchup_complete   = params[:catchup_complete] || false
       @catchup_recent     = params[:catchup_recent] || false
+      @initial_catchup    = params[:initial_catchup] || false
       @forcescp           = params.fetch(:forcescp, true)
       @validate           = params.fetch(:validate, true)
       @host               = params[:host]
@@ -132,6 +137,7 @@ module StellarCoreCommander
       @wait_timeout       = params[:wait_timeout] || 10
       @network_passphrase = params[:network_passphrase] || Stellar::Networks::TESTNET
       @protocol_version   = params[:protocol_version] || "latest"
+      @delay_upgrade      = params[:delay_upgrade] || false
 
       # state
       @unverified   = []
@@ -179,8 +185,8 @@ module StellarCoreCommander
     end
 
     Contract None => ArrayOf[String]
-    def peer_names
-      node_map_or_special_field @peers, :name, true do |q|
+    def history_peer_names
+      node_map_or_special_field @history_peers, :name, true do |q|
         q.to_s
       end
     end
@@ -858,7 +864,9 @@ module StellarCoreCommander
       @launched = true
 
       wait_for_http
-      set_upgrades @protocol_version
+      if not @delay_upgrade
+        set_upgrades @protocol_version
+      end
     end
 
     Contract None => Any
