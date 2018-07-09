@@ -215,6 +215,11 @@ module StellarCoreCommander
       @process.crash
     end
 
+    Contract None => Any
+    def cleanup_all
+      @commander.cleanup
+      @process = nil
+    end
 
     Contract Symbol => Process
     def get_process(name)
@@ -260,6 +265,11 @@ module StellarCoreCommander
     Contract None => Any
     def clear_metrics
       @process.clear_metrics
+    end
+
+    Contract None => Num
+    def protocol_version
+      @process.get_protocol_version
     end
 
     Contract String, Symbol, Num, Num, Or[Symbol, Num], Num => Any

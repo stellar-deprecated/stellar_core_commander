@@ -242,6 +242,13 @@ module StellarCoreCommander
       database_uri.password
     end
 
+    Contract None => Num
+    def get_protocol_version
+      v = info.fetch("protocol_version", -1)
+      raise "Unable to retrieve protocol version. Try again later or pass version manually." if v == -1
+      v
+    end
+
     Contract None => String
     def database_port
       database_uri.port || "5432"
@@ -307,11 +314,10 @@ module StellarCoreCommander
     def set_upgrades(protocolversion="latest")
 
       if protocolversion == "latest"
-        version = info.fetch("protocol_version", -1)
+        version = get_protocol_version
       else
         version = protocolversion
       end
-      raise "Unable to retrieve protocol version. Try again later or pass version manually." if version == -1
 
       response = server.get("/upgrades?mode=set&upgradetime=1970-01-01T00:00:00Z&maxtxsize=10000&protocolversion=#{version}")
       response = response.body.downcase
