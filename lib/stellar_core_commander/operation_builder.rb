@@ -319,6 +319,16 @@ module StellarCoreCommander
       tx.to_envelope(account)
     end
 
+    Contract Symbol, Num => Any
+    def bump_sequence(account, sequence)
+      account = get_account account
+      Stellar::Transaction.bump_sequence({
+        account:  account,
+        sequence: next_sequence(account),
+        bump_to: sequence
+      }).to_envelope(account)
+    end
+
     private
 
     delegate :get_account, to: :@transactor

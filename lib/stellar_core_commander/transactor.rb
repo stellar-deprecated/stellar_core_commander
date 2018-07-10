@@ -157,6 +157,9 @@ module StellarCoreCommander
     # @see StellarCoreCommander::OperationBuilder#clear_data
     recipe_step :clear_data
 
+    # @see StellarCoreCommander::OperationBuilder#bump_sequence
+    recipe_step :bump_sequence
+
     Contract None => Any
     #
     # Triggers a ledger close.  Any unvalidated transaction will
@@ -317,9 +320,12 @@ module StellarCoreCommander
       raise "Ran out of retries while waiting for success"
     end
 
-    Contract Stellar::KeyPair => Num
+    Contract Or[Symbol, Stellar::KeyPair] => Num
     def next_sequence(account)
       require_process_running
+      if account.is_a? Symbol
+        account = get_account(account)
+      end
       base_sequence  = @process.sequence_for(account)
       inflight_count = @process.unverified.select{|e| e.first.tx.source_account == account.public_key}.length
 
