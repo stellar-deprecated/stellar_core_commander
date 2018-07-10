@@ -139,11 +139,15 @@ module StellarCoreCommander
     # @see StellarCoreCommander::TransactionBuilder#add_signer
     recipe_step :add_signer
 
+    # @see StellarCoreCommander::TransactionBuilder#remove_signer
+    recipe_step :remove_signer
+
+    # @see StellarCoreCommander::TransactionBuilder#add_onetime_signer
+    recipe_step :add_onetime_signer
+
     # @see StellarCoreCommander::TransactionBuilder#set_master_signer_weight
     recipe_step :set_master_signer_weight
 
-    # @see StellarCoreCommander::TransactionBuilder#remove_signer
-    recipe_step :remove_signer
 
     # @see StellarCoreCommander::TransactionBuilder#set_thresholds
     recipe_step :set_thresholds

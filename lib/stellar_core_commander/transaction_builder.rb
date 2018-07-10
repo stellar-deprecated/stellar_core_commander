@@ -245,6 +245,14 @@ module StellarCoreCommander
       add_signer account, key, 0
     end
 
+    Contract Symbol, String, Num => Any
+    def add_onetime_signer(account, preimage, weight)
+      set_options account, signer: Stellar::Signer.new({
+        key:    Stellar::SignerKey.onetime_signer(preimage),
+        weight: weight
+      })
+    end
+
     Contract(Symbol, MasterWeightByte => Any)
     def set_master_signer_weight(account, weight)
       set_options account, master_weight: weight

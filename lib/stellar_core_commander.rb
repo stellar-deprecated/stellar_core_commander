@@ -1,6 +1,7 @@
 require "stellar_core_commander/version"
 require "active_support/all"
 require "stellar-base"
+require "stellar-sdk"
 require "contracts"
 require "faraday"
 require "faraday_middleware"
