@@ -19,7 +19,7 @@ module StellarCoreCommander
     Contract Commander => Any
     def initialize(commander)
       @commander         = commander
-      @operation_builder = OperationBuilder.new(self)
+      @transaction_builder = TransactionBuilder.new(self)
       @manual_close      = false
 
       account :master, Stellar::KeyPair.master
@@ -55,6 +55,21 @@ module StellarCoreCommander
       crash_recipe e
     end
 
+
+    # Contract Nil => Any
+    # #
+    # # Runs the provided recipe against the process identified by @process
+    # #
+    # # @param recipe_path [String] path to the recipe file
+    # #
+    # def transaction(&block)
+    #   tx = TransactionBuilder.new(self)
+    #   tx.run_recipe block
+
+    #   envelope = tx.build
+    #   submit_transaction envelope
+    # end
+
     Contract Symbol => Any
     # recipe_step is a helper method to define
     # a method that follows the common procedure of executing a recipe step:
@@ -63,11 +78,11 @@ module StellarCoreCommander
     # 2. build the envelope by forwarding to the operation builder
     # 3. submit the envelope to the process
     #
-    # @param name [Symbol] the method to be defined and delegated to @operation_builder
+    # @param name [Symbol] the method to be defined and delegated to @transaction_builder
     def self.recipe_step(name)
       define_method name do |*args, &block|
         require_process_running
-        envelope = @operation_builder.send(name, *args)
+        envelope = @transaction_builder.send(name, *args)
 
         if block.present?
           block.call envelope
@@ -79,10 +94,10 @@ module StellarCoreCommander
 
 
     #
-    # @see StellarCoreCommander::OperationBuilder#payment
+    # @see StellarCoreCommander::TransactionBuilder#payment
     def payment(*args, &block)
       require_process_running
-      envelope = @operation_builder.payment(*args)
+      envelope = @transaction_builder.payment(*args)
 
       if block.present?
         block.call envelope
@@ -94,67 +109,71 @@ module StellarCoreCommander
       end
     end
 
-    # @see StellarCoreCommander::OperationBuilder#create_account
+    # @see StellarCoreCommander::TransactionBuilder#create_account
     recipe_step :create_account
 
-    # @see StellarCoreCommander::OperationBuilder#trust
+    # @see StellarCoreCommander::TransactionBuilder#trust
     recipe_step :trust
 
-    # @see StellarCoreCommander::OperationBuilder#change_trust
+    # @see StellarCoreCommander::TransactionBuilder#change_trust
     recipe_step :change_trust
 
-    # @see StellarCoreCommander::OperationBuilder#offer
+    # @see StellarCoreCommander::TransactionBuilder#offer
     recipe_step :offer
 
-    # @see StellarCoreCommander::OperationBuilder#passive_offer
+    # @see StellarCoreCommander::TransactionBuilder#passive_offer
     recipe_step :passive_offer
 
-    # @see StellarCoreCommander::OperationBuilder#set_options
+    # @see StellarCoreCommander::TransactionBuilder#set_options
     recipe_step :set_options
 
-    # @see StellarCoreCommander::OperationBuilder#set_flags
+    # @see StellarCoreCommander::TransactionBuilder#set_flags
     recipe_step :set_flags
 
-    # @see StellarCoreCommander::OperationBuilder#clear_flags
+    # @see StellarCoreCommander::TransactionBuilder#clear_flags
     recipe_step :clear_flags
 
-    # @see StellarCoreCommander::OperationBuilder#require_trust_auth
+    # @see StellarCoreCommander::TransactionBuilder#require_trust_auth
     recipe_step :require_trust_auth
 
-    # @see StellarCoreCommander::OperationBuilder#add_signer
+    # @see StellarCoreCommander::TransactionBuilder#add_signer
     recipe_step :add_signer
 
-    # @see StellarCoreCommander::OperationBuilder#set_master_signer_weight
-    recipe_step :set_master_signer_weight
-
-    # @see StellarCoreCommander::OperationBuilder#remove_signer
+    # @see StellarCoreCommander::TransactionBuilder#remove_signer
     recipe_step :remove_signer
 
-    # @see StellarCoreCommander::OperationBuilder#set_thresholds
+    # @see StellarCoreCommander::TransactionBuilder#add_onetime_signer
+    recipe_step :add_onetime_signer
+
+    # @see StellarCoreCommander::TransactionBuilder#set_master_signer_weight
+    recipe_step :set_master_signer_weight
+
+
+    # @see StellarCoreCommander::TransactionBuilder#set_thresholds
     recipe_step :set_thresholds
 
-    # @see StellarCoreCommander::OperationBuilder#set_inflation_dest
+    # @see StellarCoreCommander::TransactionBuilder#set_inflation_dest
     recipe_step :set_inflation_dest
 
-    # @see StellarCoreCommander::OperationBuilder#set_home_domain
+    # @see StellarCoreCommander::TransactionBuilder#set_home_domain
     recipe_step :set_home_domain
 
-    # @see StellarCoreCommander::OperationBuilder#allow_trust
+    # @see StellarCoreCommander::TransactionBuilder#allow_trust
     recipe_step :allow_trust
 
-    # @see StellarCoreCommander::OperationBuilder#revoke_trust
+    # @see StellarCoreCommander::TransactionBuilder#revoke_trust
     recipe_step :revoke_trust
 
-    # @see StellarCoreCommander::OperationBuilder#merge_account
+    # @see StellarCoreCommander::TransactionBuilder#merge_account
     recipe_step :merge_account
 
-    # @see StellarCoreCommander::OperationBuilder#inflation
+    # @see StellarCoreCommander::TransactionBuilder#inflation
     recipe_step :inflation
 
-    # @see StellarCoreCommander::OperationBuilder#set_data
+    # @see StellarCoreCommander::TransactionBuilder#set_data
     recipe_step :set_data
 
-    # @see StellarCoreCommander::OperationBuilder#clear_data
+    # @see StellarCoreCommander::TransactionBuilder#clear_data
     recipe_step :clear_data
 
     Contract None => Any

@@ -14,12 +14,26 @@ module StellarCoreCommander
       @open = []
       @sequences = SequenceTracker.new(self)
       @conn = Faraday.new(:url => @endpoint) do |faraday|
-        faraday.adapter :typhoeus
         faraday.request :retry, max: 2
+        faraday.use FaradayMiddleware::FollowRedirects
+        faraday.adapter :typhoeus
       end
 
-      @operation_builder = OperationBuilder.new(self)
+      @transaction_builder = TransactionBuilder.new(self)
       account :master, Stellar::KeyPair.master
+    end
+
+    Contract None => Any
+    def start_shell()
+
+      @conn.in_parallel do
+        require 'pry'
+        Pry.start(self, quiet: true, prompt: Pry::SIMPLE_PROMPT)
+        wait
+      end
+
+    rescue => e
+      crash_recipe e
     end
 
 
@@ -65,7 +79,7 @@ module StellarCoreCommander
     def self.recipe_steps(names)
       names.each do |name|
         define_method name do |*args|
-          envelope = @operation_builder.send(name, *args)
+          envelope = @transaction_builder.send(name, *args)
           submit_transaction envelope
         end
       end
@@ -83,8 +97,9 @@ module StellarCoreCommander
       :clear_flags,
       :require_trust_auth,
       :add_signer,
-      :set_master_signer_weight,
       :remove_signer,
+      :add_onetime_signer,
+      :set_master_signer_weight,
       :set_thresholds,
       :set_inflation_dest,
       :set_home_domain,
@@ -105,6 +120,22 @@ module StellarCoreCommander
       body["sequence"].to_i
     end
 
+    Contract Symbol => Any
+    def create_via_friendbot(account)
+      account = get_account account
+      @open << @conn.get("friendbot", addr: account.address)
+    end
+
+    Contract None => Stellar::Client
+    def sdk_client 
+      @client ||= Stellar::Client.new(horizon: @endpoint)
+    end
+
+    Contract Symbol => Hyperclient::Resource
+    def get_account_info(name)
+      sdk_account = Stellar::Account.new(get_account(name))
+      sdk_client.account_info(sdk_account)
+    end
 
     private
 
@@ -113,12 +144,6 @@ module StellarCoreCommander
     def submit_transaction(envelope, &after_confirmation)
       b64 = envelope.to_xdr(:base64)
       @open << @conn.post("transactions", tx: b64)
-    end
-
-    Contract Symbol => Any
-    def create_via_friendbot(account)
-      account = get_account account
-      @open << @conn.get("friendbot", addr: account.address)
     end
 
     Contract Exception => Any

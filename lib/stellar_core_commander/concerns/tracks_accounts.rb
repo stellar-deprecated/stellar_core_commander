@@ -25,7 +25,6 @@ module StellarCoreCommander
         end
       end
 
-
     end
   end
 end

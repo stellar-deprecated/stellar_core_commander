@@ -6,8 +6,10 @@ require 'slop'
 
 def run
   $opts = Slop.parse(ARGV, :help => true) do
-    banner 'Usage: hcc -r RECIPE'
+    banner 'Usage: hcc [ -r RECIPE | -s ] '
 
+    on 's', 'shell',
+      'start a shell'
     on 'r', 'recipe',
       'a recipe file',
       argument: true
@@ -23,10 +25,14 @@ def run
 
   Stellar::default_network = $opts[:"network-passphrase"]
 
-  recipe    = load_recipe
   commander = make_commander
 
-  commander.run_recipe recipe
+  if $opts[:shell] 
+    commander.start_shell
+  else 
+    recipe    = load_recipe
+    commander.run_recipe recipe
+  end
 end
 
 

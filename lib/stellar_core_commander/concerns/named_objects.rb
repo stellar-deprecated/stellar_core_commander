@@ -12,6 +12,7 @@ module StellarCoreCommander
           raise ArgumentError, "#{name} is already registered"
         end
         @named[name] = object
+        object
       end
 
       Contract Symbol => Any
