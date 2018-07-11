@@ -107,6 +107,9 @@ module StellarCoreCommander
       :revoke_trust,
       :merge_account,
       :inflation,
+      :set_data,
+      :clear_data,
+      :bump_sequence,
     ]
 
     delegate :next_sequence, to: :@sequences
