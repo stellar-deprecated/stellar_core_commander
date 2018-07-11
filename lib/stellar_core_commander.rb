@@ -24,7 +24,6 @@ module StellarCoreCommander
 
   autoload :Transactor
   autoload :TransactionBuilder
-  autoload :TransactionMultiBuilder
 
   autoload :Convert
 
