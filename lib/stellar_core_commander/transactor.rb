@@ -388,6 +388,15 @@ module StellarCoreCommander
       @process.set_upgrades protocolversion
     end
 
+    Contract None => Any
+    def check_uses_latest_protocol_version
+      latest_protocol_version = @process.get_protocol_version
+      current_protocol_version = @process.get_current_protocol_version
+      if latest_protocol_version != current_protocol_version
+        raise "protocol version not upgraded to #{latest_protocol_version}, still at #{current_protocol_version} with #{@process.ledger_num}"
+      end
+    end
+
     Contract ArrayOf[Or[Symbol, Process]] => Bool
     def check_equal_ledger_objects(processes)
       raise "no process!" unless @process
