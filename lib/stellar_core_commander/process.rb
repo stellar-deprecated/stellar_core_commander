@@ -152,6 +152,10 @@ module StellarCoreCommander
         @peers = @peers + [@name]
       end
 
+      if not @history_peers.include? @name
+        @history_peers = @history_peers + [@name]
+      end
+
       @server = Faraday.new(url: "http://#{hostname}:#{http_port}") do |conn|
         conn.request :url_encoded
         conn.adapter Faraday.default_adapter
