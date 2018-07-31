@@ -269,10 +269,9 @@ module StellarCoreCommander
 
       if @initial_catchup
         @history_peers.each do |q|
-          if not SPECIAL_PEERS.has_key? q
-            raise "invalid history peer #{q}"
+          if SPECIAL_PEERS.has_key? q
+            cmds.add SPECIAL_PEERS[q][:get]
           end
-          cmds.add SPECIAL_PEERS[q][:get]
         end
       else
         @quorum.each do |q|
