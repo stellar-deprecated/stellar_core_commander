@@ -17,7 +17,7 @@ Gem::Specification.new do |spec|
   spec.test_files    = spec.files.grep(%r{^(test|spec|features)/})
   spec.require_paths = ["lib"]
 
-  spec.add_dependency "stellar-base", ">= 0.16.0"
+  spec.add_dependency "stellar-base", ">= 0.17.0"
   spec.add_dependency "stellar-sdk", ">= 0.5.0"
   spec.add_dependency "slop", "~> 3.6.0"
   spec.add_dependency "faraday", "~> 0.9.1"
