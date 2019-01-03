@@ -283,7 +283,7 @@ module StellarCoreCommander
 
     Contract None => Any
     def wait_for_ready
-      $stderr.puts "waiting #{sync_timeout} seconds for stellar-core #{idname} ( catchup_complete: #{catchup_complete}, catchup_recent: #{catchup_recent}, special_peers: #{has_special_peers?} )"
+      $stderr.puts "waiting #{sync_timeout} seconds for stellar-core #{idname} ( catchup_complete: #{@catchup_complete}, catchup_recent: #{@catchup_recent}, special_peers: #{has_special_peers?} )"
       Timeout.timeout(sync_timeout) do
         loop do
           break if synced? || (!await_sync? && !booting?)
