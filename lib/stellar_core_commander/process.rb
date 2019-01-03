@@ -560,44 +560,32 @@ module StellarCoreCommander
       dump_server_query("scp")
     end
 
-    Contract None => Num
-    def scp_value_nominating
-      metrics_count "scp.value.nominating"
-    end
-
-    Contract None => Num
-    def scp_quorum_heard
-      metrics_count "scp.quorum.heard"
-    end
-
     Contract None => ArrayOf[String]
     def invariants
-      ["AccountSubEntriesCountIsValid",
-       "BucketListIsConsistentWithDatabase",
-       "ConservationOfLumens",
-       "LedgerEntryIsValid",
-       "MinimumAccountBalance"]
+      [".*"]
     end
 
     Contract None => Bool
     def check_no_error_metrics
+      check_no_error_metrics_param(true)
+    end
+
+    Contract Bool => Bool
+    def check_no_error_metrics_param(internal_error)
       m = metrics
-      for metric in ["scp.envelope.invalidsig",
-                     "history.publish.failure",
-                     "history.catchup.failure"]
+      metric_names = ["scp.envelope.invalidsig",
+                      "history.publish.failure",
+                      "ledger.invariant.failure"]
+      if internal_error
+        metric_names.append("ledger.transaction.internal-error")
+      end
+      for metric in metric_names
         c = m[metric]["count"] rescue 0
         if c != 0
           raise "nonzero metrics count for #{metric}: #{c}"
         end
       end
 
-      inv_str = "invariant.does-not-hold.count"
-      for inv in invariants
-        c = m["#{inv_str}.#{inv}"]["count"] rescue 0
-        if c != 0
-          raise "Invariant #{inv} failed #{c} times"
-        end
-      end
       true
     end
 

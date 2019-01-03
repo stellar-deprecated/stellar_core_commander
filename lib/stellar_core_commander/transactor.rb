@@ -383,6 +383,11 @@ module StellarCoreCommander
       @commander.check_no_process_error_metrics
     end
 
+    Contract Bool => Bool
+    def check_no_error_metrics_param(internal_error)
+      @commander.check_no_error_metrics_param(internal_error)
+    end
+
     Contract Or[Num, String] => Any
     def set_upgrades(protocolversion)
       @process.set_upgrades protocolversion
