@@ -142,7 +142,6 @@ module StellarCoreCommander
     def config
       <<-EOS.strip_heredoc
         PEER_PORT=#{peer_port}
-        RUN_STANDALONE=false
         HTTP_PORT=#{http_port}
         PUBLIC_HTTP_PORT=false
         NODE_SEED="#{@identity.seed}"
