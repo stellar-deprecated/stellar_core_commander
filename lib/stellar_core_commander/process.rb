@@ -801,8 +801,8 @@ module StellarCoreCommander
       elsif has_special_peers?
         # testnet and pubnet have relatively more complex history
         # we give ourself:
-        # 3 checkpoints + 75 minutes to apply buckets  + 0.5 second per ledger replayed
-        (5.0 * 64 * 3) + (75 * 60) + (@catchup_recent ? (0.5 * @catchup_recent): 0)
+        # 3 checkpoints + 100 minutes to apply buckets  + 0.5 second per ledger replayed
+        (5.0 * 64 * 3) + (100 * 60) + (@catchup_recent ? (0.5 * @catchup_recent): 0)
       else
         # Checkpoints are made every 64 ledgers = 320s on a normal network,
         # or every 8 ledgers = 8s on an accelerated-time network; we give you
