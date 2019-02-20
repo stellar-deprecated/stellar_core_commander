@@ -75,6 +75,10 @@ def run
       'all processes created by scc will use ports starting from base-port',
       argument: true,
       default: 11625
+    on 'allow-failed-transactions',
+      'allow failed transactions',
+      argument: false,
+      default: false
   end
 
   Stellar::default_network = $opts[:"network-passphrase"]
@@ -117,7 +121,8 @@ def make_commander
     use_s3: $opts[:"use-s3"],
     s3_history_region: $opts[:"s3-history-region"],
     s3_history_prefix: $opts[:"s3-history-prefix"],
-    network_passphrase: $opts[:"network-passphrase"]
+    network_passphrase: $opts[:"network-passphrase"],
+    allow_failed_transactions: $opts[:"allow-failed-transactions"]
   }
 
   destination = $opts[:"destination"]

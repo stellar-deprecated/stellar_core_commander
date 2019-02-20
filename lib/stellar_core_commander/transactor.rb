@@ -200,9 +200,11 @@ module StellarCoreCommander
             $stderr.puts "could not be found in txhistory table on process #{@process.name}"
             residual << eb
           rescue FailedTransaction
-            $stderr.puts "Failed to validate tx: #{Convert.to_hex envelope.tx.hash}"
-            $stderr.puts "failed result: #{result.to_xdr(:base64)}"
-            residual << eb
+            if not @commander.process_options[:allow_failed_transactions]
+              $stderr.puts "Failed to validate tx: #{Convert.to_hex envelope.tx.hash}"
+              $stderr.puts "failed result: #{result.to_xdr(:base64)}"
+              residual << eb
+            end
           end
         end
         if residual.empty?
@@ -443,6 +445,7 @@ module StellarCoreCommander
     def validate_transaction(envelope)
       raw_hash = envelope.tx.hash
       hex_hash = Convert.to_hex(raw_hash)
+      base64_envelope = Convert.to_base64(Stellar::TransactionEnvelope.to_xdr(envelope))
 
       base64_result = @process.transaction_result(hex_hash)
 
@@ -453,10 +456,12 @@ module StellarCoreCommander
       pair = Stellar::TransactionResultPair.from_xdr(raw_result)
       result = pair.result
 
-      # ensure success for every operation
-      expected = Stellar::TransactionResultCode.tx_success
-      actual = result.result.code
-      raise "transaction failed: #{base64_result}" unless expected == actual
+      if not @commander.process_options[:allow_failed_transactions]
+        # ensure success for every operation
+        expected = Stellar::TransactionResultCode.tx_success
+        actual = result.result.code
+        raise "tx: #{hex_hash} #{base64_envelope} transaction failed: #{base64_result}" unless expected == actual
+      end
 
       result
     end
