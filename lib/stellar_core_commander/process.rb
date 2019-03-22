@@ -222,6 +222,11 @@ module StellarCoreCommander
       end
     end
 
+    Contract None => Bool
+    def is_sqlite
+      database_url.start_with? "sqlite"
+    end
+
     Contract None => URI::Generic
     def database_uri
       URI.parse(database_url)
@@ -273,11 +278,14 @@ module StellarCoreCommander
 
     Contract None => String
     def dsn
-      base = "postgresql://dbname=#{database_name} "
-      base << " user=#{database_user}" if database_user.present?
-      base << " password=#{database_password}" if database_password.present?
-      base << " host=#{database_host} port=#{database_port}" if database_host.present?
-
+      if is_sqlite
+        base = database_url
+      else
+        base = "postgresql://dbname=#{database_name} "
+        base << " user=#{database_user}" if database_user.present?
+        base << " password=#{database_password}" if database_password.present?
+        base << " host=#{database_host} port=#{database_port}" if database_host.present?
+      end
       base
     end
 
@@ -302,6 +310,8 @@ module StellarCoreCommander
 
     Contract None => Bool
     def close_ledger
+      raise "#{idname}: close_ledger is not supported for SQLite DB. Please switch to PostgreSQL." if is_sqlite
+
       prev_ledger = latest_ledger
       next_ledger = prev_ledger + 1
 
@@ -741,6 +751,8 @@ module StellarCoreCommander
 
     Contract Process => nil
     def check_equal_ledger_objects(other)
+      raise "#{idname}: check_equal_ledger_objects is not supported with SQLite DB option." if is_sqlite
+
       check_equal "account count", account_count, other.account_count
       check_equal "trustline count", trustline_count, other.trustline_count
       check_equal "offer count", offer_count, other.offer_count
@@ -752,6 +764,8 @@ module StellarCoreCommander
 
     Contract Process => Any
     def check_ledger_sequence_matches(other)
+      raise "#{idname}: check_ledger_sequence_matches is not supported with SQLite DB option." if is_sqlite
+
       q = "SELECT ledgerseq, ledgerhash FROM ledgerheaders ORDER BY ledgerseq"
       our_headers = database.fetch(q).all
       other_headers = other.database.fetch(q).all

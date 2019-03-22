@@ -46,6 +46,11 @@ module StellarCoreCommander
         manual_close: transactor.manual_close
       }).merge(options)
 
+      if process_options.key? :database_url
+        db = process_options[:database_url]
+        $stderr.puts "manually configured DB: #{db}"
+      end
+
       process_class = case @process_type
                         when 'local'
                           LocalProcess

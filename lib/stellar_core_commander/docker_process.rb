@@ -29,6 +29,7 @@ module StellarCoreCommander
       end
 
       @setup_timeout = params[:setup_timeout] || 300
+      @hist_setup = false
     end
 
     Contract None => Num
@@ -72,9 +73,11 @@ module StellarCoreCommander
     Contract None => Any
     def setup!
       write_config
+      unless is_sqlite
+        launch_state_container
+        wait_for_port postgres_port
+      end
 
-      launch_state_container
-      wait_for_port postgres_port
       launch_stellar_core true
       launch_heka_container if atlas
 
@@ -94,7 +97,7 @@ module StellarCoreCommander
 
     Contract None => Any
     def launch_process
-      launch_stellar_core false
+      launch_stellar_core is_sqlite
     end
 
     Contract None => Bool
@@ -123,10 +126,10 @@ module StellarCoreCommander
 
     Contract None => Any
     def cleanup
-      database.disconnect
+      database.disconnect unless is_sqlite
       dump_system_stats
       shutdown_core_container
-      shutdown_state_container
+      shutdown_state_container unless is_sqlite
       shutdown_heka_container if atlas
     end
 
@@ -179,11 +182,15 @@ module StellarCoreCommander
 
     Contract None => Any
     def dump_database
-      fname = "#{working_dir}/database-#{Time.now.to_i}-#{rand 100000}.sql"
-      $stderr.puts "dumping database to #{fname}"
-      res = @state_container.exec %W(pg_dump -U #{database_user} --clean --no-owner --no-privileges #{database_name})
-      File.open(fname, 'w') {|f| f.write(res.out.to_s) }
-      fname
+      unless is_sqlite
+        fname = "#{working_dir}/database-#{Time.now.to_i}-#{rand 100000}.sql"
+        $stderr.puts "dumping database to #{fname}"
+        res = @state_container.exec %W(pg_dump -U #{database_user} --clean --no-owner --no-privileges #{database_name})
+        File.open(fname, 'w') {|f| f.write(res.out.to_s) }
+        fname
+      else
+        $stderr.puts "`dump database` is not supported with SQLite."
+      end
     end
 
     Contract None => String
@@ -339,14 +346,22 @@ module StellarCoreCommander
     private
     def launch_stellar_core fresh
       $stderr.puts "launching stellar-core container #{container_name} from image #{@stellar_core_container.image}"
-      args = %W(--volumes-from #{state_container_name})
+      args = []
+      args += %W(--volumes-from #{state_container_name}) unless is_sqlite
       args += aws_credentials_volume
       args += shared_history_volume
       args += %W(-p #{http_port}:#{http_port} -p #{peer_port}:#{peer_port})
       args += %W(--env-file stellar-core.env)
       command = %W(/start #{@name})
+      if is_sqlite
+        command += ["nopsql"]
+      end
       if fresh
-        command += ["fresh", "skipstart"]
+        if @hist_setup
+          command += ["newdb"]
+        else
+          command += ["fresh", "skipstart"]
+        end
       end
       if @forcescp
         command += ["forcescp"]
@@ -357,15 +372,22 @@ module StellarCoreCommander
       end
 
       @stellar_core_container.launch(args, command)
+      @hist_setup = true
       @stellar_core_container
     end
 
     Contract None => String
     def config
+      if is_sqlite
+        db_config = "DATABASE=#{database_url}"
+      else
+        db_config = "POSTGRES_DB=#{database_name}"
+      end
+
       (
       <<-EOS.strip_heredoc
+        #{db_config}
         POSTGRES_PASSWORD=#{database_password}
-        POSTGRES_DB=#{database_name}
 
         ENVIRONMENT=scc
         CLUSTER_NAME=#{recipe_name}
