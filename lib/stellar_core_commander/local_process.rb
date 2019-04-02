@@ -97,7 +97,7 @@ module StellarCoreCommander
 
     Contract None => Any
     def cleanup
-      database.disconnect
+      database.disconnect unless is_sqlite
       dump_database unless is_sqlite
       dump_scp_state
       dump_info

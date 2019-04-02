@@ -92,10 +92,7 @@ def run
   #run the recipe
   $stdout.puts "running recipe"
   transactor.run_recipe recipe
-  $stdout.puts "recipe finished, closing ledger"
-  transactor.close_ledger
-  $stdout.puts "ledger closed"
-
+  $stdout.puts "recipe finished"
 
   if $opts[:"dump-root-db"]
     file = commander.get_root_process(transactor).dump_database
