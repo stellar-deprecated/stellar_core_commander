@@ -621,7 +621,7 @@ module StellarCoreCommander
 
     Contract None => Num
     def operations_per_second
-      metrics_1m_rate "transaction.op.apply"
+      metrics_1m_rate "ledger.operation.apply"
     end
 
     Contract None => Num
