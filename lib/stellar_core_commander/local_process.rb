@@ -166,6 +166,7 @@ module StellarCoreCommander
         INVARIANT_CHECKS=#{invariants.to_s}
 
         [QUORUM_SET]
+        THRESHOLD_PERCENT=51
         VALIDATORS=#{quorum}
 
         #{history_sources}
