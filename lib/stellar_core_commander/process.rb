@@ -41,19 +41,19 @@ module StellarCoreCommander
         :dns => "core-testnet1.stellar.org",
         :key => "GDKXE2OZMJIPOSLNA6N6F2BVCI3O777I2OOC4BV7VOYUEHYX7RTRYA7Y",
         :name => "core_testnet_001",
-        :get => "wget -q https://s3-eu-west-1.amazonaws.com/history.stellar.org/prd/core-testnet/%s/{0} -O {1}"
+        :get => "wget -q http://history.stellar.org/prd/core-testnet/%s/{0} -O {1}"
       },
       :testnet2 => {
         :dns => "core-testnet2.stellar.org",
         :key => "GCUCJTIYXSOXKBSNFGNFWW5MUQ54HKRPGJUTQFJ5RQXZXNOLNXYDHRAP",
         :name => "core_testnet_002",
-        :get => "wget -q https://s3-eu-west-1.amazonaws.com/history.stellar.org/prd/core-testnet/%s/{0} -O {1}"
+        :get => "wget -q http://history.stellar.org/prd/core-testnet/%s/{0} -O {1}"
       },
       :testnet3 => {
         :dns => "core-testnet3.stellar.org",
         :key => "GC2V2EFSXN6SQTWVYA5EPJPBWWIMSD2XQNKUOHGEKB535AQE2I6IXV2Z",
         :name => "core_testnet_003",
-        :get => "wget -q https://s3-eu-west-1.amazonaws.com/history.stellar.org/prd/core-testnet/%s/{0} -O {1}"
+        :get => "wget -q http://history.stellar.org/prd/core-testnet/%s/{0} -O {1}"
       },
       :pubnet1 => {
         :dns => "core-live4.stellar.org",
