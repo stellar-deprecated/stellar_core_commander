@@ -19,20 +19,20 @@ module StellarCoreCommander
 
     Contract None => Any
     def forcescp
-      res = @cmd.run_and_redirect "./stellar-core", ["--forcescp"]
+      res = @cmd.run_and_redirect "./stellar-core", ["force-scp"]
       raise "Could not set --forcescp" unless res.success
     end
 
     Contract None => Any
     def initialize_history
       Dir.mkdir(history_dir) unless File.exists?(history_dir)
-      res = @cmd.run_and_redirect "./stellar-core", ["--newhist", @name.to_s]
+      res = @cmd.run_and_redirect "./stellar-core", ["new-hist", @name.to_s]
       raise "Could not initialize history" unless res.success
     end
 
     Contract None => Any
     def initialize_database
-      res = @cmd.run_and_redirect "./stellar-core", ["--newdb"]
+      res = @cmd.run_and_redirect "./stellar-core", ["new-db"]
       raise "Could not initialize db" unless res.success
     end
 
@@ -145,7 +145,7 @@ module StellarCoreCommander
         HTTP_PORT=#{http_port}
         PUBLIC_HTTP_PORT=false
         NODE_SEED="#{@identity.seed}"
-        #{"NODE_IS_VALIDATOR=true" if @validate}
+        NODE_IS_VALIDATOR=true
 
         ARTIFICIALLY_GENERATE_LOAD_FOR_TESTING=true
         #{"ARTIFICIALLY_ACCELERATE_TIME_FOR_TESTING=true" if @accelerate_time}
