@@ -417,7 +417,14 @@ module StellarCoreCommander
     Contract None => Num
     def scp_quorum_num
       q = scp_quorum_info
-      q.keys[0].to_i
+      # In 11.2 we changed the representation of
+      # the /info endpoint's "quorum" field; it now
+      # contains quorum.qset.ledger
+      if q.has_key? "qset"
+        q["qset"]["ledger"].to_i
+      else
+        q.keys[0].to_i
+      end
     rescue
       2
     end
