@@ -255,21 +255,17 @@ module StellarCoreCommander
     end
 
     Contract Symbol, Num, Num, Or[Symbol, Num], Num => Any
-    def start_load_generation(mode=:create, accounts=10000000, txs=10000000, txrate=500, batchsize=100)
+    def start_load_generation(mode=:create, accounts=10000000, txs=10000000, txrate=10, batchsize=100)
       $stderr.puts "starting load generation: #{mode} mode, #{accounts} accounts, #{txs} txs, #{txrate} tx/s, #{batchsize} batchsize"
       @process.start_load_generation mode, accounts, txs, txrate, batchsize
-    end
-
-    Contract None => Bool
-    def load_generation_complete
-      @process.load_generation_complete
     end
 
     Contract Symbol, Num, Num, Or[Symbol, Num], Num => Any
     def generate_load_and_await_completion(mode, accounts, txs, txrate, batchsize)
       runs = @process.load_generation_runs
       start_load_generation mode, accounts, txs, txrate, batchsize
-      num_retries = if mode == :create then accounts else txs end
+      num_txs = if mode == :create then (accounts / batchsize) else txs end
+      num_retries = num_txs / txrate * 3
 
       retry_until_true retries: num_retries do
         txs = @process.transactions_applied
