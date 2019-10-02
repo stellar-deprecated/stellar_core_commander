@@ -347,7 +347,8 @@ module StellarCoreCommander
         version = protocolversion
       end
 
-      response = server.get("/upgrades?mode=set&upgradetime=1970-01-01T00:00:00Z&maxtxsize=1000000&protocolversion=#{version}")
+      timestamp = Time.now.utc.strftime('%FT%TZ')
+      response = server.get("/upgrades?mode=set&upgradetime=#{timestamp}&maxtxsize=1000000&protocolversion=#{version}")
       response = response.body.downcase
       if response.include? "exception"
         $stderr.puts "Did not submit upgrades: #{response}"
