@@ -99,6 +99,7 @@ module StellarCoreCommander
       :add_signer,
       :remove_signer,
       :add_onetime_signer,
+      :path_payment_strict_send,
       :set_master_signer_weight,
       :set_thresholds,
       :set_inflation_dest,
