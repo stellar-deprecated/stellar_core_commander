@@ -111,6 +111,22 @@ module StellarCoreCommander
 
     #
     # @see StellarCoreCommander::TransactionBuilder#path_payment_strict_send
+    def path_payment_strict_receive(*args, &block)
+      require_process_running
+      envelope = @transaction_builder.path_payment_strict_receive(*args)
+
+      if block.present?
+        block.call envelope
+      end
+
+      submit_transaction envelope do |result|
+        payment_result = result.result.results!.first.tr!.value
+        raise FailedTransaction unless payment_result.code.value >= 0
+      end
+    end
+
+    #
+    # @see StellarCoreCommander::TransactionBuilder#path_payment_strict_send
     def path_payment_strict_send(*args, &block)
       require_process_running
       envelope = @transaction_builder.path_payment_strict_send(*args)
