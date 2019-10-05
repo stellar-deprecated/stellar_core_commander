@@ -31,3 +31,5 @@ offer :andrew, {buy:["USD", :usd_gateway], with:["EUR", :eur_gateway]}, 200, 1.0
 close_ledger
 
 path_payment_strict_send :scott, :bartek, ["EUR", :eur_gateway, 10], with: ["USD", :usd_gateway, 10], path: []
+
+close_ledger
