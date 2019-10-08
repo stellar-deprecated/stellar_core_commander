@@ -80,10 +80,50 @@ module StellarCoreCommander
       tx =  if options[:with]
               attrs[:with] = normalize_amount(options[:with])
               attrs[:path] = options[:path].map{|p| make_asset p}
-              Stellar::Transaction.path_payment(attrs)
+              Stellar::Transaction.path_payment_strict_receive(attrs)
             else
               Stellar::Transaction.payment(attrs)
             end
+
+      tx.to_envelope(from)
+    end
+
+    Contract Symbol, Symbol, Amount, PaymentOptions => Any
+    def path_payment_strict_receive(from, to, amount, options={})
+      from = get_account from
+      to   = get_account to
+
+      attrs = {
+        account:     from,
+        destination: to,
+        memo:        options[:memo],
+        sequence:    next_sequence(from),
+        amount:      normalize_amount(amount),
+        with:        normalize_amount(options[:with]),
+        path:        options[:path].map{|p| make_asset p}
+      }
+
+      tx =  Stellar::Transaction.path_payment_strict_receive(attrs)
+
+      tx.to_envelope(from)
+    end
+
+    Contract Symbol, Symbol, Amount, PaymentOptions => Any
+    def path_payment_strict_send(from, to, amount, options={})
+      from = get_account from
+      to   = get_account to
+
+      attrs = {
+        account:     from,
+        destination: to,
+        memo:        options[:memo],
+        sequence:    next_sequence(from),
+        amount:      normalize_amount(amount),
+        with:        normalize_amount(options[:with]),
+        path:        options[:path].map{|p| make_asset p}
+      }
+
+      tx =  Stellar::Transaction.path_payment_strict_send(attrs)
 
       tx.to_envelope(from)
     end
