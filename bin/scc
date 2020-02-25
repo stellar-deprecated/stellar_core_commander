@@ -90,9 +90,9 @@ def run
   transactor = StellarCoreCommander::Transactor.new(commander)
 
   #run the recipe
-  $stdout.puts "running recipe"
+  $stderr.puts "running recipe"
   transactor.run_recipe recipe
-  $stdout.puts "recipe finished"
+  $stderr.puts "recipe finished"
 
   if $opts[:"dump-root-db"]
     file = commander.get_root_process(transactor).dump_database
